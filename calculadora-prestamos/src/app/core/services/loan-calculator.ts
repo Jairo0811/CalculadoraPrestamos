@@ -7,6 +7,10 @@ import { AmortizationRow, LoanRequest, LoanResult } from '../models/loan.model';
 export class LoanCalculatorService {
   private readonly storageKey = 'loanResult';
 
+  private get storage(): Storage | null {
+    return typeof window !== 'undefined' ? window.localStorage : null;
+  }
+
   calculate(request: LoanRequest): LoanResult {
     const monthlyRate = request.annualRate / 100 / 12;
 
@@ -36,16 +40,17 @@ export class LoanCalculatorService {
   }
 
   saveResult(result: LoanResult): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(result));
+    this.storage?.setItem(this.storageKey, JSON.stringify(result));
   }
 
   getResult(): LoanResult | null {
-    const raw = localStorage.getItem(this.storageKey);
+    const raw = this.storage?.getItem(this.storageKey);
+
     return raw ? JSON.parse(raw) as LoanResult : null;
   }
 
   clearResult(): void {
-    localStorage.removeItem(this.storageKey);
+    this.storage?.removeItem(this.storageKey);
   }
 
   private buildAmortization(
