@@ -1,4 +1,4 @@
-# 💰 LoanCalc RD - Simulador Profesional de Préstamos
+# 💰 LoanCalc RD - Simulador Profesional de Préstamos 🧮
 
 <p align="center">
   <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap&perline=5" />
