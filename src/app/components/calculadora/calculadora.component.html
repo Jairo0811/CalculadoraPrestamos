@@ -1,83 +1,86 @@
-<div class="container-center">
-    <h1>Calculadora de Prestamos</h1>
-</div>
-<br />
-<br />
-<div class="container">
-    <form>
-        <div class="form-row">
-            <div class="form-group col-md">
-                <label for="name">Nombre(s)</label>
-                <input type="name" class="form-control" id="name" placeholder="Ingresa tus(s) nombre(s)" />
-            </div>
+<div class="loan-page">
+  <div class="container">
+    <div class="container-center">
+      <h1>Calculadora de Préstamos</h1>
+      <p>Calcula cuota mensual, intereses y amortización.</p>
+    </div>
 
-            <div class="form-group col-md">
-                <label for="lastname">Apellido(s)</label>
-                <input type="lastname" class="form-control" id="lastname" placeholder="Ingresa tu(s) apellido(s) " />
-            </div>
+    <div class="card loan-card shadow-sm">
+      <div class="card-body">
+        <div *ngIf="mensajeError" class="alert alert-danger" role="alert">
+          {{ mensajeError }}
         </div>
 
-        <div class="form-row">
-            <div class="form-group col-md">
-                <label for="fechanacimiento">
-          <i class="fas fa-calendar-day"></i>
-          Fecha de Nacimiento
-        </label>
-                <input type="date" class="form-control" id="date" />
+        <form #prestamoForm="ngForm">
+          <h5>Datos personales</h5>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="nombre">Nombre(s)</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ingresa tu nombre" [(ngModel)]="nombre" required />
             </div>
 
-            <div class="form-row">
-                <div class="form-group col-md">
-                    <label for="cedula">
-            <i class="fas fa-id-card"></i>
-            Cédula
-          </label>
-                    <input type="" class="form-control" id="" placeholder="Ingresa tu cedula " />
-                </div>
+            <div class="form-group col-md-6">
+              <label for="apellido">Apellido(s)</label>
+              <input type="text" class="form-control" id="apellido" name="apellido" placeholder="Ingresa tu apellido" [(ngModel)]="apellido" required />
             </div>
-        </div>
+          </div>
 
-        <div class="form-row">
-            <div class="form-group col-md">
-                <label for="monto">
-          <i class="fas fa-dollar-sign"></i>
-          Monto
-        </label>
-                <input type="number" class="form-control" max="" min="" placeholder="Ingresar monto" />
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label for="fechaNacimiento"><i class="fas fa-calendar-day"></i> Fecha de Nacimiento</label>
+              <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento" [(ngModel)]="fechaNacimiento" />
             </div>
 
-            <div class="form-group col-md">
-                <label for="tasa">
-          <i class="fas fa-percent"></i>
-          Tasa
-        </label>
-                <input type="number" class="form-control" max="" min="" />
+            <div class="form-group col-md-6">
+              <label for="cedula"><i class="fas fa-id-card"></i> Cédula</label>
+              <input type="text" class="form-control" id="cedula" name="cedula" placeholder="Ingresa tu cédula" [(ngModel)]="cedula" required />
+            </div>
+          </div>
+
+          <h5 class="mt-4">Datos del préstamo</h5>
+
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="monto"><i class="fas fa-dollar-sign"></i> Monto</label>
+              <input type="number" class="form-control" id="monto" name="monto" min="1" placeholder="Ej: 250000" [(ngModel)]="monto" required />
             </div>
 
-            <div class="form-group col-md">
-                <label for="">
-          <i class="fas fa-clock"></i>
-          Duración
-        </label>
-                <input type="" class="form-control" />
+            <div class="form-group col-md-4">
+              <label for="tasa"><i class="fas fa-percent"></i> Tasa anual (%)</label>
+              <input type="number" class="form-control" id="tasa" name="tasa" min="1" step="0.01" placeholder="Ej: 18" [(ngModel)]="tasa" required />
             </div>
-        </div>
 
-        <div class="form-group">
-            <label for="">
-        <i class="fas fa-hand-holding-usd"></i>
-        Tipo de prestamo
-      </label>
-            <select id="" class="form-control">
-        <option value="select">Selecciona tu tipo</option>
-        <option>Personal</option>
-        <option>Hipotecario</option>
-        <option>Automotriz</option>
-      </select>
-        </div>
+            <div class="form-group col-md-4">
+              <label for="duracion"><i class="fas fa-clock"></i> Duración (meses)</label>
+              <input type="number" class="form-control" id="duracion" name="duracion" min="1" placeholder="Ej: 36" [(ngModel)]="duracion" required />
+            </div>
+          </div>
 
-        <button type="button" class="btn btn-success btn-block">
-      <i class="fas fa-calculator"> Calcular</i>
-    </button>
-    </form>
+          <div class="form-group">
+            <label for="tipoPrestamo"><i class="fas fa-hand-holding-usd"></i> Tipo de préstamo</label>
+            <select id="tipoPrestamo" name="tipoPrestamo" class="form-control" [(ngModel)]="tipoPrestamo" required>
+              <option value="">Selecciona tu tipo</option>
+              <option value="Personal">Personal</option>
+              <option value="Hipotecario">Hipotecario</option>
+              <option value="Automotriz">Automotriz</option>
+              <option value="Educativo">Educativo</option>
+              <option value="Comercial">Comercial</option>
+            </select>
+          </div>
+
+          <div class="form-row mt-4">
+            <div class="col-md-8 mb-2">
+              <button type="button" class="btn btn-success btn-block" (click)="calcularPrestamo()">
+                <i class="fas fa-calculator"></i> Calcular préstamo
+              </button>
+            </div>
+            <div class="col-md-4 mb-2">
+              <button type="button" class="btn btn-outline-secondary btn-block" (click)="limpiarFormulario()">Limpiar</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
