@@ -1,0 +1,176 @@
+@if (result) {
+  <main class="results-page">
+    <div class="print-header">
+      <div class="print-logo-box">
+        <img src="/assets/img/logo-loancalc-rd.png" alt="LoanCalc RD" />
+      </div>
+
+      <div class="print-title-box">
+        <h1>Resultado de Simulación</h1>
+        <p>Resumen del préstamo y calendario de amortización</p>
+      </div>
+    </div>
+
+    <section class="results-hero">
+      <div class="container">
+        <span class="badge rounded-pill text-bg-light hero-badge">
+          <i class="bi bi-clipboard-data"></i>
+          Resultado de simulación
+        </span>
+
+        <h1>Resumen del Préstamo</h1>
+        <p>
+          Revisa la cuota mensual, intereses generados y el calendario de amortización.
+        </p>
+      </div>
+    </section>
+
+    <section class="results-content">
+      <div class="container">
+        <div class="actions-bar no-print">
+          <button class="btn btn-light" routerLink="/calculator">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+          </button>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-light" (click)="print()">
+              <i class="bi bi-printer"></i>
+              Exportar PDF
+            </button>
+
+            <button class="btn btn-danger" (click)="clearAndGoBack()">
+              <i class="bi bi-trash3"></i>
+              Nueva simulación
+            </button>
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span>Monto solicitado</span>
+            <strong>{{ result.request.amount | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <i class="bi bi-cash-stack"></i>
+          </div>
+
+          <div class="summary-card highlight">
+            <span>Cuota mensual</span>
+            <strong>{{ result.monthlyPayment | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <i class="bi bi-credit-card"></i>
+          </div>
+
+          <div class="summary-card">
+            <span>Interés total</span>
+            <strong>{{ result.totalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <i class="bi bi-percent"></i>
+          </div>
+
+          <div class="summary-card">
+            <span>Total a pagar</span>
+            <strong>{{ result.totalPayment | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <i class="bi bi-wallet2"></i>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="panel-card">
+            <div class="panel-title">
+              <i class="bi bi-person-lines-fill"></i>
+              <h2>Datos del solicitante</h2>
+            </div>
+
+            <div class="info-list">
+              <div>
+                <span>Nombre</span>
+                <strong>{{ result.request.firstName }} {{ result.request.lastName }}</strong>
+              </div>
+
+              <div>
+                <span>Cédula</span>
+                <strong>{{ result.request.documentId }}</strong>
+              </div>
+
+              <div>
+                <span>Edad</span>
+                <strong>{{ result.age ?? 'No especificada' }}</strong>
+              </div>
+
+              <div>
+                <span>Fecha de nacimiento</span>
+                <strong>{{ result.request.birthDate || 'No especificada' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-title">
+              <i class="bi bi-bank2"></i>
+              <h2>Condiciones del préstamo</h2>
+            </div>
+
+            <div class="info-list">
+              <div>
+                <span>Tipo</span>
+                <strong>{{ result.request.loanType }}</strong>
+              </div>
+
+              <div>
+                <span>Tasa anual</span>
+                <strong>{{ result.request.annualRate | number:'1.2-2' }}%</strong>
+              </div>
+
+              <div>
+                <span>Duración</span>
+                <strong>{{ result.request.termMonths }} meses</strong>
+              </div>
+
+              <div>
+                <span>Cantidad de cuotas</span>
+                <strong>{{ result.amortization.length }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <div>
+              <span>Calendario de pagos</span>
+              <h2>Tabla de amortización</h2>
+            </div>
+
+            <i class="bi bi-table"></i>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Cuota</th>
+                  <th>Interés</th>
+                  <th>Capital</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (row of result.amortization; track row.number) {
+                  <tr>
+                    <td>{{ row.number }}</td>
+                    <td>{{ row.paymentDate }}</td>
+                    <td>{{ row.payment | currency:'DOP':'symbol':'1.2-2' }}</td>
+                    <td>{{ row.interest | currency:'DOP':'symbol':'1.2-2' }}</td>
+                    <td>{{ row.principal | currency:'DOP':'symbol':'1.2-2' }}</td>
+                    <td>{{ row.balance | currency:'DOP':'symbol':'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+}
