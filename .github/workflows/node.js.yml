@@ -3,18 +3,18 @@ name: LoanCalc RD CI
 on:
   push:
     branches: [ "master" ]
-
   pull_request:
     branches: [ "master" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
-    steps:
+    defaults:
+      run:
+        working-directory: calculadora-prestamos
 
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -23,9 +23,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: calculadora-prestamos/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build Angular
+      - name: Build Angular project
         run: npm run build
