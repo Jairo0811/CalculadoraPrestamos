@@ -1,176 +1,184 @@
 @if (result) {
-  <main class="results-page">
-    <div class="print-header">
-      <div class="print-logo-box">
-        <img src="/assets/img/logo-loancalc-rd.png" alt="LoanCalc RD" />
-      </div>
-
-      <div class="print-title-box">
-        <h1>Resultado de Simulación</h1>
-        <p>Resumen del préstamo y calendario de amortización</p>
-      </div>
+<main class="results-page" id="main-content">
+  <div class="print-header" aria-hidden="true">
+    <div class="print-logo-box">
+      <img src="/assets/img/logo-loancalc-rd.png" alt="LoanCalc RD" />
     </div>
 
-    <section class="results-hero">
-      <div class="container">
-        <span class="badge rounded-pill text-bg-light hero-badge">
-          <i class="bi bi-clipboard-data"></i>
-          Resultado de simulación
-        </span>
+    <div class="print-title-box">
+      <h1>Resultado de Simulación</h1>
+      <p>Resumen del préstamo y calendario de amortización</p>
+    </div>
+  </div>
 
-        <h1>Resumen del Préstamo</h1>
-        <p>
-          Revisa la cuota mensual, intereses generados y el calendario de amortización.
-        </p>
-      </div>
-    </section>
+  <section class="results-hero" aria-labelledby="results-title">
+    <div class="container">
+      <span class="badge rounded-pill text-bg-light hero-badge">
+        <i class="bi bi-clipboard-data" aria-hidden="true"></i>
+        Resultado de simulación
+      </span>
 
-    <section class="results-content">
-      <div class="container">
-        <div class="actions-bar no-print">
-          <button class="btn btn-light" routerLink="/calculator">
-            <i class="bi bi-arrow-left"></i>
-            Volver
+      <h1 id="results-title">Resumen del Préstamo</h1>
+      <p>Revisa la cuota mensual, intereses generados y el calendario de amortización.</p>
+    </div>
+  </section>
+
+  <section class="results-content" aria-labelledby="summary-title">
+    <div class="container">
+      <div class="actions-bar no-print" aria-label="Acciones del resultado">
+        <button class="btn btn-light" routerLink="/calculator" type="button" aria-label="Volver a la calculadora">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
+          Volver
+        </button>
+
+        <div class="d-flex gap-2 flex-wrap actions-group">
+          <button class="btn btn-primary" type="button" (click)="print()"
+            aria-label="Exportar resultado de préstamo en PDF">
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+            Exportar PDF
           </button>
 
-          <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-outline-light" (click)="print()">
-              <i class="bi bi-printer"></i>
-              Exportar PDF
-            </button>
 
-            <button class="btn btn-danger" (click)="clearAndGoBack()">
-              <i class="bi bi-trash3"></i>
-              Nueva simulación
-            </button>
-          </div>
-        </div>
 
-        <div class="summary-grid">
-          <div class="summary-card">
-            <span>Monto solicitado</span>
-            <strong>{{ result.request.amount | currency:'DOP':'symbol':'1.2-2' }}</strong>
-            <i class="bi bi-cash-stack"></i>
-          </div>
-
-          <div class="summary-card highlight">
-            <span>Cuota mensual</span>
-            <strong>{{ result.monthlyPayment | currency:'DOP':'symbol':'1.2-2' }}</strong>
-            <i class="bi bi-credit-card"></i>
-          </div>
-
-          <div class="summary-card">
-            <span>Interés total</span>
-            <strong>{{ result.totalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
-            <i class="bi bi-percent"></i>
-          </div>
-
-          <div class="summary-card">
-            <span>Total a pagar</span>
-            <strong>{{ result.totalPayment | currency:'DOP':'symbol':'1.2-2' }}</strong>
-            <i class="bi bi-wallet2"></i>
-          </div>
-        </div>
-
-        <div class="details-grid">
-          <div class="panel-card">
-            <div class="panel-title">
-              <i class="bi bi-person-lines-fill"></i>
-              <h2>Datos del solicitante</h2>
-            </div>
-
-            <div class="info-list">
-              <div>
-                <span>Nombre</span>
-                <strong>{{ result.request.firstName }} {{ result.request.lastName }}</strong>
-              </div>
-
-              <div>
-                <span>Cédula</span>
-                <strong>{{ result.request.documentId }}</strong>
-              </div>
-
-              <div>
-                <span>Edad</span>
-                <strong>{{ result.age ?? 'No especificada' }}</strong>
-              </div>
-
-              <div>
-                <span>Fecha de nacimiento</span>
-                <strong>{{ result.request.birthDate || 'No especificada' }}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-card">
-            <div class="panel-title">
-              <i class="bi bi-bank2"></i>
-              <h2>Condiciones del préstamo</h2>
-            </div>
-
-            <div class="info-list">
-              <div>
-                <span>Tipo</span>
-                <strong>{{ result.request.loanType }}</strong>
-              </div>
-
-              <div>
-                <span>Tasa anual</span>
-                <strong>{{ result.request.annualRate | number:'1.2-2' }}%</strong>
-              </div>
-
-              <div>
-                <span>Duración</span>
-                <strong>{{ result.request.termMonths }} meses</strong>
-              </div>
-
-              <div>
-                <span>Cantidad de cuotas</span>
-                <strong>{{ result.amortization.length }}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="table-card">
-          <div class="table-header">
-            <div>
-              <span>Calendario de pagos</span>
-              <h2>Tabla de amortización</h2>
-            </div>
-
-            <i class="bi bi-table"></i>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table align-middle">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Fecha</th>
-                  <th>Cuota</th>
-                  <th>Interés</th>
-                  <th>Capital</th>
-                  <th>Balance</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                @for (row of result.amortization; track row.number) {
-                  <tr>
-                    <td>{{ row.number }}</td>
-                    <td>{{ row.paymentDate }}</td>
-                    <td>{{ row.payment | currency:'DOP':'symbol':'1.2-2' }}</td>
-                    <td>{{ row.interest | currency:'DOP':'symbol':'1.2-2' }}</td>
-                    <td>{{ row.principal | currency:'DOP':'symbol':'1.2-2' }}</td>
-                    <td>{{ row.balance | currency:'DOP':'symbol':'1.2-2' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+          <button class="btn btn-danger" type="button" (click)="clearAndGoBack()"
+            aria-label="Borrar resultado actual y crear una nueva simulación">
+            <i class="bi bi-trash3" aria-hidden="true"></i>
+            Nueva simulación
+          </button>
         </div>
       </div>
-    </section>
-  </main>
+
+      <h2 id="summary-title" class="visually-hidden">Resumen financiero del préstamo</h2>
+
+      <div class="summary-grid" role="list" aria-label="Resumen financiero">
+        <article class="summary-card" role="listitem">
+          <span>Monto solicitado</span>
+          <strong>{{ result.request.amount | currency: 'DOP' : 'symbol' : '1.2-2' }}</strong>
+          <i class="bi bi-cash-stack" aria-hidden="true"></i>
+        </article>
+
+        <article class="summary-card highlight" role="listitem">
+          <span>Cuota mensual</span>
+          <strong>{{ result.monthlyPayment | currency: 'DOP' : 'symbol' : '1.2-2' }}</strong>
+          <i class="bi bi-credit-card" aria-hidden="true"></i>
+        </article>
+
+        <article class="summary-card" role="listitem">
+          <span>Interés total</span>
+          <strong>{{ result.totalInterest | currency: 'DOP' : 'symbol' : '1.2-2' }}</strong>
+          <i class="bi bi-percent" aria-hidden="true"></i>
+        </article>
+
+        <article class="summary-card" role="listitem">
+          <span>Total a pagar</span>
+          <strong>{{ result.totalPayment | currency: 'DOP' : 'symbol' : '1.2-2' }}</strong>
+          <i class="bi bi-wallet2" aria-hidden="true"></i>
+        </article>
+      </div>
+
+      <div class="details-grid">
+        <section class="panel-card" aria-labelledby="applicant-title">
+          <div class="panel-title">
+            <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+            <h2 id="applicant-title">Datos del solicitante</h2>
+          </div>
+
+          <dl class="info-list">
+            <div>
+              <dt>Nombre</dt>
+              <dd>{{ result.request.firstName }} {{ result.request.lastName }}</dd>
+            </div>
+
+            <div>
+              <dt>Cédula</dt>
+              <dd>{{ result.request.documentId }}</dd>
+            </div>
+
+            <div>
+              <dt>Edad</dt>
+              <dd>{{ result.age ?? 'No especificada' }}</dd>
+            </div>
+
+            <div>
+              <dt>Fecha de nacimiento</dt>
+              <dd>{{ result.request.birthDate || 'No especificada' }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="panel-card" aria-labelledby="conditions-title">
+          <div class="panel-title">
+            <i class="bi bi-bank2" aria-hidden="true"></i>
+            <h2 id="conditions-title">Condiciones del préstamo</h2>
+          </div>
+
+          <dl class="info-list">
+            <div>
+              <dt>Tipo</dt>
+              <dd>{{ result.request.loanType }}</dd>
+            </div>
+
+            <div>
+              <dt>Tasa anual</dt>
+              <dd>{{ result.request.annualRate | number: '1.2-2' }}%</dd>
+            </div>
+
+            <div>
+              <dt>Duración</dt>
+              <dd>{{ result.request.termMonths }} meses</dd>
+            </div>
+
+            <div>
+              <dt>Cantidad de cuotas</dt>
+              <dd>{{ result.amortization.length }}</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      <section class="table-card" aria-labelledby="amortization-title">
+        <div class="table-header">
+          <div>
+            <span>Calendario de pagos</span>
+            <h2 id="amortization-title">Tabla de amortización</h2>
+          </div>
+
+          <i class="bi bi-table" aria-hidden="true"></i>
+        </div>
+
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de amortización desplazable">
+          <table class="table align-middle">
+            <caption class="visually-hidden">
+              Calendario de pagos del préstamo con cuota, interés, capital y balance pendiente.
+            </caption>
+
+            <thead>
+              <tr>
+                <th scope="col">No.</th>
+                <th scope="col">Fecha de pago</th>
+                <th scope="col">Cuota</th>
+                <th scope="col">Interés</th>
+                <th scope="col">Capital</th>
+                <th scope="col">Balance</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (row of result.amortization; track row.number) {
+              <tr>
+                <td>{{ row.number }}</td>
+                <td>{{ row.paymentDate }}</td>
+                <td>{{ row.payment | currency: 'DOP' : 'symbol' : '1.2-2' }}</td>
+                <td>{{ row.interest | currency: 'DOP' : 'symbol' : '1.2-2' }}</td>
+                <td>{{ row.principal | currency: 'DOP' : 'symbol' : '1.2-2' }}</td>
+                <td>{{ row.balance | currency: 'DOP' : 'symbol' : '1.2-2' }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+</main>
 }

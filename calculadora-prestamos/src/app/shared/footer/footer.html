@@ -1,16 +1,16 @@
-<footer class="app-footer">
+<footer class="app-footer" role="contentinfo">
   <div class="container">
     <div class="footer-card">
-      <div class="footer-brand">
-        <h2>LoanCalc RD</h2>
+      <section class="footer-brand" aria-labelledby="footer-title">
+        <h2 id="footer-title">LoanCalc RD</h2>
         <p>
           Simulador profesional de préstamos amortizados, reconstruido con Angular moderno
           a partir de una idea nacida en 2020.
         </p>
-      </div>
+      </section>
 
-      <div class="footer-origin">
-        <span>Origen del proyecto</span>
+      <section class="footer-origin" aria-labelledby="origin-title">
+        <span id="origin-title">Origen del proyecto</span>
 
         <p>
           Este proyecto inició como un ejercicio práctico propuesto por
@@ -22,12 +22,12 @@
           la cantidad que desea prestada, seleccionar los años del préstamo y elegir el tipo:
           hipotecario, automotriz o personal.”
         </blockquote>
-      </div>
+      </section>
 
       <div class="footer-meta">
         <span>Desarrollado por</span>
         <strong>Francis Jairo Matías Rosario</strong>
-        <small>2020 – {{ currentYear }}</small>
+        <small>Angular · Proyecto personal · 2020–{{ currentYear }}</small>
       </div>
     </div>
   </div>

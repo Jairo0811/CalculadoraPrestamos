@@ -8,7 +8,7 @@
 .hero-section {
   background: linear-gradient(135deg, #0d6efd, #1e3a8a);
   color: #ffffff;
-  padding: 70px 20px 120px;
+  padding: clamp(48px, 8vw, 70px) 20px 120px;
   text-align: center;
 }
 
@@ -19,23 +19,17 @@
 
 .hero-badge {
   color: #1e3a8a !important;
-  font-weight: 700;
+  font-weight: 800;
   padding: 10px 16px;
   margin-bottom: 22px;
 }
 
-.hero-section h1 {
-  font-size: clamp(2.8rem, 6vw, 5rem);
-  font-weight: 900;
-  letter-spacing: -0.08em;
-  margin-bottom: 18px;
-}
-
 .hero-section p {
-  font-size: 1.15rem;
+  font-size: clamp(1rem, 2vw, 1.15rem);
   max-width: 700px;
   margin: auto;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.94);
+  line-height: 1.7;
 }
 
 .calculator-wrapper {
@@ -44,11 +38,11 @@
 }
 
 .loan-card {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 28px;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
-  padding: clamp(24px, 4vw, 42px);
+  padding: clamp(22px, 4vw, 42px);
 }
 
 .loan-card-header {
@@ -62,7 +56,7 @@
 .section-kicker {
   color: #0d6efd;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -71,7 +65,8 @@
   margin: 6px 0 0;
   color: #0f172a;
   font-size: clamp(1.7rem, 4vw, 2.5rem);
-  font-weight: 850;
+  font-weight: 900;
+  line-height: 1.15;
 }
 
 .card-icon {
@@ -81,16 +76,34 @@
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, #0d6efd, #1e3a8a);
-  color: white;
+  color: #ffffff;
   font-size: 1.8rem;
   box-shadow: 0 14px 30px rgba(13, 110, 253, 0.3);
+  flex: 0 0 auto;
+}
+
+.form-help,
+.field-help {
+  color: #475569;
+  line-height: 1.5;
+}
+
+.form-help {
+  margin: 0 0 20px;
+  font-weight: 600;
+}
+
+.field-help {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.86rem;
 }
 
 .form-section {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dbe3ef;
   border-radius: 22px;
   padding: 24px;
-  margin-bottom: 24px;
+  margin: 0 0 24px;
   background: #ffffff;
 }
 
@@ -98,7 +111,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
   margin-bottom: 20px;
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 900;
 }
 
 .form-section-title i {
@@ -110,18 +127,12 @@
   background: #eff6ff;
   color: #0d6efd;
   font-size: 1.25rem;
-}
-
-.form-section-title h3 {
-  margin: 0;
-  color: #0f172a;
-  font-size: 1.25rem;
-  font-weight: 800;
+  flex: 0 0 auto;
 }
 
 .form-label {
-  color: #334155;
-  font-weight: 700;
+  color: #1e293b;
+  font-weight: 800;
 }
 
 .form-control,
@@ -129,7 +140,13 @@
 .input-group-text {
   min-height: 48px;
   border-radius: 14px;
-  border-color: #cbd5e1;
+  border-color: #b6c3d4;
+  color: #0f172a;
+}
+
+.form-control::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 .input-group .form-control {
@@ -146,8 +163,13 @@
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.22rem rgba(13, 110, 253, 0.14);
+  border-color: #0b5ed7;
+  box-shadow: 0 0 0 0.22rem rgba(13, 110, 253, 0.22);
+}
+
+.alert {
+  border-radius: 16px;
+  font-weight: 700;
 }
 
 .actions {
@@ -159,14 +181,18 @@
 
 .actions .btn {
   border-radius: 16px;
-  font-weight: 800;
+  font-weight: 900;
   padding: 12px 22px;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #0d6efd, #1e3a8a);
+  background: linear-gradient(135deg, #0b5ed7, #1e3a8a);
   border: none;
   box-shadow: 0 14px 30px rgba(13, 110, 253, 0.25);
+}
+
+.btn-primary:hover {
+  filter: brightness(0.96);
 }
 
 .brand-logo {
@@ -181,13 +207,19 @@
   filter: drop-shadow(0 18px 28px rgba(15, 23, 42, 0.22));
 }
 
-.alert {
-  border-radius: 16px;
-}
-
 @media (max-width: 768px) {
   .hero-section {
-    padding-top: 50px;
+    padding-top: 44px;
+    padding-bottom: 100px;
+  }
+
+  .calculator-wrapper {
+    margin-top: -68px;
+    padding-bottom: 48px;
+  }
+
+  .loan-card {
+    border-radius: 22px;
   }
 
   .loan-card-header {
@@ -198,11 +230,45 @@
     display: none;
   }
 
+  .form-section {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .form-section-title {
+    align-items: flex-start;
+    font-size: 1.1rem;
+  }
+
   .actions {
     flex-direction: column;
   }
 
   .actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand-logo img {
+    width: 100%;
+  }
+
+  .loan-card {
+    padding: 18px;
+  }
+
+  .form-control,
+  .form-select,
+  .input-group-text {
+    min-height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .form-control,
+  .form-select {
+    transition: none !important;
   }
 }
