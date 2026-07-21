@@ -1,12 +1,13 @@
 {
-  "name": "calculadora-prestamos",
-  "version": "0.0.0",
+  "name": "loancalc-rd",
+  "version": "2.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:ci": "ng test --watch=false --include=src/app/core/**/*.spec.ts",
     "serve:ssr:calculadora-prestamos": "node dist/calculadora-prestamos/server/server.mjs"
   },
   "private": true,
