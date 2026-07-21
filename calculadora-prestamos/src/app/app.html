@@ -1,3 +1,18 @@
+<button
+  type="button"
+  class="theme-toggle no-print"
+  (click)="themeService.toggle()"
+  [attr.aria-label]="themeService.theme() === 'dark' ? 'Activar tema claro' : 'Activar tema oscuro'"
+  [attr.title]="themeService.theme() === 'dark' ? 'Tema claro' : 'Tema oscuro'"
+>
+  <i
+    class="bi"
+    [class.bi-sun-fill]="themeService.theme() === 'dark'"
+    [class.bi-moon-stars-fill]="themeService.theme() !== 'dark'"
+    aria-hidden="true"
+  ></i>
+  <span>{{ themeService.theme() === 'dark' ? 'Claro' : 'Oscuro' }}</span>
+</button>
+
 <router-outlet />
 <app-footer />
-

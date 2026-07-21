@@ -1,23 +1,41 @@
-import { Component, inject } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
-import { LoanCalculatorService } from '../../core/services/loan-calculator';
 import { LoanResult } from '../../core/models/loan.model';
+import { LoanCalculatorService } from '../../core/services/loan-calculator';
+
+interface ComparisonOption {
+  name: string;
+  annualRate: number;
+  monthlyPayment: number;
+  totalInterest: number;
+  totalPayment: number;
+}
 
 @Component({
   selector: 'app-results',
-  imports: [CurrencyPipe, DecimalPipe, RouterLink],
+  imports: [CurrencyPipe, DecimalPipe, RouterLink, FormsModule],
   templateUrl: './results.html',
-  styleUrl: './results.css',
+  styleUrl: './results.css'
 })
 export class Results {
   private readonly router = inject(Router);
   private readonly loanCalculator = inject(LoanCalculatorService);
 
   result: LoanResult | null = this.loanCalculator.getResult();
+  history: LoanResult[] = this.loanCalculator.getHistory();
+  shareFeedback = '';
+
+  bankRates = [
+    { name: 'Banco Popular', annualRate: 18.5 },
+    { name: 'Banreservas', annualRate: 17.75 },
+    { name: 'Banco BHD', annualRate: 19.25 },
+    { name: 'APAP', annualRate: 18.0 }
+  ];
 
   constructor() {
     if (!this.result) {
@@ -25,9 +43,107 @@ export class Results {
     }
   }
 
+  get comparisons(): ComparisonOption[] {
+    if (!this.result) return [];
+
+    return this.bankRates
+      .map(bank => {
+        const simulated = this.loanCalculator.calculate({
+          ...this.result!.request,
+          annualRate: Number(bank.annualRate)
+        });
+
+        return {
+          name: bank.name,
+          annualRate: Number(bank.annualRate),
+          monthlyPayment: simulated.monthlyPayment,
+          totalInterest: simulated.totalInterest,
+          totalPayment: simulated.totalPayment
+        };
+      })
+      .sort((a, b) => a.totalPayment - b.totalPayment);
+  }
+
+  get chartPoints(): string {
+    if (!this.result?.amortization.length) return '';
+    const rows = this.result.amortization;
+    const max = Math.max(...rows.map(row => row.balance), 1);
+    return rows
+      .map((row, index) => {
+        const x = (index / Math.max(rows.length - 1, 1)) * 100;
+        const y = 100 - (row.balance / max) * 100;
+        return `${x},${y}`;
+      })
+      .join(' ');
+  }
+
+  get principalPercentage(): number {
+    if (!this.result?.totalPayment) return 0;
+    return (this.result.request.amount / this.result.totalPayment) * 100;
+  }
+
+  get interestPercentage(): number {
+    return 100 - this.principalPercentage;
+  }
+
   print(): void {
-    if (!this.result) return;
-    this.generatePdf(this.result);
+    if (this.result) void this.generatePdf(this.result);
+  }
+
+  exportExcel(): void {
+    if (!this.result || typeof document === 'undefined') return;
+
+    const result = this.result;
+    const rows = result.amortization
+      .map(row => `
+        <Row>
+          <Cell><Data ss:Type="Number">${row.number}</Data></Cell>
+          <Cell><Data ss:Type="String">${this.escapeXml(row.paymentDate)}</Data></Cell>
+          <Cell><Data ss:Type="Number">${row.payment}</Data></Cell>
+          <Cell><Data ss:Type="Number">${row.interest}</Data></Cell>
+          <Cell><Data ss:Type="Number">${row.principal}</Data></Cell>
+          <Cell><Data ss:Type="Number">${row.balance}</Data></Cell>
+        </Row>`)
+      .join('');
+
+    const workbook = `<?xml version="1.0"?>
+      <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+        xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+        <Worksheet ss:Name="Resumen"><Table>
+          <Row><Cell><Data ss:Type="String">LoanCalc RD</Data></Cell></Row>
+          <Row><Cell><Data ss:Type="String">Cliente</Data></Cell><Cell><Data ss:Type="String">${this.escapeXml(this.clientName(result))}</Data></Cell></Row>
+          <Row><Cell><Data ss:Type="String">Tipo</Data></Cell><Cell><Data ss:Type="String">${this.escapeXml(result.request.loanType)}</Data></Cell></Row>
+          <Row><Cell><Data ss:Type="String">Monto</Data></Cell><Cell><Data ss:Type="Number">${result.request.amount}</Data></Cell></Row>
+          <Row><Cell><Data ss:Type="String">Cuota mensual</Data></Cell><Cell><Data ss:Type="Number">${result.monthlyPayment}</Data></Cell></Row>
+          <Row><Cell><Data ss:Type="String">Interés total</Data></Cell><Cell><Data ss:Type="Number">${result.totalInterest}</Data></Cell></Row>
+          <Row><Cell><Data ss:Type="String">Total a pagar</Data></Cell><Cell><Data ss:Type="Number">${result.totalPayment}</Data></Cell></Row>
+        </Table></Worksheet>
+        <Worksheet ss:Name="Amortización"><Table>
+          <Row><Cell><Data ss:Type="String">No.</Data></Cell><Cell><Data ss:Type="String">Fecha</Data></Cell><Cell><Data ss:Type="String">Cuota</Data></Cell><Cell><Data ss:Type="String">Interés</Data></Cell><Cell><Data ss:Type="String">Capital</Data></Cell><Cell><Data ss:Type="String">Balance</Data></Cell></Row>
+          ${rows}
+        </Table></Worksheet>
+      </Workbook>`;
+
+    this.downloadBlob(
+      new Blob([workbook], { type: 'application/vnd.ms-excel;charset=utf-8' }),
+      `LoanCalcRD-${this.dateKey()}.xls`
+    );
+  }
+
+  loadSimulation(index: number): void {
+    const item = this.loanCalculator.loadHistoryItem(index);
+    if (item) this.result = item;
+  }
+
+  removeHistoryItem(index: number): void {
+    this.loanCalculator.removeHistoryItem(index);
+    this.history = this.loanCalculator.getHistory();
+  }
+
+  clearHistory(): void {
+    if (typeof confirm !== 'undefined' && !confirm('¿Eliminar todo el historial?')) return;
+    this.loanCalculator.clearHistory();
+    this.history = [];
   }
 
   clearAndGoBack(): void {
@@ -35,314 +151,113 @@ export class Results {
     this.router.navigate(['/calculator']);
   }
 
-  private generatePdf(result: LoanResult): void {
-    const doc = new jsPDF('p', 'mm', 'a4');
-    const logo = new Image();
-
-    logo.src = '/assets/img/logo-loancalc-rd.png';
-
-    logo.onload = async () => {
-      this.drawPdfHeader(doc, logo);
-      this.drawReportInfo(doc, result);
-      this.drawSummary(doc, result);
-      this.drawClientAndLoanInfo(doc, result);
-      this.drawAmortizationTable(doc, result);
-      await this.drawQrCodeOnLastPage(doc);
-      this.drawFooterOnAllPages(doc);
-
-      doc.save(`LoanCalcRD-${this.formatDateKey(new Date())}.pdf`);
-    };
-
-    logo.onerror = async () => {
-      this.drawPdfHeader(doc);
-      this.drawReportInfo(doc, result);
-      this.drawSummary(doc, result);
-      this.drawClientAndLoanInfo(doc, result);
-      this.drawAmortizationTable(doc, result);
-      await this.drawQrCodeOnLastPage(doc);
-      this.drawFooterOnAllPages(doc);
-
-      doc.save(`LoanCalcRD-${this.formatDateKey(new Date())}.pdf`);
-    };
+  shareWhatsApp(): void {
+    this.openShare(`https://wa.me/?text=${encodeURIComponent(this.shareText())}`);
   }
 
-  private drawPdfHeader(doc: jsPDF, logo?: HTMLImageElement): void {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const primary = '#0d47a1';
-
-    if (logo) {
-      doc.addImage(logo, 'PNG', 14, 12, 55, 24);
-    } else {
-      doc.setTextColor(primary);
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('LOANCALC RD', 14, 22);
-    }
-
-    doc.setTextColor(primary);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('RESULTADO DE SIMULACIÓN', pageWidth - 14, 20, { align: 'right' });
-
-    doc.setTextColor('#475569');
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Resumen del préstamo y calendario de amortización', pageWidth - 14, 27, {
-      align: 'right',
-    });
-
-    doc.setDrawColor(primary);
-    doc.setLineWidth(0.5);
-    doc.line(14, 42, pageWidth - 14, 42);
+  shareFacebook(): void {
+    this.openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}`);
   }
 
-  private drawReportInfo(doc: jsPDF, result: LoanResult): void {
-    const reportNumber = `LC-${this.formatDateKey(new Date())}-${this.generateCode()}`;
-    const clientName = `${result.request.firstName} ${result.request.lastName}`.trim();
-
-    doc.setDrawColor('#cbd5e1');
-    doc.setFillColor('#f8fafc');
-    doc.roundedRect(14, 47, 182, 24, 2, 2, 'FD');
-
-    doc.setTextColor('#0d47a1');
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('LoanCalc RD', 18, 55);
-
-    doc.setTextColor('#64748b');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Simulador Profesional de Préstamos', 18, 61);
-
-    doc.setTextColor('#64748b');
-    doc.setFontSize(7);
-    doc.text('Reporte No.', 82, 54);
-    doc.text('Fecha', 82, 63);
-    doc.text('Cliente', 130, 54);
-    doc.text('Tipo', 130, 63);
-
-    doc.setTextColor('#0f172a');
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text(reportNumber, 102, 54, { maxWidth: 38 });
-    doc.text(new Date().toLocaleDateString('es-DO'), 102, 63);
-    doc.text(clientName || 'No especificado', 145, 54, { maxWidth: 47 });
-    doc.text(result.request.loanType || 'No especificado', 145, 63, { maxWidth: 47 });
+  shareLinkedIn(): void {
+    this.openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}`);
   }
 
-  private drawSummary(doc: jsPDF, result: LoanResult): void {
-    const items = [
-      ['Monto solicitado', this.money(result.request.amount)],
-      ['Cuota mensual', this.money(result.monthlyPayment)],
-      ['Interés total', this.money(result.totalInterest)],
-      ['Total a pagar', this.money(result.totalPayment)],
-    ];
-
-    let x = 14;
-    const y = 78;
-    const cardWidth = 43;
-    const cardHeight = 22;
-
-    items.forEach(([label, value], index) => {
-      doc.setDrawColor('#cbd5e1');
-      doc.setFillColor(index === 1 ? '#eff6ff' : '#ffffff');
-      doc.roundedRect(x, y, cardWidth, cardHeight, 2, 2, 'FD');
-
-      doc.setTextColor('#64748b');
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'bold');
-      doc.text(label.toUpperCase(), x + 4, y + 8);
-
-      doc.setTextColor(index === 1 ? '#0d47a1' : '#0f172a');
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(value, x + 4, y + 16);
-
-      x += cardWidth + 5;
-    });
+  async copySummary(): Promise<void> {
+    if (typeof navigator === 'undefined') return;
+    await navigator.clipboard.writeText(this.shareText());
+    this.shareFeedback = 'Resumen copiado al portapapeles.';
+    setTimeout(() => (this.shareFeedback = ''), 2500);
   }
 
-  private drawClientAndLoanInfo(doc: jsPDF, result: LoanResult): void {
-    autoTable(doc, {
-      startY: 110,
-      theme: 'plain',
-      styles: {
-        fontSize: 8.5,
-        cellPadding: 2,
-        overflow: 'linebreak',
-      },
-      columnStyles: {
-        0: { fontStyle: 'bold', textColor: '#64748b', cellWidth: 38 },
-        1: { halign: 'right', textColor: '#0f172a', cellWidth: 50 },
-      },
-      head: [['DATOS DEL SOLICITANTE', '']],
-      headStyles: {
-        textColor: '#0d47a1',
-        fontStyle: 'bold',
-        fontSize: 10,
-      },
-      body: [
-        ['Nombre', `${result.request.firstName} ${result.request.lastName}`.trim()],
-        ['Cédula', result.request.documentId],
-        ['Edad', result.age ? `${result.age}` : 'No especificada'],
-        [
-          'Fecha nacimiento',
-          result.request.birthDate
-            ? this.formatInputDate(result.request.birthDate)
-            : 'No especificada',
-        ],
-      ],
-      margin: { left: 14, right: 108 },
-      tableWidth: 88,
-    });
-
-    autoTable(doc, {
-      startY: 110,
-      theme: 'plain',
-      styles: {
-        fontSize: 8.5,
-        cellPadding: 2,
-        overflow: 'linebreak',
-      },
-      columnStyles: {
-        0: { fontStyle: 'bold', textColor: '#64748b', cellWidth: 38 },
-        1: { halign: 'right', textColor: '#0f172a', cellWidth: 50 },
-      },
-      head: [['CONDICIONES DEL PRÉSTAMO', '']],
-      headStyles: {
-        textColor: '#0d47a1',
-        fontStyle: 'bold',
-        fontSize: 10,
-      },
-      body: [
-        ['Tipo', result.request.loanType],
-        ['Tasa anual', `${result.request.annualRate.toFixed(2)}%`],
-        ['Duración', `${result.request.termMonths} meses`],
-        ['Cantidad cuotas', `${result.amortization.length}`],
-      ],
-      margin: { left: 108, right: 14 },
-      tableWidth: 88,
-    });
-  }
-
-  private formatInputDate(value: string): string {
+  formatInputDate(value: string): string {
     const [year, month, day] = value.split('-');
-
-    if (!year || !month || !day) {
-      return value;
-    }
-
-    return `${day}/${month}/${year}`;
+    return year && month && day ? `${day}/${month}/${year}` : value;
   }
 
-  private drawAmortizationTable(doc: jsPDF, result: LoanResult): void {
+  clientName(result: LoanResult): string {
+    return `${result.request.firstName} ${result.request.lastName}`.trim() || 'Solicitante';
+  }
+
+  private async generatePdf(result: LoanResult): Promise<void> {
+    const doc = new jsPDF('p', 'mm', 'a4');
+    doc.setTextColor('#0d47a1');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('LoanCalc RD', 14, 18);
+    doc.setFontSize(14);
+    doc.text('Resultado de simulación', 196, 18, { align: 'right' });
+    doc.setDrawColor('#0d47a1');
+    doc.line(14, 24, 196, 24);
+
     autoTable(doc, {
-      startY: 170,
-      head: [['No.', 'Fecha de pago', 'Cuota', 'Interés', 'Capital', 'Saldo pendiente']],
-      body: result.amortization.map((row) => [
+      startY: 30,
+      body: [
+        ['Cliente', this.clientName(result), 'Tipo', result.request.loanType],
+        ['Monto', this.money(result.request.amount), 'Tasa', `${result.request.annualRate.toFixed(2)}%`],
+        ['Cuota mensual', this.money(result.monthlyPayment), 'Total', this.money(result.totalPayment)]
+      ],
+      theme: 'grid',
+      styles: { fontSize: 9 }
+    });
+
+    autoTable(doc, {
+      startY: 58,
+      head: [['No.', 'Fecha', 'Cuota', 'Interés', 'Capital', 'Balance']],
+      body: result.amortization.map(row => [
         row.number,
         row.paymentDate,
         this.money(row.payment),
         this.money(row.interest),
         this.money(row.principal),
-        this.money(row.balance),
+        this.money(row.balance)
       ]),
-      styles: {
-        fontSize: 7,
-        cellPadding: 1.6,
-        lineColor: '#e2e8f0',
-        lineWidth: 0.1,
-      },
-      headStyles: {
-        fillColor: '#0d47a1',
-        textColor: '#ffffff',
-        fontStyle: 'bold',
-      },
-      alternateRowStyles: {
-        fillColor: '#f8fafc',
-      },
-      columnStyles: {
-        0: { cellWidth: 10, halign: 'center' },
-        1: { cellWidth: 25 },
-        2: { cellWidth: 34, halign: 'right' },
-        3: { cellWidth: 34, halign: 'right' },
-        4: { cellWidth: 34, halign: 'right' },
-        5: { cellWidth: 34, halign: 'right' },
-      },
-      margin: { left: 14, right: 14 },
-    });
-  }
-
-  private async drawQrCodeOnLastPage(doc: jsPDF): Promise<void> {
-    const pageCount = doc.getNumberOfPages();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-
-    const qrData = await QRCode.toDataURL('https://github.com/Jairo0811/CalculadoraPrestamos', {
-      margin: 1,
-      width: 120,
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: '#0d47a1' }
     });
 
-    doc.setPage(pageCount);
-    doc.addImage(qrData, 'PNG', pageWidth - 34, pageHeight - 43, 20, 20);
-
-    doc.setTextColor('#64748b');
-    doc.setFontSize(5.5);
-    doc.text('Escanee para visitar\nel proyecto en GitHub', pageWidth - 24, pageHeight - 21, {
-      align: 'center',
-    });
+    const qr = await QRCode.toDataURL('https://github.com/Jairo0811/CalculadoraPrestamos');
+    const lastPage = doc.getNumberOfPages();
+    doc.setPage(lastPage);
+    doc.addImage(qr, 'PNG', 174, 265, 20, 20);
+    doc.save(`LoanCalcRD-${this.dateKey()}.pdf`);
   }
 
-  private drawFooterOnAllPages(doc: jsPDF): void {
-    const pageCount = doc.getNumberOfPages();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    for (let page = 1; page <= pageCount; page++) {
-      doc.setPage(page);
-
-      doc.setDrawColor('#0d47a1');
-      doc.setLineWidth(0.3);
-      doc.line(14, pageHeight - 15, pageWidth - 14, pageHeight - 15);
-
-      doc.setTextColor('#64748b');
-      doc.setFontSize(8);
-      doc.text('LoanCalc RD · Simulador Financiero RD', 14, pageHeight - 9);
-
-      doc.text(`Página ${page} de ${pageCount}`, pageWidth / 2, pageHeight - 9, {
-        align: 'center',
-      });
-
-      doc.text(`Fecha: ${new Date().toLocaleString('es-DO')}`, pageWidth - 14, pageHeight - 9, {
-        align: 'right',
-      });
-    }
+  private shareText(): string {
+    if (!this.result) return 'LoanCalc RD';
+    return [
+      'LoanCalc RD — Simulación de préstamo',
+      `Tipo: ${this.result.request.loanType}`,
+      `Monto: ${this.money(this.result.request.amount)}`,
+      `Cuota mensual: ${this.money(this.result.monthlyPayment)}`,
+      `Interés total: ${this.money(this.result.totalInterest)}`,
+      `Total a pagar: ${this.money(this.result.totalPayment)}`
+    ].join('\n');
   }
 
-  private formatDateKey(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}${month}${day}`;
+  private openShare(url: string): void {
+    if (typeof window !== 'undefined') window.open(url, '_blank', 'noopener,noreferrer,width=760,height=620');
   }
 
-  private generateCode(): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ1234567890';
-    let code = '';
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
 
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+  private escapeXml(value: string): string {
+    return value.replace(/[<>&'\"]/g, char => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[char] ?? char);
+  }
 
-    return code;
+  private dateKey(): string {
+    const date = new Date();
+    return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
   }
 
   private money(value: number): string {
-    return new Intl.NumberFormat('es-DO', {
-      style: 'currency',
-      currency: 'DOP',
-      minimumFractionDigits: 2,
-    }).format(value);
+    return new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(value);
   }
 }
