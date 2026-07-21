@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
 import { LoanRequest } from '../../core/models/loan.model';
+import { isValidDominicanId } from '../../core/validators/dominican-id.validator';
 
 @Component({
   selector: 'app-calculator',
@@ -15,6 +16,7 @@ export class Calculator {
   private readonly loanCalculator = inject(LoanCalculatorService);
 
   errorMessage = '';
+  cedulaTouched = false;
 
   request: LoanRequest = {
     firstName: '',
@@ -29,12 +31,38 @@ export class Calculator {
 
   loanTypes = ['Personal', 'Hipotecario', 'Vehículo', 'Educativo', 'Comercial'];
 
+  get cedulaDigits(): string {
+    return this.request.documentId.replace(/\D/g, '');
+  }
+
+  get cedulaIsComplete(): boolean {
+    return this.cedulaDigits.length === 11;
+  }
+
+  get cedulaIsValid(): boolean {
+    return isValidDominicanId(this.request.documentId);
+  }
+
+  get showCedulaValidation(): boolean {
+    return this.cedulaTouched || this.cedulaIsComplete;
+  }
+
   calculate(): void {
     this.errorMessage = '';
+    this.cedulaTouched = true;
 
-    if (!this.isValidRequest()) {
-      this.errorMessage =
-        'Completa todos los campos obligatorios. La cédula debe contener 11 dígitos.';
+    if (!this.hasRequiredFields()) {
+      this.errorMessage = 'Completa todos los campos obligatorios para generar la simulación.';
+      return;
+    }
+
+    if (!this.cedulaIsComplete) {
+      this.errorMessage = 'La cédula debe contener exactamente 11 dígitos.';
+      return;
+    }
+
+    if (!this.cedulaIsValid) {
+      this.errorMessage = 'La cédula introducida no es válida. Verifica el número e inténtalo nuevamente.';
       return;
     }
 
@@ -58,20 +86,23 @@ export class Calculator {
     };
 
     this.errorMessage = '';
+    this.cedulaTouched = false;
     this.loanCalculator.clearResult();
   }
 
   formatCedulaInput(): void {
     this.request.documentId = this.formatCedula(this.request.documentId);
+    this.errorMessage = '';
   }
 
-  private isValidRequest(): boolean {
-    const cedula = this.request.documentId.replace(/\D/g, '');
+  markCedulaAsTouched(): void {
+    this.cedulaTouched = true;
+  }
 
+  private hasRequiredFields(): boolean {
     return Boolean(
       this.request.firstName.trim() &&
         this.request.lastName.trim() &&
-        cedula.length === 11 &&
         this.request.loanType &&
         this.request.amount > 0 &&
         this.request.annualRate > 0 &&

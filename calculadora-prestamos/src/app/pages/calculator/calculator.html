@@ -73,12 +73,44 @@
 
               <div class="col-md-6">
                 <label for="documentId" class="form-label">Cédula</label>
-                <input id="documentId" name="documentId" type="text" class="form-control" placeholder="000-0000000-0"
-                  maxlength="13" inputmode="numeric" autocomplete="off" aria-describedby="documentIdHelp" required
-                  [(ngModel)]="request.documentId" (input)="formatCedulaInput()" />
+                <input
+                  id="documentId"
+                  name="documentId"
+                  type="text"
+                  class="form-control"
+                  placeholder="000-0000000-0"
+                  maxlength="13"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  aria-describedby="documentIdHelp documentIdStatus"
+                  required
+                  [class.is-valid]="showCedulaValidation && cedulaIsValid"
+                  [class.is-invalid]="showCedulaValidation && !cedulaIsValid"
+                  [attr.aria-invalid]="showCedulaValidation && !cedulaIsValid"
+                  [(ngModel)]="request.documentId"
+                  (input)="formatCedulaInput()"
+                  (blur)="markCedulaAsTouched()"
+                />
+
                 <small id="documentIdHelp" class="field-help">
                   Debe contener 11 dígitos. Ejemplo: 402-0000000-0.
                 </small>
+
+                @if (showCedulaValidation && cedulaIsValid) {
+                <div id="documentIdStatus" class="valid-feedback d-block" role="status">
+                  <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                  Cédula válida.
+                </div>
+                } @else if (showCedulaValidation && !cedulaIsValid) {
+                <div id="documentIdStatus" class="invalid-feedback d-block" role="alert">
+                  <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+                  @if (!cedulaIsComplete) {
+                    La cédula debe contener exactamente 11 dígitos.
+                  } @else {
+                    El número no supera la validación de cédula dominicana.
+                  }
+                </div>
+                }
               </div>
             </div>
           </fieldset>
