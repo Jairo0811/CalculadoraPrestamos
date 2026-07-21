@@ -2,12 +2,12 @@ name: LoanCalc RD CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
-  build:
+  test-and-build:
     runs-on: ubuntu-latest
 
     defaults:
@@ -27,6 +27,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run automated tests
+        run: npm run test:ci
 
       - name: Build Angular project
         run: npm run build
