@@ -1,153 +1,162 @@
-# 💰LoanCalc RD - Simulador Profesional de Préstamos🧮
+# 💰 LoanCalc RD — Simulador Profesional de Préstamos 🧮
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap&perline=5" />
+  <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap&perline=5" alt="Tecnologías frontend" />
 </p>
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=vscode,git,github,npm&perline=4" />
+  <img src="https://skillicons.dev/icons?i=vscode,git,github,npm&perline=4" alt="Herramientas de desarrollo" />
 </p>
 
 <p align="center">
-<strong>Simulador profesional de préstamos amortizados.</strong><br>
-Desarrollado con Angular y TypeScript.
+  <strong>Simulador financiero dominicano para calcular, analizar y comparar préstamos amortizados.</strong><br>
+  Desarrollado con Angular y TypeScript.
+</p>
+
+<p align="center">
+  <img alt="Versión" src="https://img.shields.io/badge/versión-2.0.0-0d6efd" />
+  <img alt="Licencia" src="https://img.shields.io/badge/licencia-MIT-success" />
+  <img alt="Estado" src="https://img.shields.io/badge/estado-estable-success" />
 </p>
 
 ---
 
-# 📖 Descripción
+## 📖 Descripción
 
-**LoanCalc RD** es una aplicación web desarrollada para calcular préstamos amortizados mediante el método francés de amortización.
+**LoanCalc RD** es una aplicación web orientada al mercado dominicano que permite simular préstamos amortizados mediante el método francés. Calcula automáticamente la cuota mensual, los intereses, el total pagado y el calendario completo de amortización.
 
-La aplicación permite simular préstamos personales, hipotecarios y automotrices, calculando automáticamente la cuota mensual, el interés generado, el total pagado y el calendario completo de amortización.
+La versión 2.0 amplía el proyecto con herramientas de análisis, comparación, exportación, historial local, visualizaciones financieras, tema oscuro y validación real de cédula dominicana mediante checksum Luhn.
 
-Además, genera un **reporte profesional en PDF**, incluyendo el resumen financiero del préstamo, información del solicitante, código QR del proyecto y una tabla detallada de pagos.
-
-LoanCalc RD nació originalmente en el año **2020** como un ejercicio práctico propuesto por **Gerson Santos Mateo**, con el objetivo de fortalecer el aprendizaje de Angular mediante el desarrollo de una calculadora de préstamos amortizada.
-
-En **2026** el proyecto fue completamente reconstruido utilizando Angular moderno, mejorando tanto la experiencia visual como la arquitectura del sistema.
+El proyecto nació en **2020** como un ejercicio práctico propuesto por **Gerson Santos Mateo** para fortalecer el aprendizaje de Angular. En **2026** fue reconstruido y evolucionado hasta convertirse en una aplicación moderna, responsive y accesible.
 
 ---
 
-# 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías utilizadas
 
 <p align="center">
-<img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap,vscode,git,github,npm" />
+  <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap,vscode,git,github,npm" alt="Stack tecnológico" />
 </p>
 
-| Tecnología | Descripción |
-|------------|-------------|
-| 🅰️ Angular | Desarrollo del Frontend |
-| 📘 TypeScript | Lógica de negocio |
-| 🌐 HTML5 | Estructura de la interfaz |
-| 🎨 CSS3 | Diseño y estilos |
-| 🅱️ Bootstrap 5 | Componentes responsivos |
+| Tecnología | Uso principal |
+|---|---|
+| 🅰️ Angular | Desarrollo del frontend |
+| 📘 TypeScript | Lógica de negocio y tipado |
+| 🌐 HTML5 | Estructura semántica y accesible |
+| 🎨 CSS3 | Diseño responsive y tema oscuro |
+| 🅱️ Bootstrap 5 | Componentes y utilidades visuales |
 | 📄 jsPDF | Generación de reportes PDF |
-| 📑 jsPDF AutoTable | Tablas profesionales en PDF |
-| 🔳 QRCode | Generación de códigos QR |
+| 📑 jsPDF AutoTable | Tabla de amortización en PDF |
+| 🔳 QRCode | Código QR en los reportes |
+| 📊 SpreadsheetML | Exportación compatible con Excel |
+| 🧪 Vitest | Pruebas automatizadas |
 
 ---
 
-# ✨ Funcionalidades
+## ✨ Funcionalidades
 
-## 👤 Datos del solicitante
+### 👤 Datos del solicitante
 
-- ✅ Registro del nombre y apellido
-- ✅ Validación de cédula dominicana
-- ✅ Fecha de nacimiento
-- ✅ Cálculo automático de edad
+- ✅ Nombre y apellido.
+- ✅ Fecha de nacimiento y cálculo automático de edad.
+- ✅ Formato automático de cédula `000-0000000-0`.
+- ✅ Validación de cédula dominicana mediante algoritmo Luhn.
+- ✅ Mensajes de validación accesibles y específicos.
 
-## 💰 Simulación del préstamo
+### 💰 Simulación del préstamo
 
-- ✅ Préstamos personales
-- ✅ Préstamos hipotecarios
-- ✅ Préstamos automotrices
-- ✅ Monto solicitado
-- ✅ Tasa anual
-- ✅ Cantidad de meses
-- ✅ Cálculo automático de cuota mensual
-- ✅ Cálculo de intereses
-- ✅ Total a pagar
+- ✅ Préstamos personales, hipotecarios, de vehículo, educativos y comerciales.
+- ✅ Monto, tasa anual y plazo en meses.
+- ✅ Cálculo de cuota mensual.
+- ✅ Cálculo de capital, intereses y total a pagar.
+- ✅ Manejo de préstamos con tasa de interés igual a cero.
+- ✅ Calendario completo de pagos.
 
-## 📊 Tabla de amortización
+### 📊 Análisis financiero
 
-- ✅ Calendario completo de pagos
-- ✅ Capital amortizado
-- ✅ Intereses pagados
-- ✅ Balance restante
-- ✅ Fechas de pago
+- ✅ Distribución visual entre capital e intereses.
+- ✅ Gráfica de evolución del balance restante.
+- ✅ Tabla de amortización responsive.
+- ✅ Comparador de escenarios por entidad financiera.
+- ✅ Identificación automática de la opción con menor cuota.
 
-## 📄 Reporte Profesional PDF
+> Las tasas del comparador son introducidas por el usuario y no representan ofertas oficiales de entidades financieras.
 
-- ✅ Logo corporativo
-- ✅ Número de reporte único
-- ✅ Información del cliente
-- ✅ Información del préstamo
-- ✅ Resumen financiero
-- ✅ Tabla de amortización
-- ✅ Código QR del proyecto
-- ✅ Numeración automática de páginas
-- ✅ Diseño profesional listo para impresión
+### 📤 Exportación y uso compartido
+
+- ✅ Reporte profesional en PDF.
+- ✅ Logo, número de reporte y código QR.
+- ✅ Numeración automática de páginas.
+- ✅ Exportación compatible con Microsoft Excel.
+- ✅ Compartir por WhatsApp, Facebook y LinkedIn.
+- ✅ Copiar resumen financiero al portapapeles.
+
+### 🕘 Historial y personalización
+
+- ✅ Historial local de hasta 20 simulaciones.
+- ✅ Carga de simulaciones anteriores.
+- ✅ Eliminación individual o limpieza completa.
+- ✅ Tema claro y oscuro persistente.
+- ✅ Compatibilidad con la preferencia visual del sistema.
+
+### ♿ Accesibilidad y responsive
+
+- ✅ Navegación mediante teclado.
+- ✅ Foco visible.
+- ✅ Etiquetas ARIA y regiones accesibles.
+- ✅ Contraste optimizado.
+- ✅ Compatibilidad con reducción de movimiento.
+- ✅ Diseño adaptado para móviles, tabletas y escritorio.
 
 ---
 
-# 📂 Estructura del Proyecto
+## 📂 Estructura principal
 
 ```text
-LoanCalcRD
+CalculadoraPrestamos
 │
-├── src
-│   ├── app
-│   │   ├── core
-│   │   │   ├── models
-│   │   │   └── services
-│   │   │
-│   │   ├── pages
-│   │   │   ├── calculator
-│   │   │   └── results
-│   │   │
-│   │   └── shared
-│   │
-│   └── assets
-│       └── img
+├── calculadora-prestamos
+│   ├── src
+│   │   ├── app
+│   │   │   ├── core
+│   │   │   │   ├── models
+│   │   │   │   ├── services
+│   │   │   │   └── validators
+│   │   │   ├── pages
+│   │   │   │   ├── calculator
+│   │   │   │   └── results
+│   │   │   └── shared
+│   │   └── assets
+│   │       └── img
+│   ├── angular.json
+│   ├── package.json
+│   └── package-lock.json
 │
-├── public
-│
-├── angular.json
-├── package.json
+├── LICENSE
+├── THIRD_PARTY_NOTICES.md
 └── README.md
 ```
 
 ---
 
-# 🚀 Instalación
+## 🚀 Instalación y ejecución
 
-## 📥 Clonar el proyecto
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/Jairo0811/CalculadoraPrestamos.git
+cd CalculadoraPrestamos/calculadora-prestamos
 ```
 
-Entrar a la carpeta:
-
-```bash
-cd CalculadoraPrestamos
-```
-
----
-
-## 📦 Instalar dependencias
+### 2. Instalar dependencias
 
 ```bash
 npm install
 ```
 
----
-
-## ▶ Ejecutar la aplicación
+### 3. Ejecutar en desarrollo
 
 ```bash
-ng serve -o
+npm start
 ```
 
 La aplicación estará disponible en:
@@ -156,44 +165,75 @@ La aplicación estará disponible en:
 http://localhost:4200
 ```
 
+### 4. Compilar para producción
+
+```bash
+npm run build
+```
+
+### 5. Ejecutar pruebas
+
+```bash
+npm test
+```
+
+Para integración continua:
+
+```bash
+npm run test:ci
+```
+
 ---
 
-# 📊 Estado del Proyecto
+## 📊 Estado del proyecto
 
 | Módulo | Estado |
-| ------- | :----: |
+|---|:---:|
 | 👤 Datos del solicitante | ✅ |
+| 🇩🇴 Validación Luhn de cédula | ✅ |
 | 💰 Simulación de préstamos | ✅ |
 | 📊 Tabla de amortización | ✅ |
+| 📈 Visualizaciones financieras | ✅ |
+| 🏦 Comparador de escenarios | ✅ |
 | 📄 Exportación PDF | ✅ |
+| 📗 Exportación Excel | ✅ |
 | 🔳 Código QR | ✅ |
-| 🇩🇴 Validación de cédula | ✅ |
+| 📤 Compartir simulación | ✅ |
+| 🕘 Historial local | ✅ |
+| 🌙 Tema oscuro | ✅ |
+| ♿ Accesibilidad | ✅ |
 | 📱 Responsive Design | ✅ |
+| 🧪 Pruebas automatizadas | ✅ |
 
 ---
 
-# 💡 Origen del Proyecto
+## 💡 Origen del proyecto
 
-LoanCalc RD fue inspirado en el siguiente ejercicio académico propuesto en el año **2020** por el desarrollador **Gerson Santos Mateo**:
+LoanCalc RD fue inspirado en el siguiente ejercicio propuesto en 2020 por **Gerson Santos Mateo**:
 
-> *"El ejercicio después que tengas todo eso estudiado será hacer una calculadora de préstamos amortizada, donde el usuario pueda insertar la cantidad que desea prestada, seleccionar los años que tendrá el préstamo y por último seleccionar qué tipo de préstamo será: hipotecario, automotriz o personal."*
+> “El ejercicio después que tengas todo eso estudiado será hacer una calculadora de préstamos amortizada, donde el usuario pueda insertar la cantidad que desea prestada, seleccionar los años que tendrá el préstamo y por último seleccionar qué tipo de préstamo será: hipotecario, automotriz o personal.”
 
-Este proyecto representa la evolución de aquel ejercicio inicial hacia una aplicación moderna desarrollada como proyecto personal.
+Este proyecto representa la evolución de aquella idea inicial hacia una aplicación financiera moderna.
 
 ---
 
-# 👨‍💻 Autores
+## 📜 Licencia y atribuciones
+
+LoanCalc RD se distribuye bajo la **Licencia MIT**. Consulta el archivo [`LICENSE`](LICENSE).
+
+La validación de cédula mediante Luhn fue adaptada de la implementación pública de **OGTIC Cuenta Única Registry**, también licenciada bajo MIT. Consulta [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+---
+
+## 👨‍💻 Autor
 
 **Francis Jairo Matías Rosario**
 
-**Gerson Santos Mateo**
+Idea original del ejercicio: **Gerson Santos Mateo**
 
 ---
 
 <p align="center">
-
-Desarrollado con ❤️ utilizando Angular
-
-LoanCalc RD • 2020 — Presente
-
+  Desarrollado con ❤️ utilizando Angular<br>
+  LoanCalc RD · 2020 — Presente
 </p>
