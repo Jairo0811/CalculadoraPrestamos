@@ -1,6 +1,14 @@
 # 💰 LoanCalc RD — Simulador Profesional de Préstamos 🧮
 
 <p align="center">
+  <img
+    src="calculadora-prestamos/public/assets/img/logo-loancalc-rd.png"
+    alt="Logo de LoanCalc RD"
+    width="320"
+  />
+</p>
+
+<p align="center">
   <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap&perline=5" alt="Tecnologías frontend" />
 </p>
 
