@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { AmortizationRow, LoanRequest, LoanResult } from '../models/loan.model';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class LoanCalculatorService {
   private readonly storageKey = 'loanResult';
+  private readonly historyKey = 'loanHistory';
 
   private get storage(): Storage | null {
     return typeof window !== 'undefined' ? window.localStorage : null;
@@ -13,11 +12,10 @@ export class LoanCalculatorService {
 
   calculate(request: LoanRequest): LoanResult {
     const monthlyRate = request.annualRate / 100 / 12;
-
-    const monthlyPayment =
-      request.amount *
-      (monthlyRate * Math.pow(1 + monthlyRate, request.termMonths)) /
-      (Math.pow(1 + monthlyRate, request.termMonths) - 1);
+    const monthlyPayment = monthlyRate === 0
+      ? request.amount / request.termMonths
+      : request.amount * (monthlyRate * Math.pow(1 + monthlyRate, request.termMonths)) /
+        (Math.pow(1 + monthlyRate, request.termMonths) - 1);
 
     const amortization = this.buildAmortization(
       request.amount,
@@ -27,30 +25,80 @@ export class LoanCalculatorService {
     );
 
     const totalPayment = monthlyPayment * request.termMonths;
-    const totalInterest = totalPayment - request.amount;
 
     return {
-      request,
+      request: { ...request },
       age: this.calculateAge(request.birthDate),
       monthlyPayment,
       totalPayment,
-      totalInterest,
+      totalInterest: totalPayment - request.amount,
       amortization
     };
   }
 
   saveResult(result: LoanResult): void {
+    this.setCurrentResult(result);
+    this.addToHistory(result);
+  }
+
+  setCurrentResult(result: LoanResult): void {
     this.storage?.setItem(this.storageKey, JSON.stringify(result));
   }
 
   getResult(): LoanResult | null {
-    const raw = this.storage?.getItem(this.storageKey);
-
-    return raw ? JSON.parse(raw) as LoanResult : null;
+    return this.read<LoanResult>(this.storageKey);
   }
 
   clearResult(): void {
     this.storage?.removeItem(this.storageKey);
+  }
+
+  getHistory(): LoanResult[] {
+    return this.read<LoanResult[]>(this.historyKey) ?? [];
+  }
+
+  loadHistoryItem(index: number): LoanResult | null {
+    const item = this.getHistory()[index] ?? null;
+    if (item) this.setCurrentResult(item);
+    return item;
+  }
+
+  removeHistoryItem(index: number): void {
+    const history = this.getHistory().filter((_, itemIndex) => itemIndex !== index);
+    this.storage?.setItem(this.historyKey, JSON.stringify(history));
+  }
+
+  clearHistory(): void {
+    this.storage?.removeItem(this.historyKey);
+  }
+
+  private addToHistory(result: LoanResult): void {
+    const fingerprint = this.fingerprint(result);
+    const history = this.getHistory().filter(item => this.fingerprint(item) !== fingerprint);
+    this.storage?.setItem(this.historyKey, JSON.stringify([result, ...history].slice(0, 20)));
+  }
+
+  private fingerprint(result: LoanResult): string {
+    const request = result.request;
+    return [
+      request.documentId,
+      request.amount,
+      request.annualRate,
+      request.termMonths,
+      request.loanType
+    ].join('|');
+  }
+
+  private read<T>(key: string): T | null {
+    const raw = this.storage?.getItem(key);
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      this.storage?.removeItem(key);
+      return null;
+    }
   }
 
   private buildAmortization(
@@ -65,22 +113,17 @@ export class LoanCalculatorService {
 
     for (let i = 1; i <= termMonths; i++) {
       const interest = balance * monthlyRate;
-      const principal = monthlyPayment - interest;
-      balance -= principal;
-
-      const paymentDate = new Date(
-        today.getFullYear(),
-        today.getMonth() + i,
-        today.getDate()
-      );
+      const principal = Math.min(monthlyPayment - interest, balance);
+      balance = Math.max(balance - principal, 0);
+      const paymentDate = new Date(today.getFullYear(), today.getMonth() + i, today.getDate());
 
       rows.push({
         number: i,
         paymentDate: paymentDate.toLocaleDateString('es-DO'),
-        payment: monthlyPayment,
+        payment: i === termMonths ? principal + interest : monthlyPayment,
         interest,
         principal,
-        balance: balance > 0 ? balance : 0
+        balance
       });
     }
 
@@ -89,17 +132,14 @@ export class LoanCalculatorService {
 
   private calculateAge(birthDate: string): number | null {
     if (!birthDate) return null;
+    const [year, month, day] = birthDate.split('-').map(Number);
+    if (!year || !month || !day) return null;
 
-    const birth = new Date(birthDate);
     const today = new Date();
-
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    let age = today.getFullYear() - year;
+    if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) {
       age--;
     }
-
     return age;
   }
 }
