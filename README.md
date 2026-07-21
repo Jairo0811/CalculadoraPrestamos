@@ -1,4 +1,4 @@
-# 💰 LoanCalc RD — Simulador Profesional de Préstamos 🧮
+
 
 <p align="center">
   <img
