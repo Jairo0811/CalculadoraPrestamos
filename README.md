@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img alt="Versión" src="https://img.shields.io/badge/versión-2.0.0-0d6efd" />
+ <img alt="Versión" src="https://img.shields.io/badge/versión-2.1.0-0d6efd" />
   <img alt="Licencia" src="https://img.shields.io/badge/licencia-MIT-success" />
   <img alt="Estado" src="https://img.shields.io/badge/estado-estable-success" />
 </p>
