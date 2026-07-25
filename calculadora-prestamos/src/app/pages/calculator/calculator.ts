@@ -17,6 +17,7 @@ export class Calculator {
 
   errorMessage = '';
   cedulaTouched = false;
+  amountDisplay = '';
 
   request: LoanRequest = {
     firstName: '',
@@ -49,6 +50,7 @@ export class Calculator {
 
   calculate(): void {
     this.errorMessage = '';
+    this.syncAmountFromDisplay();
     this.cedulaTouched = true;
 
     if (!this.hasRequiredFields()) {
@@ -85,6 +87,7 @@ export class Calculator {
       loanType: ''
     };
 
+    this.amountDisplay = '';
     this.errorMessage = '';
     this.cedulaTouched = false;
     this.loanCalculator.clearResult();
@@ -97,6 +100,62 @@ export class Calculator {
 
   markCedulaAsTouched(): void {
     this.cedulaTouched = true;
+  }
+
+  handleAmountInput(value: string): void {
+    const normalized = value
+      .replace(/,/g, '')
+      .replace(/[^\d.]/g, '');
+
+    const firstDecimalPoint = normalized.indexOf('.');
+    const integerPart = (
+      firstDecimalPoint >= 0
+        ? normalized.slice(0, firstDecimalPoint)
+        : normalized
+    ).replace(/^0+(?=\d)/, '');
+
+    const decimalPart =
+      firstDecimalPoint >= 0
+        ? normalized
+            .slice(firstDecimalPoint + 1)
+            .replace(/\./g, '')
+            .slice(0, 2)
+        : null;
+
+    const numericInteger = Number(integerPart || '0');
+    const formattedInteger = Number.isFinite(numericInteger)
+      ? new Intl.NumberFormat('en-US', {
+          maximumFractionDigits: 0
+        }).format(numericInteger)
+      : '';
+
+    this.amountDisplay =
+      decimalPart !== null
+        ? `${formattedInteger}.${decimalPart}`
+        : formattedInteger;
+
+    this.syncAmountFromDisplay();
+    this.errorMessage = '';
+  }
+
+  formatAmountOnBlur(): void {
+    this.syncAmountFromDisplay();
+
+    this.amountDisplay =
+      this.request.amount > 0
+        ? new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+          }).format(this.request.amount)
+        : '';
+  }
+
+  private syncAmountFromDisplay(): void {
+    const amount = Number(
+      this.amountDisplay.replace(/,/g, '').trim()
+    );
+
+    this.request.amount = Number.isFinite(amount) ? amount : 0;
   }
 
   private hasRequiredFields(): boolean {

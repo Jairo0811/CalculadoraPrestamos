@@ -272,3 +272,8 @@
     transition: none !important;
   }
 }
+
+.amount-input {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}

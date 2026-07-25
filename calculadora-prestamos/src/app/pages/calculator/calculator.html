@@ -136,8 +136,20 @@
                 <label for="amount" class="form-label">Monto solicitado</label>
                 <div class="input-group">
                   <span class="input-group-text" aria-hidden="true">RD$</span>
-                  <input id="amount" name="amount" type="number" min="1" class="form-control" placeholder="250000"
-                    aria-describedby="amountHelp" required [(ngModel)]="request.amount" />
+                  <input
+                    id="amount"
+                    name="amount"
+                    type="text"
+                    class="form-control amount-input"
+                    placeholder="250,000.00"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    aria-describedby="amountHelp"
+                    required
+                    [ngModel]="amountDisplay"
+                    (ngModelChange)="handleAmountInput($event)"
+                    (blur)="formatAmountOnBlur()"
+                  />
                 </div>
                 <small id="amountHelp" class="field-help">
                   Introduce el monto total que deseas solicitar.

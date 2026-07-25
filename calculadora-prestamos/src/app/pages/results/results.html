@@ -37,6 +37,52 @@
         <article class="summary-card"><span>Total a pagar</span><strong>{{ result.totalPayment | currency:'DOP':'symbol':'1.2-2' }}</strong><i class="bi bi-wallet2" aria-hidden="true"></i></article>
       </div>
 
+      <section class="financial-dashboard" aria-labelledby="financial-dashboard-title">
+        <div class="dashboard-heading">
+          <div>
+            <span>Indicadores ejecutivos</span>
+            <h2 id="financial-dashboard-title">Dashboard financiero</h2>
+            <p>Lectura rápida del costo y la eficiencia del préstamo.</p>
+          </div>
+
+        <div class="loan-score {{ loanScoreClass }}">
+            <span>LoanCalc Score</span>
+            <strong>{{ loanScore }}</strong>
+            <small>{{ loanScoreDescription }}</small>
+          </div>
+        </div>
+
+        <div class="dashboard-kpi-grid">
+          <article class="dashboard-kpi">
+            <i class="bi bi-cash-coin" aria-hidden="true"></i>
+            <span>Costo financiero</span>
+            <strong>{{ result.totalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <small>Intereses totales</small>
+          </article>
+
+          <article class="dashboard-kpi">
+            <i class="bi bi-percent" aria-hidden="true"></i>
+            <span>Interés sobre capital</span>
+            <strong>{{ interestOverCapitalPercentage | number:'1.0-1' }}%</strong>
+            <small>Relación interés/capital</small>
+          </article>
+
+          <article class="dashboard-kpi">
+            <i class="bi bi-calendar-month" aria-hidden="true"></i>
+            <span>Costo mensual promedio</span>
+            <strong>{{ averageMonthlyInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <small>Interés promedio por mes</small>
+          </article>
+
+          <article class="dashboard-kpi">
+            <i class="bi bi-calendar2-check" aria-hidden="true"></i>
+            <span>Costo anual promedio</span>
+            <strong>{{ averageAnnualInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <small>Referencia anual</small>
+          </article>
+        </div>
+      </section>
+
       <div class="analytics-grid">
         <section class="feature-card" aria-labelledby="composition-title">
           <div class="feature-header"><div><span>Análisis</span><h2 id="composition-title">Capital vs. interés</h2></div><i class="bi bi-pie-chart" aria-hidden="true"></i></div>
@@ -75,9 +121,520 @@
         </div>
       </section>
 
+      <section
+  class="feature-card extra-payment-card no-print"
+  aria-labelledby="extra-payment-title"
+>
+  <div class="feature-header">
+    <div>
+      <span>Planificación financiera</span>
+
+      <h2 id="extra-payment-title">
+        Abonos extraordinarios al capital
+      </h2>
+
+      <p>
+        Descubre cuánto puedes ahorrar realizando un abono
+        adicional al préstamo.
+      </p>
+    </div>
+
+    <i
+      class="bi bi-piggy-bank"
+      aria-hidden="true"
+    ></i>
+  </div>
+
+  <form
+    class="extra-payment-form"
+    (ngSubmit)="calculateExtraPayment()"
+  >
+    <label>
+      <span>Monto del abono</span>
+
+      <div class="input-group">
+        <span class="input-group-text">RD$</span>
+
+        <input
+          class="form-control"
+          type="number"
+          name="extraPaymentAmount"
+          min="0.01"
+          step="0.01"
+          placeholder="Ej.: 50000"
+          [(ngModel)]="extraPaymentAmount"
+          required
+        />
+      </div>
+    </label>
+
+    <label>
+      <span>Aplicar desde el mes</span>
+
+      <input
+        class="form-control"
+        type="number"
+        name="extraPaymentStartMonth"
+        min="1"
+        [max]="result.request.termMonths"
+        step="1"
+        [(ngModel)]="extraPaymentStartMonth"
+        required
+      />
+    </label>
+
+    <label>
+      <span>Frecuencia</span>
+
+      <select
+        class="form-select"
+        name="extraPaymentFrequency"
+        [(ngModel)]="extraPaymentFrequency"
+      >
+        <option value="single">
+          Abono único
+        </option>
+
+        <option value="monthly">
+          Abono mensual
+        </option>
+      </select>
+    </label>
+
+    <label>
+      <span>Objetivo del abono</span>
+
+      <select
+        class="form-select"
+        name="extraPaymentStrategy"
+        [(ngModel)]="extraPaymentStrategy"
+      >
+        <option value="reduce-term">
+          Reducir el plazo
+        </option>
+
+        <option value="reduce-payment">
+          Reducir la cuota
+        </option>
+      </select>
+    </label>
+
+    <div class="extra-payment-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+      >
+        <i
+          class="bi bi-calculator"
+          aria-hidden="true"
+        ></i>
+
+        Calcular ahorro
+      </button>
+
+      @if (extraPaymentResult) {
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="clearExtraPaymentScenario()"
+        >
+          Limpiar escenario
+        </button>
+      }
+    </div>
+  </form>
+
+  @if (extraPaymentError) {
+    <div
+      class="alert alert-danger mt-3 mb-0"
+      role="alert"
+    >
+      <i
+        class="bi bi-exclamation-triangle"
+        aria-hidden="true"
+      ></i>
+
+      {{ extraPaymentError }}
+    </div>
+  }
+
+  @if (extraPaymentResult; as extraResult) {
+    <div
+      class="extra-payment-results"
+      aria-live="polite"
+    >
+
+    <div class="extra-payment-export-actions">
+  <button
+    type="button"
+    class="btn btn-danger"
+    (click)="exportExtraPaymentPdf()"
+  >
+    <i
+      class="bi bi-file-earmark-pdf"
+      aria-hidden="true"
+    ></i>
+
+    Exportar escenario a PDF
+  </button>
+
+  <button
+    type="button"
+    class="btn btn-success"
+    (click)="exportExtraPaymentExcel()"
+  >
+    <i
+      class="bi bi-file-earmark-spreadsheet"
+      aria-hidden="true"
+    ></i>
+
+    Exportar escenario a Excel
+  </button>
+</div>
+      <div class="extra-payment-summary">
+        <article>
+          <span>Intereses ahorrados</span>
+
+          <strong>
+            {{
+              extraResult.interestSaved
+                | currency:'DOP':'symbol':'1.2-2'
+            }}
+          </strong>
+
+          <i
+            class="bi bi-graph-down"
+            aria-hidden="true"
+          ></i>
+        </article>
+
+        <article>
+          <span>Meses ahorrados</span>
+
+          <strong>
+            {{ extraResult.monthsSaved }}
+          </strong>
+
+          <i
+            class="bi bi-calendar-check"
+            aria-hidden="true"
+          ></i>
+        </article>
+
+        <article>
+          <span>Nuevo interés total</span>
+
+          <strong>
+            {{
+              extraResult.newTotalInterest
+                | currency:'DOP':'symbol':'1.2-2'
+            }}
+          </strong>
+
+          <i
+            class="bi bi-percent"
+            aria-hidden="true"
+          ></i>
+        </article>
+
+        <article>
+          <span>Nuevo plazo</span>
+
+          <strong>
+            {{ extraResult.newTermMonths }} meses
+          </strong>
+
+          <i
+            class="bi bi-hourglass-split"
+            aria-hidden="true"
+          ></i>
+        </article>
+      </div>
+
+      <section class="extra-payment-impact" aria-labelledby="extra-payment-impact-title">
+        <div class="impact-heading">
+          <div>
+            <span>Antes vs. después</span>
+            <h3 id="extra-payment-impact-title">Impacto financiero del abono</h3>
+          </div>
+
+          <div class="impact-score">
+            <strong>{{ extraPaymentInterestReductionPercentage | number:'1.0-1' }}%</strong>
+            <span>menos intereses</span>
+          </div>
+        </div>
+
+        <div class="impact-grid">
+          <article class="impact-card">
+            <div class="impact-card-header">
+              <span>Interés total</span>
+              <i class="bi bi-percent" aria-hidden="true"></i>
+            </div>
+
+            <div class="impact-values">
+              <div>
+                <small>Original</small>
+                <strong>{{ extraResult.originalTotalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+              </div>
+
+              <div class="impact-new-value">
+                <small>Con abonos</small>
+                <strong>{{ extraResult.newTotalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+              </div>
+            </div>
+
+            <div class="comparison-bars" aria-label="Comparación visual de intereses">
+              <div class="comparison-bar-row">
+                <span>Original</span>
+                <div class="comparison-track">
+                  <div class="comparison-fill original" style="width: 100%"></div>
+                </div>
+              </div>
+
+              <div class="comparison-bar-row">
+                <span>Nuevo</span>
+                <div class="comparison-track">
+                  <div
+                    class="comparison-fill improved"
+                    [style.width.%]="extraPaymentNewInterestPercentage"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <p class="impact-saving">
+              Ahorras
+              <strong>{{ extraResult.interestSaved | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            </p>
+          </article>
+
+          <article class="impact-card">
+            <div class="impact-card-header">
+              <span>Duración del préstamo</span>
+              <i class="bi bi-calendar-range" aria-hidden="true"></i>
+            </div>
+
+            <div class="impact-values">
+              <div>
+                <small>Original</small>
+                <strong>{{ extraResult.originalTermMonths }} meses</strong>
+              </div>
+
+              <div class="impact-new-value">
+                <small>Con abonos</small>
+                <strong>{{ extraResult.newTermMonths }} meses</strong>
+              </div>
+            </div>
+
+            <div class="comparison-bars" aria-label="Comparación visual del plazo">
+              <div class="comparison-bar-row">
+                <span>Original</span>
+                <div class="comparison-track">
+                  <div class="comparison-fill original" style="width: 100%"></div>
+                </div>
+              </div>
+
+              <div class="comparison-bar-row">
+                <span>Nuevo</span>
+                <div class="comparison-track">
+                  <div
+                    class="comparison-fill improved"
+                    [style.width.%]="extraPaymentNewTermPercentage"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <p class="impact-saving">
+              Reduces
+              <strong>{{ extraResult.monthsSaved }} meses</strong>
+              ({{ extraPaymentTermReductionPercentage | number:'1.0-1' }}%)
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <div class="extra-payment-comparison">
+        <div>
+          <span>Plazo original</span>
+          <strong>
+            {{ extraResult.originalTermMonths }} meses
+          </strong>
+        </div>
+
+        <i
+          class="bi bi-arrow-right"
+          aria-hidden="true"
+        ></i>
+
+        <div>
+          <span>Nuevo plazo</span>
+          <strong>
+            {{ extraResult.newTermMonths }} meses
+          </strong>
+        </div>
+      </div>
+
+      @if (extraPaymentStrategy === 'reduce-payment') {
+        <div class="extra-payment-comparison">
+          <div>
+            <span>Cuota original</span>
+
+            <strong>
+              {{
+                extraResult.originalResult.monthlyPayment
+                  | currency:'DOP':'symbol':'1.2-2'
+              }}
+            </strong>
+          </div>
+
+          <i
+            class="bi bi-arrow-right"
+            aria-hidden="true"
+          ></i>
+
+          <div>
+            <span>Cuota recalculada</span>
+
+            <strong>
+              {{
+                extraResult.finalMonthlyPayment
+                  | currency:'DOP':'symbol':'1.2-2'
+              }}
+            </strong>
+          </div>
+        </div>
+      }
+
+      <div class="table-responsive extra-payment-table">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Fecha</th>
+              <th>Cuota regular</th>
+              <th>Abono extra</th>
+              <th>Interés</th>
+              <th>Capital total</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              row of extraResult.amortization;
+              track row.number
+            ) {
+              <tr
+                [class.extra-payment-row]="row.extraPayment > 0"
+              >
+                <td>{{ row.number }}</td>
+
+                <td>{{ row.paymentDate }}</td>
+
+                <td>
+                  {{
+                    row.regularPayment
+                      | currency:'DOP':'symbol':'1.2-2'
+                  }}
+                </td>
+
+                <td>
+                  @if (row.extraPayment > 0) {
+                    <div class="extra-payment-badge">
+                      <span>Abono extra</span>
+                      <strong>
+                        {{
+                          row.extraPayment
+                            | currency:'DOP':'symbol':'1.2-2'
+                        }}
+                      </strong>
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+
+                <td>
+                  {{
+                    row.interest
+                      | currency:'DOP':'symbol':'1.2-2'
+                  }}
+                </td>
+
+                <td>
+                  {{
+                    row.principal
+                      | currency:'DOP':'symbol':'1.2-2'
+                  }}
+                </td>
+
+                <td>
+                  {{
+                    row.balance
+                      | currency:'DOP':'symbol':'1.2-2'
+                  }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</section>
+
       <div class="details-grid">
+        
         <section class="panel-card"><div class="panel-title"><h2>Datos del solicitante</h2><i class="bi bi-person-lines-fill" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Nombre</dt><dd>{{ clientName(result) }}</dd></div><div><dt>Cédula</dt><dd>{{ result.request.documentId }}</dd></div><div><dt>Edad</dt><dd>{{ result.age ?? 'No especificada' }}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{{ result.request.birthDate ? formatInputDate(result.request.birthDate) : 'No especificada' }}</dd></div></dl></section>
         <section class="panel-card"><div class="panel-title"><h2>Condiciones del préstamo</h2><i class="bi bi-bank2" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Tipo</dt><dd>{{ result.request.loanType }}</dd></div><div><dt>Tasa anual</dt><dd>{{ result.request.annualRate | number:'1.2-2' }}%</dd></div><div><dt>Duración</dt><dd>{{ result.request.termMonths }} meses</dd></div><div><dt>Cuotas</dt><dd>{{ result.amortization.length }}</dd></div></dl></section>
+      </div>
+
+      <div class="insights-grid no-print">
+        <section class="feature-card recommendations-card" aria-labelledby="recommendations-title">
+          <div class="feature-header">
+            <div>
+              <span>Análisis automático</span>
+              <h2 id="recommendations-title">Recomendaciones financieras</h2>
+              <p>Sugerencias generadas a partir de la simulación actual.</p>
+            </div>
+            <i class="bi bi-lightbulb" aria-hidden="true"></i>
+          </div>
+
+          <ul class="recommendations-list">
+            @for (recommendation of financialRecommendations; track recommendation) {
+              <li>
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                <span>{{ recommendation }}</span>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section class="feature-card timeline-card" aria-labelledby="timeline-title">
+          <div class="feature-header">
+            <div>
+              <span>Proyección</span>
+              <h2 id="timeline-title">Línea de tiempo</h2>
+              <p>Hitos principales del préstamo simulado.</p>
+            </div>
+            <i class="bi bi-signpost-split" aria-hidden="true"></i>
+          </div>
+
+          <ol class="loan-timeline">
+            @for (item of loanTimelineItems; track item.title) {
+              <li [class.timeline-accent]="item.accent">
+                <span class="timeline-icon">
+                  <i class="bi {{ item.icon }}" aria-hidden="true"></i>
+                </span>
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.detail }}</span>
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
       </div>
 
       <section class="feature-card share-card no-print" aria-labelledby="share-title">
