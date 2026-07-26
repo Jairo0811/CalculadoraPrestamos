@@ -1,5 +1,3 @@
-
-
 <p align="center">
   <img
     src="calculadora-prestamos/public/assets/img/logo-loancalc-rd.png"
@@ -22,9 +20,10 @@
 </p>
 
 <p align="center">
- <img alt="Versión" src="https://img.shields.io/badge/versión-2.1.0-0d6efd" />
+  <img alt="Versión" src="https://img.shields.io/badge/versión-2.1.0-0d6efd" />
   <img alt="Licencia" src="https://img.shields.io/badge/licencia-MIT-success" />
   <img alt="Estado" src="https://img.shields.io/badge/estado-estable-success" />
+  <img alt="Pruebas" src="https://img.shields.io/badge/pruebas-22%20aprobadas-success" />
 </p>
 
 ---
@@ -33,9 +32,29 @@
 
 **LoanCalc RD** es una aplicación web orientada al mercado dominicano que permite simular préstamos amortizados mediante el método francés. Calcula automáticamente la cuota mensual, los intereses, el total pagado y el calendario completo de amortización.
 
-La versión 2.0 amplía el proyecto con herramientas de análisis, comparación, exportación, historial local, visualizaciones financieras, tema oscuro y validación real de cédula dominicana mediante checksum Luhn.
+La versión **2.1.0** incorpora simulación de abonos extraordinarios, estrategias para reducir el plazo o recalcular la cuota, comparación antes y después, indicadores de ahorro, dashboard financiero, LoanCalc Score, recomendaciones automáticas y exportaciones especializadas a PDF y Excel.
 
 El proyecto nació en **2020** como un ejercicio práctico propuesto por **Gerson Santos Mateo** para fortalecer el aprendizaje de Angular. En **2026** fue reconstruido y evolucionado hasta convertirse en una aplicación moderna, responsive y accesible.
+
+---
+
+## 🆕 Novedades de la versión 2.1.0
+
+- Simulación de abonos extraordinarios únicos y mensuales.
+- Reducción del plazo o recálculo de la cuota restante.
+- Cálculo de intereses y meses ahorrados.
+- Nueva tabla de amortización con abonos extraordinarios.
+- Comparación visual entre el escenario original y el nuevo escenario.
+- Dashboard financiero con indicadores ejecutivos.
+- LoanCalc Score para evaluar el costo financiero.
+- Recomendaciones financieras automáticas.
+- Línea de tiempo estimada del préstamo.
+- Exportación del escenario de abonos a PDF y Excel.
+- Formato automático de montos con separadores de miles.
+- Soporte para préstamos con tasa de interés igual a cero.
+- Cobertura ampliada a **22 pruebas unitarias**.
+
+Consulta el historial completo en [`CHANGELOG.md`](CHANGELOG.md).
 
 ---
 
@@ -50,13 +69,14 @@ El proyecto nació en **2020** como un ejercicio práctico propuesto por **Gerso
 | 🅰️ Angular | Desarrollo del frontend |
 | 📘 TypeScript | Lógica de negocio y tipado |
 | 🌐 HTML5 | Estructura semántica y accesible |
-| 🎨 CSS3 | Diseño responsive y tema oscuro |
+| 🎨 CSS3 | Diseño responsive, dashboard y tema oscuro |
 | 🅱️ Bootstrap 5 | Componentes y utilidades visuales |
 | 📄 jsPDF | Generación de reportes PDF |
-| 📑 jsPDF AutoTable | Tabla de amortización en PDF |
+| 📑 jsPDF AutoTable | Tablas financieras en PDF |
 | 🔳 QRCode | Código QR en los reportes |
 | 📊 SpreadsheetML | Exportación compatible con Excel |
 | 🧪 Vitest | Pruebas automatizadas |
+| ⚙️ GitHub Actions | Integración continua |
 
 ---
 
@@ -74,10 +94,23 @@ El proyecto nació en **2020** como un ejercicio práctico propuesto por **Gerso
 
 - ✅ Préstamos personales, hipotecarios, de vehículo, educativos y comerciales.
 - ✅ Monto, tasa anual y plazo en meses.
+- ✅ Formato automático del monto con separadores de miles.
 - ✅ Cálculo de cuota mensual.
 - ✅ Cálculo de capital, intereses y total a pagar.
 - ✅ Manejo de préstamos con tasa de interés igual a cero.
 - ✅ Calendario completo de pagos.
+
+### 💸 Abonos extraordinarios
+
+- ✅ Abono único en un mes específico.
+- ✅ Abonos mensuales recurrentes.
+- ✅ Estrategia para reducir el plazo.
+- ✅ Estrategia para recalcular la cuota restante.
+- ✅ Cálculo de intereses ahorrados.
+- ✅ Cálculo de meses ahorrados.
+- ✅ Total abonado extraordinariamente.
+- ✅ Nueva tabla de amortización especializada.
+- ✅ Identificación visual de los meses con abonos.
 
 ### 📊 Análisis financiero
 
@@ -86,15 +119,25 @@ El proyecto nació en **2020** como un ejercicio práctico propuesto por **Gerso
 - ✅ Tabla de amortización responsive.
 - ✅ Comparador de escenarios por entidad financiera.
 - ✅ Identificación automática de la opción con menor cuota.
+- ✅ Dashboard financiero con indicadores ejecutivos.
+- ✅ LoanCalc Score.
+- ✅ Relación entre interés y capital.
+- ✅ Costo financiero mensual y anual promedio.
+- ✅ Comparación visual antes y después.
+- ✅ Porcentaje de ahorro en intereses y plazo.
+- ✅ Recomendaciones financieras automáticas.
+- ✅ Línea de tiempo estimada del préstamo.
 
 > Las tasas del comparador son introducidas por el usuario y no representan ofertas oficiales de entidades financieras.
 
 ### 📤 Exportación y uso compartido
 
-- ✅ Reporte profesional en PDF.
+- ✅ Reporte profesional del préstamo en PDF.
+- ✅ Reporte específico de abonos extraordinarios en PDF.
 - ✅ Logo, número de reporte y código QR.
 - ✅ Numeración automática de páginas.
 - ✅ Exportación compatible con Microsoft Excel.
+- ✅ Libro Excel de abonos con hojas de resumen, comparación y amortización.
 - ✅ Compartir por WhatsApp, Facebook y LinkedIn.
 - ✅ Copiar resumen financiero al portapapeles.
 
@@ -139,10 +182,14 @@ CalculadoraPrestamos
 │   ├── package.json
 │   └── package-lock.json
 │
+├── legacy
+├── CHANGELOG.md
 ├── LICENSE
 ├── THIRD_PARTY_NOTICES.md
 └── README.md
 ```
+
+La carpeta `legacy` conserva la implementación original del proyecto para fines históricos y comparativos.
 
 ---
 
@@ -200,8 +247,11 @@ npm run test:ci
 | 👤 Datos del solicitante | ✅ |
 | 🇩🇴 Validación Luhn de cédula | ✅ |
 | 💰 Simulación de préstamos | ✅ |
+| 💸 Abonos extraordinarios | ✅ |
 | 📊 Tabla de amortización | ✅ |
 | 📈 Visualizaciones financieras | ✅ |
+| 🧭 Dashboard financiero | ✅ |
+| 🧠 LoanCalc Score y recomendaciones | ✅ |
 | 🏦 Comparador de escenarios | ✅ |
 | 📄 Exportación PDF | ✅ |
 | 📗 Exportación Excel | ✅ |
@@ -211,7 +261,21 @@ npm run test:ci
 | 🌙 Tema oscuro | ✅ |
 | ♿ Accesibilidad | ✅ |
 | 📱 Responsive Design | ✅ |
-| 🧪 Pruebas automatizadas | ✅ |
+| 🧪 Pruebas automatizadas | ✅ — 22 pruebas |
+| ⚙️ Integración continua | ✅ |
+
+---
+
+## 🧪 Calidad y validación
+
+La versión 2.1.0 fue validada mediante:
+
+- **22 pruebas unitarias aprobadas**.
+- Build de producción exitoso.
+- Integración continua mediante GitHub Actions.
+- Validación de escenarios con tasa 0%.
+- Validación de abonos superiores al balance pendiente.
+- Verificación en tema claro, tema oscuro y diseño responsive.
 
 ---
 
