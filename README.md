@@ -60,23 +60,41 @@ Consulta el historial completo en [`CHANGELOG.md`](CHANGELOG.md).
 
 ## 🛠️ Tecnologías utilizadas
 
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap,vscode,git,github,npm" alt="Stack tecnológico" />
+### 🎨 Frontend y diseño de interfaces
+
+<p>
+  <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap" alt="Angular, TypeScript, HTML, CSS y Bootstrap" />
 </p>
 
-| Tecnología | Uso principal |
-|---|---|
-| 🅰️ Angular | Desarrollo del frontend |
-| 📘 TypeScript | Lógica de negocio y tipado |
-| 🌐 HTML5 | Estructura semántica y accesible |
-| 🎨 CSS3 | Diseño responsive, dashboard y tema oscuro |
-| 🅱️ Bootstrap 5 | Componentes y utilidades visuales |
-| 📄 jsPDF | Generación de reportes PDF |
-| 📑 jsPDF AutoTable | Tablas financieras en PDF |
-| 🔳 QRCode | Código QR en los reportes |
-| 📊 SpreadsheetML | Exportación compatible con Excel |
-| 🧪 Vitest | Pruebas automatizadas |
-| ⚙️ GitHub Actions | Integración continua |
+- **Angular:** aplicación web SPA y arquitectura basada en componentes.
+- **TypeScript:** lógica financiera, modelos, servicios, validadores y tipado estático.
+- **HTML5:** estructura semántica y accesible de formularios, resultados y reportes.
+- **CSS3:** diseño responsive, dashboard, visualizaciones y tema oscuro.
+- **Bootstrap 5:** componentes visuales y utilidades responsivas.
+
+### 📊 Lógica financiera, reportes y exportación
+
+- **Método francés de amortización:** cálculo de cuotas, capital, intereses y balance pendiente.
+- **jsPDF:** generación de reportes financieros en PDF.
+- **jsPDF AutoTable:** construcción de tablas de amortización y comparación en PDF.
+- **QRCode:** incorporación de códigos QR en los reportes.
+- **SpreadsheetML:** exportación de libros compatibles con Microsoft Excel.
+
+### 🧪 Calidad e integración continua
+
+- **Vitest:** pruebas automatizadas de cálculos, validaciones y escenarios financieros.
+- **GitHub Actions:** ejecución automática del build y de las pruebas en integración continua.
+
+### 🧰 Herramientas de desarrollo
+
+<p>
+  <img src="https://skillicons.dev/icons?i=vscode,git,github,npm" alt="Visual Studio Code, Git, GitHub y npm" />
+</p>
+
+- **Visual Studio Code:** entorno principal de desarrollo.
+- **npm:** gestión de dependencias y scripts del proyecto.
+- **Git:** control de versiones.
+- **GitHub:** publicación del repositorio, documentación e integración continua.
 
 ---
 
