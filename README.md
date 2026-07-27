@@ -7,14 +7,6 @@
 </p>
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=angular,ts,html,css,bootstrap&perline=5" alt="Tecnologías frontend" />
-</p>
-
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=vscode,git,github,npm&perline=4" alt="Herramientas de desarrollo" />
-</p>
-
-<p align="center">
   <strong>Simulador financiero dominicano para calcular, analizar y comparar préstamos amortizados.</strong><br>
   Desarrollado con Angular y TypeScript.
 </p>
