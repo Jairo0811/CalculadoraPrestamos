@@ -66,6 +66,12 @@ Consulta el historial completo en [`CHANGELOG.md`](CHANGELOG.md).
 
 ### 📊 Lógica financiera, reportes y exportación
 
+<p>
+  <img src="https://img.shields.io/badge/jsPDF-Reportes%20PDF-F43F5E?style=flat-square&logo=javascript&logoColor=white" alt="jsPDF" />
+  <img src="https://img.shields.io/badge/QRCode-Códigos%20QR-111827?style=flat-square&logo=javascript&logoColor=white" alt="QRCode" />
+  <img src="https://img.shields.io/badge/SpreadsheetML-Excel-217346?style=flat-square&logo=microsoftexcel&logoColor=white" alt="SpreadsheetML para Excel" />
+</p>
+
 - **Método francés de amortización:** cálculo de cuotas, capital, intereses y balance pendiente.
 - **jsPDF:** generación de reportes financieros en PDF.
 - **jsPDF AutoTable:** construcción de tablas de amortización y comparación en PDF.
@@ -73,6 +79,11 @@ Consulta el historial completo en [`CHANGELOG.md`](CHANGELOG.md).
 - **SpreadsheetML:** exportación de libros compatibles con Microsoft Excel.
 
 ### 🧪 Calidad e integración continua
+
+<p>
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vitest/vitest-original.svg" alt="Vitest" title="Vitest" width="48" height="48" />
+  <img src="https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions" />
+</p>
 
 - **Vitest:** pruebas automatizadas de cálculos, validaciones y escenarios financieros.
 - **GitHub Actions:** ejecución automática del build y de las pruebas en integración continua.
