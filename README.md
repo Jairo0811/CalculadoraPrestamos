@@ -16,6 +16,18 @@
   <img alt="Licencia" src="https://img.shields.io/badge/licencia-MIT-success" />
   <img alt="Estado" src="https://img.shields.io/badge/estado-estable-success" />
   <img alt="Pruebas" src="https://img.shields.io/badge/pruebas-22%20aprobadas-success" />
+  <a href="https://github.com/Jairo0811/CalculadoraPrestamos/actions/workflows/ci.yml">
+    <img alt="Integración continua" src="https://github.com/Jairo0811/CalculadoraPrestamos/actions/workflows/ci.yml/badge.svg" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="#-descripción">Descripción</a> ·
+  <a href="#-novedades-de-la-versión-210">Novedades</a> ·
+  <a href="#️-tecnologías-utilizadas">Tecnologías</a> ·
+  <a href="#-funcionalidades">Funcionalidades</a> ·
+  <a href="#-instalación-y-ejecución">Instalación</a> ·
+  <a href="#-estado-del-proyecto">Estado</a>
 </p>
 
 ---
