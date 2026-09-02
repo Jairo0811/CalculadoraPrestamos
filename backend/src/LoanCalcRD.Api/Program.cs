@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
@@ -42,8 +41,6 @@ app.UseCors("Frontend");
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-
     var simulations = app.MapGroup("/api/v1/dev/users/{userId:guid}/simulations")
         .WithTags("Development - Loan Simulations");
 
