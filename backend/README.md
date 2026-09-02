@@ -1,6 +1,6 @@
 # LoanCalc RD Backend
 
-Backend inicial de LoanCalc RD v3 construido con **ASP.NET Core 10**, **Entity Framework Core 10** y **PostgreSQL**.
+Backend de **LoanCalc RD v3** construido con **ASP.NET Core 10**, **Entity Framework Core 10** y **PostgreSQL**.
 
 ## Arquitectura
 
@@ -11,20 +11,24 @@ backend/
 │   ├── LoanCalcRD.Application/
 │   ├── LoanCalcRD.Infrastructure/
 │   └── LoanCalcRD.Api/
+├── tests/
+│   └── LoanCalcRD.Tests/
 └── docker-compose.yml
 ```
 
 ### Responsabilidades
 
 - **Domain:** entidades y reglas de negocio puras.
-- **Application:** contratos y casos de uso.
-- **Infrastructure:** EF Core, PostgreSQL y repositorios.
-- **Api:** composición, configuración HTTP y endpoints.
+- **Application:** contratos, DTO y casos de uso.
+- **Infrastructure:** EF Core, PostgreSQL, migraciones y repositorios.
+- **Api:** composición, CORS, Problem Details, health checks y endpoints REST.
+- **Tests:** cobertura automatizada del servicio de simulaciones.
 
 ## Requisitos
 
 - .NET 10 SDK
 - Docker Desktop
+- `dotnet-ef` 10.x
 
 ## Base de datos local
 
@@ -34,33 +38,30 @@ Desde `backend`:
 docker compose up -d postgres
 ```
 
-Configura la conexión mediante una variable de entorno. No se almacenan credenciales de producción en el repositorio.
-
-PowerShell:
+Configura la conexión mediante variable de entorno. No se almacenan credenciales de producción en el repositorio.
 
 ```powershell
 $env:ConnectionStrings__LoanCalcDb="Host=localhost;Port=5432;Database=loancalcrd;Username=loancalc;Password=loancalc_dev"
 ```
 
-## Restaurar y compilar
+## Restaurar, compilar y probar
 
 ```powershell
 dotnet restore src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+dotnet restore tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj
 dotnet build src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+dotnet test tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj
 ```
 
-## Crear la migración inicial
+## Migraciones
 
-```powershell
-dotnet tool install --global dotnet-ef
+La migración inicial `InitialCreate` ya está versionada en:
 
-dotnet ef migrations add InitialCreate `
-  --project src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj `
-  --startup-project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj `
-  --output-dir Persistence/Migrations
+```text
+src/LoanCalcRD.Infrastructure/Persistence/Migrations/
 ```
 
-## Aplicar migraciones
+Para aplicarla:
 
 ```powershell
 dotnet ef database update `
@@ -74,9 +75,52 @@ dotnet ef database update `
 dotnet run --project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
 ```
 
-Endpoints iniciales:
+Endpoints generales:
 
 - `GET /health`
 - `GET /api/v1/system/database`
 
-La autenticación y autorización se incorporarán en la Fase 6. Hasta entonces no se exponen endpoints de datos de usuario.
+En entorno `Development` también se habilita temporalmente:
+
+```text
+/api/v1/dev/users/{userId}/simulations
+```
+
+Operaciones disponibles:
+
+- listar simulaciones;
+- consultar una simulación;
+- crear una simulación;
+- renombrar;
+- marcar o desmarcar favorito;
+- eliminar.
+
+Estos endpoints son deliberadamente exclusivos de `Development`. En la Fase 6 serán reemplazados por endpoints protegidos que obtendrán el usuario desde Identity/JWT, sin aceptar un `userId` arbitrario desde el cliente.
+
+## Integración Angular
+
+El frontend incorpora `LoanApiService` y `provideHttpClient()` como cliente de integración para desarrollo. La sincronización de cuenta definitiva se activará con la identidad autenticada en la Fase 6; la versión publicada continúa funcionando de forma local y no depende de que la API esté disponible.
+
+## CI
+
+`.github/workflows/backend.yml` valida automáticamente:
+
+1. restore;
+2. build Release;
+3. pruebas automatizadas;
+4. PostgreSQL real mediante servicio de GitHub Actions;
+5. aplicación de migraciones EF Core;
+6. estado de las migraciones.
+
+## Estado de Fase 5
+
+- Arquitectura backend: completada.
+- PostgreSQL + EF Core: completado.
+- Migración inicial: completada.
+- Persistencia de simulaciones: completada.
+- Casos de uso Application: completados.
+- API REST de desarrollo: completada.
+- Cliente Angular para API: completado.
+- Tests, Docker y CI: completados.
+
+La autenticación, autorización y aislamiento definitivo por usuario corresponden a la **Fase 6**.
