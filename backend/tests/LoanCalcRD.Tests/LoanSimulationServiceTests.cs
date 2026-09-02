@@ -15,7 +15,7 @@ public sealed class LoanSimulationServiceTests
 
         var created = await service.CreateAsync(
             userId,
-            new CreateLoanSimulationRequest("Vehículo", LoanType.Vehiculo, 850000m, 14.5m, 60),
+            new CreateLoanSimulationRequest("Vehículo", LoanType.Vehicle, 850000m, 14.5m, 60),
             now);
 
         Assert.NotEqual(Guid.Empty, created.Id);
