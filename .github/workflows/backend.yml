@@ -1,0 +1,35 @@
+name: LoanCalc RD Backend CI
+
+on:
+  push:
+    branches:
+      - feature/v3-phase-5-backend
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore backend
+        run: dotnet restore backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+
+      - name: Build backend
+        run: dotnet build backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj --configuration Release --no-restore
