@@ -1,6 +1,7 @@
 [build]
-  command = "cd calculadora-prestamos && npm ci && npm run build"
-  publish = "calculadora-prestamos/dist/calculadora-prestamos/browser"
+  base = "calculadora-prestamos"
+  command = "npm ci && npm run build"
+  publish = "dist/calculadora-prestamos/browser"
 
 [[redirects]]
   from = "/*"
