@@ -1,5 +1,6 @@
 using LoanCalcRD.Application.Loans;
 using LoanCalcRD.Domain.Loans;
+using Xunit;
 
 namespace LoanCalcRD.Tests;
 
