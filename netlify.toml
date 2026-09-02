@@ -1,0 +1,8 @@
+[build]
+  command = "cd calculadora-prestamos && npm ci && npm run build"
+  publish = "calculadora-prestamos/dist/calculadora-prestamos/browser"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
