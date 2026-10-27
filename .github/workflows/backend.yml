@@ -1,0 +1,76 @@
+name: LoanCalc RD Backend CI
+
+on:
+  push:
+    branches:
+      - feature/v3-phase-5-backend
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: loancalcrd
+          POSTGRES_USER: loancalc
+          POSTGRES_PASSWORD: loancalc_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U loancalc -d loancalcrd"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      ConnectionStrings__LoanCalcDb: Host=localhost;Port=5432;Database=loancalcrd;Username=loancalc;Password=loancalc_ci
+      ASPNETCORE_ENVIRONMENT: Development
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore backend
+        run: |
+          dotnet restore backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+          dotnet restore backend/tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj
+
+      - name: Build backend
+        run: dotnet build backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj --configuration Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test backend/tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj --configuration Release --no-restore --verbosity normal
+
+      - name: Install EF Core CLI
+        run: dotnet tool install --global dotnet-ef --version 10.0.10
+
+      - name: Apply PostgreSQL migrations
+        run: >-
+          dotnet ef database update
+          --project backend/src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj
+          --startup-project backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+          --configuration Release
+
+      - name: Verify migration state
+        run: >-
+          dotnet ef migrations list
+          --project backend/src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj
+          --startup-project backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+          --configuration Release
