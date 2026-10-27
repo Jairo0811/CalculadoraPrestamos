@@ -1,6 +1,50 @@
 # LoanCalc RD Backend
 
-Backend de **LoanCalc RD v3** construido con **ASP.NET Core 10**, **Entity Framework Core 10** y **PostgreSQL**.
+ASP.NET Core 10 + PostgreSQL 17 + EF Core 10. La Fase 5 ya está fusionada. **La Fase 6 está en desarrollo en una rama independiente y NO se debe desplegar aún en producción.**
+
+## Fase 6 — Primer incremento (Identity / JWT)
+
+- Cuentas de usuario mediante ASP.NET Core Identity (GUID, contraseñas hasheadas, política robusta y bloqueo temporal por intentos).
+- Registro `POST /api/v1/auth/register`, login `POST /api/v1/auth/login` y perfil `GET /api/v1/auth/me`.
+- JWT Bearer firmado con HMAC SHA-256, vigencia de 15 minutos, issuer/audience y secreto obligatorio (sin valor predeterminado).
+- Limitación de peticiones de registro/login por IP.
+- `/api/v1/simulations`: GET, GET por ID, POST, PATCH nombre, PATCH favorito y DELETE. **Todas las rutas requieren JWT**; el `UserId` procede exclusivamente del claim validado.
+- Eliminado el endpoint temporal `/api/v1/dev/users/{userId}/simulations`.
+- Migración incremental `AddIdentityAccounts` para usuarios Identity; preserva `InitialCreate` y las simulaciones existentes.
+
+### Desarrollo local (PowerShell)
+
+Desde `backend`, con Docker Desktop y .NET SDK 10:
+
+```powershell
+docker compose up -d postgres
+$env:ConnectionStrings__LoanCalcDb="Host=localhost;Port=5432;Database=loancalcrd;Username=loancalc;Password=loancalc_dev"
+$secretBytes = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Fill($secretBytes)
+$env:Jwt__SigningKey = [Convert]::ToBase64String($secretBytes)
+dotnet restore src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+dotnet ef database update --project src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj --startup-project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
+dotnet test tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj
+dotnet run --project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj --urls http://localhost:5000
+```
+
+La clave JWT anterior existe **solo en esa sesión de PowerShell**. En producción usar Secret Manager/variables seguras, un valor aleatorio persistente y HTTPS. Una clave diferente invalida los tokens previos.
+
+### Probar rutas
+
+```powershell
+$body = @{email="prueba@example.test";password="ClaveDePrueba!2026"} | ConvertTo-Json
+Invoke-RestMethod -Uri http://localhost:5000/api/v1/auth/register -Method Post -ContentType application/json -Body $body
+$session = Invoke-RestMethod -Uri http://localhost:5000/api/v1/auth/login -Method Post -ContentType application/json -Body $body
+Invoke-RestMethod -Uri http://localhost:5000/api/v1/auth/me -Headers @{Authorization="Bearer $($session.accessToken)"}
+Invoke-RestMethod -Uri http://localhost:5000/api/v1/simulations -Headers @{Authorization="Bearer $($session.accessToken)"}
+```
+
+La interfaz Angular de cuenta está habilitada **solo en modo desarrollo**, en `http://localhost:4200/account`. El token de acceso no se guarda en localStorage ni sessionStorage; permanece en memoria. La sincronización automática desde la calculadora se abordará tras completar el flujo de sesión.
+
+### Antes del merge de Fase 6
+
+**No habilitar en producción todavía.** Faltan confirmación real de correo electrónico y proveedor de envío, recuperación segura de contraseña, refresh tokens revocables con rotación, cierre de sesión del servidor, pruebas E2E/HTTP de autenticación y aislamiento de usuarios, y configuración final de origen/HTTPS. CI de ambas tecnologías y migraciones debe quedar verde. Mientras no se complete el correo de confirmación, `RequireConfirmedEmail=false` es una limitación conocida de este primer incremento.
 
 ## Arquitectura
 
@@ -11,116 +55,8 @@ backend/
 │   ├── LoanCalcRD.Application/
 │   ├── LoanCalcRD.Infrastructure/
 │   └── LoanCalcRD.Api/
-├── tests/
-│   └── LoanCalcRD.Tests/
+├── tests/LoanCalcRD.Tests/
 └── docker-compose.yml
 ```
 
-### Responsabilidades
-
-- **Domain:** entidades y reglas de negocio puras.
-- **Application:** contratos, DTO y casos de uso.
-- **Infrastructure:** EF Core, PostgreSQL, migraciones y repositorios.
-- **Api:** composición, CORS, Problem Details, health checks y endpoints REST.
-- **Tests:** cobertura automatizada del servicio de simulaciones.
-
-## Requisitos
-
-- .NET 10 SDK
-- Docker Desktop
-- `dotnet-ef` 10.x
-
-## Base de datos local
-
-Desde `backend`:
-
-```powershell
-docker compose up -d postgres
-```
-
-Configura la conexión mediante variable de entorno. No se almacenan credenciales de producción en el repositorio.
-
-```powershell
-$env:ConnectionStrings__LoanCalcDb="Host=localhost;Port=5432;Database=loancalcrd;Username=loancalc;Password=loancalc_dev"
-```
-
-## Restaurar, compilar y probar
-
-```powershell
-dotnet restore src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
-dotnet restore tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj
-dotnet build src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
-dotnet test tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj
-```
-
-## Migraciones
-
-La migración inicial `InitialCreate` ya está versionada en:
-
-```text
-src/LoanCalcRD.Infrastructure/Persistence/Migrations/
-```
-
-Para aplicarla:
-
-```powershell
-dotnet ef database update `
-  --project src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj `
-  --startup-project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
-```
-
-## Ejecutar API
-
-```powershell
-dotnet run --project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
-```
-
-Endpoints generales:
-
-- `GET /health`
-- `GET /api/v1/system/database`
-
-En entorno `Development` también se habilita temporalmente:
-
-```text
-/api/v1/dev/users/{userId}/simulations
-```
-
-Operaciones disponibles:
-
-- listar simulaciones;
-- consultar una simulación;
-- crear una simulación;
-- renombrar;
-- marcar o desmarcar favorito;
-- eliminar.
-
-Estos endpoints son deliberadamente exclusivos de `Development`. En la Fase 6 serán reemplazados por endpoints protegidos que obtendrán el usuario desde Identity/JWT, sin aceptar un `userId` arbitrario desde el cliente.
-
-## Integración Angular
-
-El frontend incorpora `LoanApiService` y `provideHttpClient()` como cliente de integración para desarrollo. La sincronización de cuenta definitiva se activará con la identidad autenticada en la Fase 6; la versión publicada continúa funcionando de forma local y no depende de que la API esté disponible.
-
-## CI
-
-`.github/workflows/backend.yml` valida automáticamente:
-
-1. restore;
-2. build Release;
-3. pruebas automatizadas;
-4. PostgreSQL real mediante servicio de GitHub Actions;
-5. aplicación de migraciones EF Core;
-6. estado de las migraciones.
-
-## Estado de Fase 5
-
-- Arquitectura backend: completada.
-- PostgreSQL + EF Core: completado.
-- Migración inicial: completada.
-- Persistencia de simulaciones: completada.
-- Casos de uso Application: completados.
-- API REST de desarrollo: completada.
-- Cliente Angular para API: completado.
-- Tests, Docker y CI: completados.
-
-La autenticación, autorización y aislamiento definitivo por usuario corresponden a la **Fase 6**.
+Pruebas de la versión anterior de backend: `dotnet test tests/LoanCalcRD.Tests/LoanCalcRD.Tests.csproj`.

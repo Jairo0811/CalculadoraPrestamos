@@ -1,0 +1,41 @@
+<main class="account-page" id="main-content">
+  <div class="account-card">
+    <a routerLink="/" class="back-link">← Volver a LoanCalc RD</a>
+    <span class="eyebrow">Fase 6 · Pruebas locales</span>
+    <h1>Tu cuenta de LoanCalc RD</h1>
+    <p>La simulación pública sigue siendo gratuita y sin registro. Las cuentas permiten asociar simulaciones a un usuario.</p>
+
+    @if (auth.isAuthenticated()) {
+      <div class="session-card" role="status">
+        <strong>Sesión iniciada</strong>
+        <span>Token de acceso temporal conservado solo en memoria.</span>
+        <button type="button" (click)="logout()" class="btn btn-outline-secondary">Cerrar sesión</button>
+      </div>
+    } @else {
+      <form (ngSubmit)="submit()" #accountForm="ngForm">
+        <h2>{{ mode === 'login' ? 'Iniciar sesión' : 'Crear una cuenta' }}</h2>
+        <label for="email" class="form-label">Correo electrónico</label>
+        <input id="email" name="email" class="form-control" type="email" autocomplete="username" required email [(ngModel)]="email" />
+
+        <label for="password" class="form-label">Contraseña</label>
+        <input id="password" name="password" class="form-control" type="password"
+          [attr.autocomplete]="mode === 'login' ? 'current-password' : 'new-password'"
+          [attr.minlength]="mode === 'register' ? 12 : null" required [(ngModel)]="password" />
+        @if (mode === 'register') {
+          <small class="help">Mínimo 12 caracteres; incluye mayúsculas, minúsculas, números y símbolos.</small>
+        }
+        <button type="submit" class="btn btn-primary" [disabled]="busy || accountForm.invalid">
+          {{ busy ? 'Procesando…' : mode === 'login' ? 'Entrar' : 'Crear cuenta' }}
+        </button>
+      </form>
+      <button type="button" class="mode-link" (click)="switchMode()">
+        {{ mode === 'login' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión' }}
+      </button>
+    }
+
+    @if (error) { <p class="alert alert-danger" role="alert">{{ error }}</p> }
+    @if (notice) { <p class="alert alert-info" role="status">{{ notice }}</p> }
+
+    <p class="security-note">Entorno de desarrollo únicamente. Sin recuperación de sesión automática ni correo de verificación hasta completar la Fase 6.</p>
+  </div>
+</main>
