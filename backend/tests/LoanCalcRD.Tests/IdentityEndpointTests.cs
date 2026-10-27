@@ -82,12 +82,12 @@ public sealed class IdentityEndpointTests(WebApplicationFactory<Program> factory
         return token!;
     }
 
-    private static Task<HttpResponseMessage> Send(
+    private static async Task<HttpResponseMessage> Send(
         HttpClient client, HttpMethod method, string path, string token, object? body = null)
     {
         using var request = new HttpRequestMessage(method, path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         if (body is not null) request.Content = JsonContent.Create(body);
-        return client.SendAsync(request);
+        return await client.SendAsync(request);
     }
 }
