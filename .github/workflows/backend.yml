@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/v3-phase-5-backend
+      - feature/v3-phase-6-auth-security
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
@@ -36,6 +37,7 @@ jobs:
 
     env:
       ConnectionStrings__LoanCalcDb: Host=localhost;Port=5432;Database=loancalcrd;Username=loancalc;Password=loancalc_ci
+      Jwt__SigningKey: ci-test-only-secret-key-not-for-production-2026-xxxxxxxx
       ASPNETCORE_ENVIRONMENT: Development
 
     steps:

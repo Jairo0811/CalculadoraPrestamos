@@ -1,9 +1,12 @@
 using LoanCalcRD.Domain.Loans;
+using LoanCalcRD.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace LoanCalcRD.Infrastructure.Persistence;
 
-public sealed class LoanCalcDbContext(DbContextOptions<LoanCalcDbContext> options) : DbContext(options)
+public sealed class LoanCalcDbContext(DbContextOptions<LoanCalcDbContext> options)
+    : IdentityUserContext<LoanCalcUser, Guid>(options)
 {
     public DbSet<LoanSimulation> LoanSimulations => Set<LoanSimulation>();
 
