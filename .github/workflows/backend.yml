@@ -63,6 +63,20 @@ jobs:
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 10.0.10
 
+      - name: Diagnose Identity snapshot drift
+        run: |
+          dotnet ef migrations add SnapshotProbe \
+            --project backend/src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj \
+            --startup-project backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj \
+            --configuration Release \
+            --output-dir Persistence/Migrations
+          echo BEGIN_GENERATED_SNAPSHOT
+          cat backend/src/LoanCalcRD.Infrastructure/Persistence/Migrations/LoanCalcDbContextModelSnapshot.cs
+          echo END_GENERATED_SNAPSHOT
+          echo BEGIN_PROBE
+          cat backend/src/LoanCalcRD.Infrastructure/Persistence/Migrations/*_SnapshotProbe.cs
+          echo END_PROBE
+
       - name: Apply PostgreSQL migrations
         run: >-
           dotnet ef database update
