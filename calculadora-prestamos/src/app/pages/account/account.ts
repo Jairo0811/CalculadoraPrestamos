@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -10,7 +10,7 @@ import { AuthService } from '../../core/services/auth';
   templateUrl: './account.html',
   styleUrl: './account.css'
 })
-export class Account {
+export class Account implements OnInit {
   readonly auth = inject(AuthService);
 
   email = '';
@@ -20,9 +20,13 @@ export class Account {
   error = '';
   notice = '';
 
+  ngOnInit(): void {
+    // En desarrollo, recuperar la sesión activa desde la cookie HttpOnly sin almacenar JWT.
+    this.auth.refresh().subscribe({ error: () => { /* La cuenta puede ser anónima. */ } });
+  }
+
   submit(): void {
     if (this.busy || !this.email.trim() || !this.password) return;
-
     this.busy = true;
     this.error = '';
     this.notice = '';
@@ -36,7 +40,10 @@ export class Account {
             this.password = '';
             this.notice = 'Cuenta creada. Inicia sesión con tu nueva contraseña.';
           },
-          error: () => { this.error = 'No se pudo crear la cuenta. Verifica el correo y los requisitos de contraseña.'; }
+          error: () => {
+            this.password = '';
+            this.error = 'No se pudo crear la cuenta. Verifica el correo y los requisitos de contraseña.';
+          }
         });
       return;
     }
@@ -46,11 +53,11 @@ export class Account {
       .subscribe({
         next: () => {
           this.password = '';
-          this.notice = 'Sesión iniciada. Ya puedes consultar tus simulaciones privadas desde la API.';
+          this.notice = 'Sesión iniciada y protegida. Puedes administrar tus simulaciones privadas.';
         },
         error: () => {
           this.password = '';
-          this.error = 'No se pudo iniciar sesión. Comprueba las credenciales o el estado de la API local.';
+          this.error = 'No se pudo iniciar sesión. Revisa las credenciales y la conexión con la API.';
         }
       });
   }
@@ -63,7 +70,20 @@ export class Account {
   }
 
   logout(): void {
-    this.auth.logout();
-    this.notice = 'Sesión local finalizada.';
+    this.busy = true;
+    this.auth.logout().pipe(finalize(() => { this.busy = false; }))
+      .subscribe({
+        next: () => { this.notice = 'Sesión revocada en el servidor.'; },
+        error: () => { this.error = 'No se pudo confirmar el cierre en el servidor. Comprueba la API.'; }
+      });
+  }
+
+  logoutAll(): void {
+    this.busy = true;
+    this.auth.logoutAll().pipe(finalize(() => { this.busy = false; }))
+      .subscribe({
+        next: () => { this.notice = 'Todas las sesiones de tu cuenta fueron revocadas.'; },
+        error: () => { this.error = 'No se pudieron revocar todas las sesiones. Comprueba la API.'; }
+      });
   }
 }
