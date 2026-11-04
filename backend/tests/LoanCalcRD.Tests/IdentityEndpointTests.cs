@@ -65,6 +65,77 @@ public sealed class IdentityEndpointTests(WebApplicationFactory<Program> factory
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task RefreshRotation_ReplayRevokesEntireSession()
+    {
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        var email = $"refresh-{Guid.NewGuid():N}@example.test";
+        const string password = "Seguro!2026PassWord";
+        using var registration = await client.PostAsJsonAsync("/api/v1/auth/register", new { email, password });
+        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
+        using var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+
+        var cookie = ExtractRefreshCookie(login);
+        using var rotated = await SendWithCookie(client, "/api/v1/auth/refresh", cookie);
+        Assert.Equal(HttpStatusCode.OK, rotated.StatusCode);
+        var replacementCookie = ExtractRefreshCookie(rotated);
+        using var refreshedJson = JsonDocument.Parse(await rotated.Content.ReadAsStringAsync());
+        var replacementJwt = refreshedJson.RootElement.GetProperty("accessToken").GetString()!;
+
+        using var success = await Send(client, HttpMethod.Get, "/api/v1/simulations", replacementJwt);
+        Assert.Equal(HttpStatusCode.OK, success.StatusCode);
+
+        // A consumed refresh token is a replay and revokes the whole session.
+        using var replay = await SendWithCookie(client, "/api/v1/auth/refresh", cookie);
+        Assert.Equal(HttpStatusCode.Unauthorized, replay.StatusCode);
+        using var nowInvalid = await Send(client, HttpMethod.Get, "/api/v1/simulations", replacementJwt);
+        Assert.Equal(HttpStatusCode.Unauthorized, nowInvalid.StatusCode);
+        using var rejectedRefresh = await SendWithCookie(client, "/api/v1/auth/refresh", replacementCookie);
+        Assert.Equal(HttpStatusCode.Unauthorized, rejectedRefresh.StatusCode);
+    }
+
+    [Fact]
+    public async Task LogoutRevokesJwt_AndRefreshRequiresAntiCsrfHeader()
+    {
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        var email = $"logout-{Guid.NewGuid():N}@example.test";
+        const string password = "Seguro!2026PassWord";
+        using var registration = await client.PostAsJsonAsync("/api/v1/auth/register", new { email, password });
+        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
+        using var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var loginJson = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
+        var jwt = loginJson.RootElement.GetProperty("accessToken").GetString()!;
+        var cookie = ExtractRefreshCookie(login);
+
+        using var noCsrf = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh");
+        noCsrf.Headers.Add("Cookie", cookie);
+        using var bad = await client.SendAsync(noCsrf);
+        Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+
+        using var logout = await SendWithCookie(client, "/api/v1/auth/logout", cookie);
+        Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
+        using var rejected = await Send(client, HttpMethod.Get, "/api/v1/simulations", jwt);
+        Assert.Equal(HttpStatusCode.Unauthorized, rejected.StatusCode);
+    }
+
+    private static string ExtractRefreshCookie(HttpResponseMessage response)
+    {
+        var setCookies = response.Headers.GetValues("Set-Cookie");
+        var cookie = setCookies.First(value => value.StartsWith("loancalcrd_refresh=", StringComparison.Ordinal));
+        Assert.Contains("httponly", cookie, StringComparison.OrdinalIgnoreCase);
+        return cookie.Split(';')[0];
+    }
+
+    private static async Task<HttpResponseMessage> SendWithCookie(HttpClient client, string path, string cookie)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
+        request.Headers.Add("Cookie", cookie);
+        request.Headers.Add("X-LoanCalc-CSRF", "1");
+        return await client.SendAsync(request);
+    }
+
     private static async Task<string> RegisterAndLogin(HttpClient client)
     {
         var email = $"test-{Guid.NewGuid():N}@example.test";
