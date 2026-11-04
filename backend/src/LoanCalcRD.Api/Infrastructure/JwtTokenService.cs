@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using LoanCalcRD.Infrastructure.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -11,7 +10,7 @@ public sealed record AccessTokenResponse(string AccessToken, string TokenType, D
 
 public sealed class JwtTokenService(IConfiguration configuration)
 {
-    public AccessTokenResponse CreateAccessToken(LoanCalcUser user)
+    public AccessTokenResponse CreateAccessToken(LoanCalcUser user, Guid sessionId)
     {
         var key = configuration["Jwt:SigningKey"] ?? string.Empty;
         if (Encoding.UTF8.GetByteCount(key) < 32)
@@ -25,7 +24,7 @@ public sealed class JwtTokenService(IConfiguration configuration)
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-            new Claim("token_version", "1")
+            new Claim("sid", sessionId.ToString())
         };
         var jwt = new JwtSecurityToken(
             issuer: configuration["Jwt:Issuer"],

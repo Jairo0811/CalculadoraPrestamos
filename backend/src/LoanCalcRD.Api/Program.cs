@@ -19,6 +19,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddScoped<LoanSimulationService>();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<SessionService>();
 
 var connectionString = builder.Configuration.GetConnectionString("LoanCalcDb")
     ?? throw new InvalidOperationException("La cadena de conexión 'LoanCalcDb' no está configurada.");
@@ -35,7 +36,7 @@ builder.Services.AddIdentityCore<LoanCalcUser>(options =>
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.AllowedForNewUsers = true;
-        // Email confirmation requires a configured mail delivery provider (Phase 6 follow-up).
+        // Pending verified SMTP delivery. Account endpoints remain non-production.
         options.SignIn.RequireConfirmedEmail = false;
     })
     .AddEntityFrameworkStores<LoanCalcDbContext>()
@@ -64,6 +65,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(30),
             NameClaimType = ClaimTypes.NameIdentifier
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var claims = context.Principal;
+                var userId = claims?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var sessionId = claims?.FindFirstValue("sid");
+                if (!Guid.TryParse(userId, out var uid) || !Guid.TryParse(sessionId, out var sid))
+                {
+                    context.Fail("Sesión inválida.");
+                    return;
+                }
+                var db = context.HttpContext.RequestServices.GetRequiredService<LoanCalcDbContext>();
+                var now = DateTimeOffset.UtcNow;
+                var active = await db.AuthSessions.AsNoTracking()
+                    .AnyAsync(s => s.Id == sid && s.UserId == uid &&
+                                   s.RevokedAtUtc == null && s.ExpiresAtUtc > now);
+                if (!active) context.Fail("Sesión revocada o expirada.");
+            }
+        };
     });
 builder.Services.AddAuthorization();
 builder.Services.AddRateLimiter(options =>
@@ -80,14 +101,14 @@ builder.Services.AddRateLimiter(options =>
         }));
 });
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
         if (allowedOrigins.Length > 0)
         {
-            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
         }
     });
 });
@@ -101,6 +122,11 @@ app.UseCors("Frontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// The anti-CSRF header is intentionally non-simple. An untrusted origin cannot send it
+// with cookies without passing the explicit-origin CORS preflight.
+static bool ValidCsrf(HttpContext context) =>
+    context.Request.Headers.TryGetValue("X-LoanCalc-CSRF", out var value) && value == "1";
 
 var auth = app.MapGroup("/api/v1/auth").WithTags("Authentication");
 
@@ -123,29 +149,54 @@ auth.MapPost("/register", async (RegisterAccountRequest request, UserManager<Loa
         });
     }
 
-    return Results.Created($"/api/v1/auth/me", new { user.Id, user.Email });
+    return Results.Created("/api/v1/auth/me", new { user.Id, user.Email });
 }).RequireRateLimiting("auth");
 
 auth.MapPost("/login", async (
-    LoginAccountRequest request,
-    UserManager<LoanCalcUser> users,
-    SignInManager<LoanCalcUser> signIn,
-    JwtTokenService tokens) =>
+    LoginAccountRequest request, HttpContext http,
+    UserManager<LoanCalcUser> users, SignInManager<LoanCalcUser> signIn,
+    SessionService sessions) =>
 {
     var user = await users.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
-    if (user is null)
-    {
-        return Results.Unauthorized();
-    }
+    if (user is null) return Results.Unauthorized();
 
     var result = await signIn.CheckPasswordSignInAsync(user, request.Password ?? string.Empty, lockoutOnFailure: true);
-    if (!result.Succeeded)
+    if (!result.Succeeded) return Results.Unauthorized();
+
+    var issued = await sessions.CreateAsync(user, http.RequestAborted);
+    SessionService.SetCookie(http, issued);
+    return Results.Ok(issued.Access);
+}).RequireRateLimiting("auth");
+
+auth.MapPost("/refresh", async (HttpContext http, SessionService sessions) =>
+{
+    if (!ValidCsrf(http)) return Results.BadRequest();
+    var issued = await sessions.RotateAsync(http.Request.Cookies[SessionService.CookieName], http.RequestAborted);
+    if (issued is null)
     {
+        SessionService.ClearCookie(http);
         return Results.Unauthorized();
     }
-
-    return Results.Ok(tokens.CreateAccessToken(user));
+    SessionService.SetCookie(http, issued);
+    return Results.Ok(issued.Access);
 }).RequireRateLimiting("auth");
+
+auth.MapPost("/logout", async (HttpContext http, SessionService sessions) =>
+{
+    if (!ValidCsrf(http)) return Results.BadRequest();
+    await sessions.RevokeByRefreshAsync(http.Request.Cookies[SessionService.CookieName], http.RequestAborted);
+    SessionService.ClearCookie(http);
+    return Results.NoContent();
+}).RequireRateLimiting("auth");
+
+auth.MapPost("/logout-all", async (HttpContext http, SessionService sessions) =>
+{
+    if (!ValidCsrf(http)) return Results.BadRequest();
+    if (!Guid.TryParse(http.User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid)) return Results.Unauthorized();
+    await sessions.RevokeAllAsync(uid, http.RequestAborted);
+    SessionService.ClearCookie(http);
+    return Results.NoContent();
+}).RequireAuthorization().RequireRateLimiting("auth");
 
 auth.MapGet("/me", async (HttpContext context, UserManager<LoanCalcUser> users) =>
 {
