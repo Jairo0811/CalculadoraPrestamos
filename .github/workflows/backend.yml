@@ -60,6 +60,20 @@ jobs:
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef --version 10.0.10
 
+      - name: Generate refresh session migration for review
+        run: |
+          dotnet ef migrations add AddRevocableSessions \
+            --project backend/src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj \
+            --startup-project backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj \
+            --configuration Release \
+            --output-dir Persistence/Migrations
+          echo BEGIN_REFRESH_MIGRATION
+          cat backend/src/LoanCalcRD.Infrastructure/Persistence/Migrations/*_AddRevocableSessions.cs
+          echo END_REFRESH_MIGRATION
+          echo BEGIN_REFRESH_SNAPSHOT
+          cat backend/src/LoanCalcRD.Infrastructure/Persistence/Migrations/LoanCalcDbContextModelSnapshot.cs
+          echo END_REFRESH_SNAPSHOT
+
       - name: Apply PostgreSQL migrations
         run: >-
           dotnet ef database update
