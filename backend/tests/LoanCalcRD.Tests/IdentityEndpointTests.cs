@@ -3,12 +3,13 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.WebUtilities;
 using Xunit;
 
 namespace LoanCalcRD.Tests;
 
-public sealed class IdentityEndpointTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public sealed class IdentityEndpointTests(AuthTestFactory factory)
+    : IClassFixture<AuthTestFactory>
 {
     [Fact]
     public async Task OwnerScopedApi_RejectsAnonymousAndOtherUserAccess()
@@ -69,12 +70,7 @@ public sealed class IdentityEndpointTests(WebApplicationFactory<Program> factory
     public async Task RefreshRotation_ReplayRevokesEntireSession()
     {
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
-        var email = $"refresh-{Guid.NewGuid():N}@example.test";
-        const string password = "Seguro!2026PassWord";
-        using var registration = await client.PostAsJsonAsync("/api/v1/auth/register", new { email, password });
-        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
-        using var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
-        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var login = await RegisterConfirmedAndLogin(client);
 
         var cookie = ExtractRefreshCookie(login);
         using var rotated = await SendWithCookie(client, "/api/v1/auth/refresh", cookie);
@@ -99,12 +95,7 @@ public sealed class IdentityEndpointTests(WebApplicationFactory<Program> factory
     public async Task LogoutRevokesJwt_AndRefreshRequiresAntiCsrfHeader()
     {
         using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
-        var email = $"logout-{Guid.NewGuid():N}@example.test";
-        const string password = "Seguro!2026PassWord";
-        using var registration = await client.PostAsJsonAsync("/api/v1/auth/register", new { email, password });
-        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
-        using var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
-        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var login = await RegisterConfirmedAndLogin(client);
         using var loginJson = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
         var jwt = loginJson.RootElement.GetProperty("accessToken").GetString()!;
         var cookie = ExtractRefreshCookie(login);
@@ -136,21 +127,35 @@ public sealed class IdentityEndpointTests(WebApplicationFactory<Program> factory
         return await client.SendAsync(request);
     }
 
-    private static async Task<string> RegisterAndLogin(HttpClient client)
+    private async Task<string> RegisterAndLogin(HttpClient client)
+    {
+        using var login = await RegisterConfirmedAndLogin(client);
+        using var data = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
+        var token = data.RootElement.GetProperty("accessToken").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(token));
+        return token!;
+    }
+
+    private async Task<HttpResponseMessage> RegisterConfirmedAndLogin(HttpClient client)
     {
         var email = $"test-{Guid.NewGuid():N}@example.test";
         const string password = "Seguro!2026PassWord";
 
         using var registration = await client.PostAsJsonAsync("/api/v1/auth/register", new { email, password });
-        Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, registration.StatusCode);
 
-        using var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
+        var confirmationLink = new Uri(factory.Emails.GetLastLink(email));
+        var query = QueryHelpers.ParseQuery(confirmationLink.Query);
+        using var confirmed = await client.PostAsJsonAsync("/api/v1/auth/confirm-email", new
+        {
+            userId = query["userId"].ToString(),
+            token = query["token"].ToString()
+        });
+        Assert.Equal(HttpStatusCode.OK, confirmed.StatusCode);
+
+        var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
-
-        using var data = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
-        var token = data.RootElement.GetProperty("accessToken").GetString();
-        Assert.False(string.IsNullOrWhiteSpace(token));
-        return token!;
+        return login;
     }
 
     private static async Task<HttpResponseMessage> Send(
