@@ -99,6 +99,15 @@ builder.Services.AddRateLimiter(options =>
             AutoReplenishment = true,
             QueueLimit = 0
         }));
+    options.AddPolicy("session", context => RateLimitPartition.GetFixedWindowLimiter(
+        "sessions:" + (context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 30,
+            Window = TimeSpan.FromMinutes(1),
+            AutoReplenishment = true,
+            QueueLimit = 0
+        }));
 });
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
@@ -179,7 +188,7 @@ auth.MapPost("/refresh", async (HttpContext http, SessionService sessions) =>
     }
     SessionService.SetCookie(http, issued);
     return Results.Ok(issued.Access);
-}).RequireRateLimiting("auth");
+}).RequireRateLimiting("session");
 
 auth.MapPost("/logout", async (HttpContext http, SessionService sessions) =>
 {
@@ -187,7 +196,7 @@ auth.MapPost("/logout", async (HttpContext http, SessionService sessions) =>
     await sessions.RevokeByRefreshAsync(http.Request.Cookies[SessionService.CookieName], http.RequestAborted);
     SessionService.ClearCookie(http);
     return Results.NoContent();
-}).RequireRateLimiting("auth");
+}).RequireRateLimiting("session");
 
 auth.MapPost("/logout-all", async (HttpContext http, SessionService sessions) =>
 {
@@ -196,7 +205,7 @@ auth.MapPost("/logout-all", async (HttpContext http, SessionService sessions) =>
     await sessions.RevokeAllAsync(uid, http.RequestAborted);
     SessionService.ClearCookie(http);
     return Results.NoContent();
-}).RequireAuthorization().RequireRateLimiting("auth");
+}).RequireAuthorization().RequireRateLimiting("session");
 
 auth.MapGet("/me", async (HttpContext context, UserManager<LoanCalcUser> users) =>
 {
