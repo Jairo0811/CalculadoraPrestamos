@@ -29,8 +29,24 @@ export class AuthService {
     return !!token && !!expiry && new Date(expiry).getTime() > Date.now();
   });
 
-  register(email: string, password: string): Observable<AccountProfile> {
-    return this.http.post<AccountProfile>(`${this.endpoint}/register`, { email, password });
+  register(email: string, password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.endpoint}/register`, { email, password });
+  }
+
+  confirmEmail(userId: string, token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.endpoint}/confirm-email`, { userId, token });
+  }
+
+  resendConfirmation(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.endpoint}/resend-confirmation`, { email });
+  }
+
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.endpoint}/forgot-password`, { email });
+  }
+
+  resetPassword(email: string, token: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.endpoint}/reset-password`, { email, token, newPassword });
   }
 
   login(email: string, password: string): Observable<AccessTokenResponse> {
