@@ -20,6 +20,10 @@ builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddScoped<LoanSimulationService>();
 builder.Services.AddScoped<JwtTokenService>();
 builder.Services.AddScoped<SessionService>();
+builder.Services.AddScoped<AccountEmailService>();
+builder.Services.AddScoped<IAccountEmailSender, SmtpAccountEmailSender>();
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(2));
 
 var connectionString = builder.Configuration.GetConnectionString("LoanCalcDb")
     ?? throw new InvalidOperationException("La cadena de conexión 'LoanCalcDb' no está configurada.");
@@ -36,11 +40,11 @@ builder.Services.AddIdentityCore<LoanCalcUser>(options =>
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.AllowedForNewUsers = true;
-        // Pending verified SMTP delivery. Account endpoints remain non-production.
-        options.SignIn.RequireConfirmedEmail = false;
+        options.SignIn.RequireConfirmedEmail = true;
     })
     .AddEntityFrameworkStores<LoanCalcDbContext>()
-    .AddSignInManager();
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
 
 var jwtKey = builder.Configuration["Jwt:SigningKey"] ?? string.Empty;
 if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
@@ -139,26 +143,89 @@ static bool ValidCsrf(HttpContext context) =>
 
 var auth = app.MapGroup("/api/v1/auth").WithTags("Authentication");
 
-auth.MapPost("/register", async (RegisterAccountRequest request, UserManager<LoanCalcUser> users) =>
+auth.MapPost("/register", async (
+    RegisterAccountRequest request, UserManager<LoanCalcUser> users,
+    AccountEmailService emailService, HttpContext http) =>
 {
+    if (!emailService.IsConfigured) return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     var email = request.Email?.Trim() ?? string.Empty;
     if (email.Length > 256 || !MailAddress.TryCreate(email, out var parsed) || parsed.Address != email)
-    {
         return Results.BadRequest(new { message = "Introduce un correo electrónico válido." });
-    }
+
+    if (await users.FindByEmailAsync(email) is not null)
+        return Results.Accepted(value: new { message = "Si la cuenta puede registrarse, recibirás un correo de confirmación." });
 
     var user = new LoanCalcUser { Id = Guid.NewGuid(), UserName = email, Email = email };
     var result = await users.CreateAsync(user, request.Password ?? string.Empty);
     if (!result.Succeeded)
     {
-        return Results.BadRequest(new
-        {
-            message = "No se pudo crear la cuenta.",
-            errors = result.Errors.Select(error => error.Description).ToArray()
-        });
+        // No divulgamos si el correo ya existe en una operación concurrente.
+        if (result.Errors.Any(x => x.Code.StartsWith("Duplicate", StringComparison.Ordinal)))
+            return Results.Accepted(value: new { message = "Si la cuenta puede registrarse, recibirás un correo de confirmación." });
+        return Results.BadRequest(new { message = "No se pudo crear la cuenta.",
+            errors = result.Errors.Select(error => error.Description).ToArray() });
     }
 
-    return Results.Created("/api/v1/auth/me", new { user.Id, user.Email });
+    try { await emailService.SendConfirmationAsync(user, http.RequestAborted); }
+    catch (Exception)
+    {
+        // Cuenta sin verificar; puede reenviarse la confirmación cuando SMTP esté disponible.
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+    return Results.Accepted(value: new { message = "Revisa tu correo para confirmar la cuenta." });
+}).RequireRateLimiting("auth");
+
+auth.MapPost("/confirm-email", async (ConfirmEmailRequest request, UserManager<LoanCalcUser> users) =>
+{
+    var user = await users.FindByIdAsync(request.UserId.ToString());
+    var token = AccountEmailService.Decode(request.Token);
+    if (user is null || token is null) return Results.BadRequest(new { message = "Enlace inválido o expirado." });
+    var result = await users.ConfirmEmailAsync(user, token);
+    return result.Succeeded ? Results.Ok(new { message = "Correo confirmado correctamente." })
+        : Results.BadRequest(new { message = "Enlace inválido o expirado." });
+}).RequireRateLimiting("auth");
+
+auth.MapPost("/resend-confirmation", async (
+    EmailAccountRequest request, UserManager<LoanCalcUser> users,
+    AccountEmailService emailService, HttpContext http) =>
+{
+    if (!emailService.IsConfigured) return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    var user = await users.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
+    if (user is not null && !await users.IsEmailConfirmedAsync(user))
+    {
+        try { await emailService.SendConfirmationAsync(user, http.RequestAborted); }
+        catch (Exception) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
+    }
+    return Results.Accepted(value: new { message = "Si la cuenta existe, recibirá instrucciones." });
+}).RequireRateLimiting("auth");
+
+auth.MapPost("/forgot-password", async (
+    EmailAccountRequest request, UserManager<LoanCalcUser> users,
+    AccountEmailService emailService, HttpContext http) =>
+{
+    if (!emailService.IsConfigured) return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    var user = await users.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
+    if (user is not null && await users.IsEmailConfirmedAsync(user))
+    {
+        try { await emailService.SendPasswordResetAsync(user, http.RequestAborted); }
+        catch (Exception) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
+    }
+    return Results.Accepted(value: new { message = "Si la cuenta existe, recibirá instrucciones." });
+}).RequireRateLimiting("auth");
+
+auth.MapPost("/reset-password", async (
+    ResetPasswordRequest request, UserManager<LoanCalcUser> users, SessionService sessions,
+    CancellationToken cancellationToken) =>
+{
+    var user = await users.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
+    var token = AccountEmailService.Decode(request.Token);
+    if (user is null || token is null || !await users.IsEmailConfirmedAsync(user))
+        return Results.BadRequest(new { message = "El enlace es inválido o ha expirado." });
+    var result = await users.ResetPasswordAsync(user, token, request.NewPassword ?? string.Empty);
+    if (!result.Succeeded)
+        return Results.BadRequest(new { message = "El enlace o la contraseña no son válidos." });
+    await sessions.RevokeAllAsync(user.Id, cancellationToken);
+    return Results.Ok(new { message = "Contraseña actualizada. Inicia sesión nuevamente." });
 }).RequireRateLimiting("auth");
 
 auth.MapPost("/login", async (
@@ -271,5 +338,8 @@ static bool TryGetUserId(ClaimsPrincipal principal, out Guid id) =>
 
 public sealed record RegisterAccountRequest(string Email, string Password);
 public sealed record LoginAccountRequest(string Email, string Password);
+public sealed record ConfirmEmailRequest(Guid UserId, string Token);
+public sealed record EmailAccountRequest(string Email);
+public sealed record ResetPasswordRequest(string Email, string Token, string NewPassword);
 
 public partial class Program { }
