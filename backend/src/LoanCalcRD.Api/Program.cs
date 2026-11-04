@@ -103,6 +103,24 @@ builder.Services.AddRateLimiter(options =>
             AutoReplenishment = true,
             QueueLimit = 0
         }));
+    options.AddPolicy("verification", context => RateLimitPartition.GetFixedWindowLimiter(
+        "verification:" + (context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 12,
+            Window = TimeSpan.FromMinutes(1),
+            AutoReplenishment = true,
+            QueueLimit = 0
+        }));
+    options.AddPolicy("recovery", context => RateLimitPartition.GetFixedWindowLimiter(
+        "recovery:" + (context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 6,
+            Window = TimeSpan.FromMinutes(1),
+            AutoReplenishment = true,
+            QueueLimit = 0
+        }));
     options.AddPolicy("session", context => RateLimitPartition.GetFixedWindowLimiter(
         "sessions:" + (context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
         _ => new FixedWindowRateLimiterOptions
@@ -183,7 +201,7 @@ auth.MapPost("/confirm-email", async (ConfirmEmailRequest request, UserManager<L
     var result = await users.ConfirmEmailAsync(user, token);
     return result.Succeeded ? Results.Ok(new { message = "Correo confirmado correctamente." })
         : Results.BadRequest(new { message = "Enlace inválido o expirado." });
-}).RequireRateLimiting("auth");
+}).RequireRateLimiting("verification");
 
 auth.MapPost("/resend-confirmation", async (
     EmailAccountRequest request, UserManager<LoanCalcUser> users,
@@ -197,7 +215,7 @@ auth.MapPost("/resend-confirmation", async (
         catch (Exception) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
     }
     return Results.Accepted(value: new { message = "Si la cuenta existe, recibirá instrucciones." });
-}).RequireRateLimiting("auth");
+}).RequireRateLimiting("recovery");
 
 auth.MapPost("/forgot-password", async (
     EmailAccountRequest request, UserManager<LoanCalcUser> users,
@@ -211,7 +229,7 @@ auth.MapPost("/forgot-password", async (
         catch (Exception) { return Results.StatusCode(StatusCodes.Status503ServiceUnavailable); }
     }
     return Results.Accepted(value: new { message = "Si la cuenta existe, recibirá instrucciones." });
-}).RequireRateLimiting("auth");
+}).RequireRateLimiting("recovery");
 
 auth.MapPost("/reset-password", async (
     ResetPasswordRequest request, UserManager<LoanCalcUser> users, SessionService sessions,
@@ -226,7 +244,7 @@ auth.MapPost("/reset-password", async (
         return Results.BadRequest(new { message = "El enlace o la contraseña no son válidos." });
     await sessions.RevokeAllAsync(user.Id, cancellationToken);
     return Results.Ok(new { message = "Contraseña actualizada. Inicia sesión nuevamente." });
-}).RequireRateLimiting("auth");
+}).RequireRateLimiting("recovery");
 
 auth.MapPost("/login", async (
     LoginAccountRequest request, HttpContext http,
