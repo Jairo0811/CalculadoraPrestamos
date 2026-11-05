@@ -68,7 +68,7 @@ jobs:
                 code=$(curl -sS -L -o /tmp/build-info.json -w '%{http_code}' --max-time 20 "${url}/build-info.json?t=$(date +%s)" || true)
                 if [ "$code" != "200" ] || ! jq -e '.app == "loancalc-rd"' /tmp/build-info.json >/dev/null 2>&1; then
                   echo "Respuesta de build-info.json: HTTP ${code}"
-                  echo "::warning::El Deploy Preview está protegido por Netlify (inicio de sesión requerido), así que no puede verificarse automáticamente. El smoke del mismo build de producción ya corre en 'LoanCalc RD CI / e2e'. Para verificar la vista previa, desactiva la protección de despliegues no productivos (docs/DEPLOYMENT.md, A.3)."
+                  echo "::warning::El Deploy Preview no sirve build-info.json (lo habitual es que esté protegido por Visitor access de Netlify), así que no puede verificarse automáticamente. El smoke del mismo build de producción ya corre en 'LoanCalc RD CI / e2e'. Para verificar la vista previa, desactiva la protección de despliegues no productivos (docs/DEPLOYMENT.md, A.3)."
                   echo "skipped=true" >> "$GITHUB_OUTPUT"
                   echo "protected=true" >> "$GITHUB_OUTPUT"
                 fi
