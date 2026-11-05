@@ -44,6 +44,13 @@ test.describe('Fase 7 — simulaciones privadas (API simulada)', () => {
     await page.getByRole('button', { name: /^36 meses$/ }).click();
     await page.getByRole('button', { name: 'Calcular préstamo' }).click();
     await page.getByRole('button', { name: 'Guardar en mi cuenta' }).click();
+    await page.waitForTimeout(500);
+    console.log('phase7-save-diagnostic', JSON.stringify({
+      calls: api.calls,
+      simulations: api.simulations,
+      feedback: await page.locator('.cloud-results-feedback').allTextContents(),
+      button: await page.locator('.cloud-save-button').allTextContents()
+    }));
     await expect(page.getByText('Guardada en tu cuenta')).toBeVisible();
     expect(api.simulations).toHaveLength(1);
     expect(JSON.stringify(api.simulations[0])).not.toContain('documentId');
