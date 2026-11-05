@@ -1,4 +1,4 @@
-// Sirve el build de producción con el mismo fallback SPA que Netlify y ejecuta e2e/smoke.spec.ts.
+// Sirve el build de producción con el mismo fallback SPA que Cloudflare Pages y ejecuta e2e/smoke.spec.ts.
 // Uso: npm run build && npm run e2e:smoke
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -21,7 +21,7 @@ const server = createServer(async (req, res) => {
     if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
     await stat(file);
   } catch {
-    file = join(root, 'index.html'); // Fallback SPA, igual que netlify.toml.
+    file = join(root, 'index.html'); // Fallback SPA, igual que public/_redirects.
   }
   try {
     res.writeHead(200, { 'Content-Type': types[extname(file)] ?? 'application/octet-stream' });

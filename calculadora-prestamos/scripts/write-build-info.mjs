@@ -1,5 +1,5 @@
 // Escribe build-info.json en la salida del build para poder verificar QUÉ commit está
-// publicado en cada despliegue (producción o Deploy Preview) sin acceder al panel de Netlify.
+// publicado en cada despliegue (producción o Deploy Preview) sin acceder al panel de Cloudflare Pages.
 // Solo contiene metadatos públicos del repositorio; nunca secretos ni variables privadas.
 import { writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -12,9 +12,9 @@ if (!existsSync(join(outputDir, 'index.html'))) {
 
 const info = {
   app: 'loancalc-rd',
-  commit: process.env.COMMIT_REF ?? process.env.GITHUB_SHA ?? 'local',
-  context: process.env.CONTEXT ?? 'local',
-  branch: process.env.HEAD ?? process.env.BRANCH ?? null,
+  commit: process.env.CF_PAGES_COMMIT_SHA ?? process.env.COMMIT_REF ?? process.env.GITHUB_SHA ?? 'local',
+  context: (process.env.CF_PAGES === '1' ? 'cloudflare-pages' : process.env.CONTEXT ?? 'local'),
+  branch: process.env.CF_PAGES_BRANCH ?? process.env.HEAD ?? process.env.BRANCH ?? null,
   reviewId: process.env.REVIEW_ID ?? null,
   builtAt: new Date().toISOString()
 };

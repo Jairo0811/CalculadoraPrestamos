@@ -23,12 +23,12 @@ function meta(attribute, name) {
 assert.ok(meta('property', 'og:title').includes('LoanCalc RD'));
 assert.ok(meta('property', 'og:description').length >= 40);
 assert.equal(meta('property', 'og:type'), 'website');
-assert.equal(meta('property', 'og:url'), 'https://loancalcrd.netlify.app/');
+assert.equal(meta('property', 'og:url'), 'https://loancalcrd.pages.dev/');
 const image = meta('property', 'og:image');
-assert.equal(image, 'https://loancalcrd.netlify.app/assets/img/logo-loancalc-rd-900.webp');
+assert.equal(image, 'https://loancalcrd.pages.dev/assets/img/logo-loancalc-rd-900.webp');
 assert.equal(meta('property', 'og:image:type'), 'image/webp');
 assert.equal(meta('name', 'twitter:card'), 'summary_large_image');
-assert.ok(html.includes('<link rel="canonical" href="https://loancalcrd.netlify.app/">'));
+assert.ok(html.includes('<link rel="canonical" href="https://loancalcrd.pages.dev/">'));
 assert.ok(statSync(publicImage).size < 600_000, 'La imagen supera 600 KB');
 
 const bytes = readFileSync(publicImage);
