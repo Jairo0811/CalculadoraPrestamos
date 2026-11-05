@@ -88,7 +88,10 @@ public class AuthTestFactory : WebApplicationFactory<Program>
         ["RateLimiting:Verification:PermitLimit"] = "100000",
         ["RateLimiting:Recovery:PermitLimit"] = "100000",
         ["RateLimiting:Session:PermitLimit"] = "100000",
-        ["RateLimiting:Api:PermitLimit"] = "100000"
+        ["RateLimiting:Api:PermitLimit"] = "100000",
+        // Las clases de prueba comparten la base y se ejecutan en paralelo: la limpieza periódica
+        // de un host podría borrar datos sembrados por otra prueba. Se invoca explícitamente en su prueba.
+        ["Auth:SessionCleanupEnabled"] = "false"
     };
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
