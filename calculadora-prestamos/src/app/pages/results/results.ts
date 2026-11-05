@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -13,6 +13,7 @@ import {
   LoanResult,
 } from '../../core/models/loan.model';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
+import { RdCurrencyPipe, formatRd } from '../../core/formatting/rd-currency';
 
 interface ComparisonOption {
   name: string;
@@ -24,7 +25,7 @@ interface ComparisonOption {
 
 @Component({
   selector: 'app-results',
-  imports: [CurrencyPipe, DecimalPipe, NgClass, RouterLink, FormsModule],
+  imports: [RdCurrencyPipe, DecimalPipe, RouterLink, FormsModule],
   templateUrl: './results.html',
   styleUrl: './results.css',
 })
@@ -1028,9 +1029,6 @@ export class Results {
   }
 
   private money(value: number): string {
-    return new Intl.NumberFormat('es-DO', {
-      style: 'currency',
-      currency: 'DOP',
-    }).format(value);
+    return formatRd(value);
   }
 }

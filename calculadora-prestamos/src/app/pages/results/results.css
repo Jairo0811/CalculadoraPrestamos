@@ -1377,3 +1377,26 @@ html[data-theme='dark'] .timeline-icon {
     display: none !important;
   }
 }
+
+.advice-disclaimer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+/* Fase 6: LoanCalc Score legible (contraste WCAG AA) sobre fondos claros. */
+.loan-score.score-good { background: #ecfdf5; border-color: #a7f3d0; }
+.loan-score.score-medium { background: #fffbeb; border-color: #fde68a; }
+.loan-score.score-high { background: #fef3f2; border-color: #fecdca; }
+.loan-score.score-good strong { color: #047857; }
+.loan-score.score-medium strong { color: #92400e; }
+.loan-score.score-high strong { color: #b42318; }
+.loan-score span, .loan-score small { color: #475569; }

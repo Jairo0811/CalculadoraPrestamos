@@ -1,0 +1,163 @@
+name: LoanCalc RD Netlify Verify
+
+# Verifica que lo que Netlify PUBLICA funciona (no solo que compila).
+# - Pull Request: espera el Deploy Preview que crea la integración nativa de Netlify y lo prueba.
+# - Push a master: espera a que el sitio de producción sirva exactamente ese commit y lo prueba.
+# No despliega nada ni usa tokens de Netlify: el despliegue lo hace la integración GitHub → Netlify.
+
+on:
+  pull_request:
+    branches: ["master"]
+    paths:
+      - 'calculadora-prestamos/**'
+      - 'netlify.toml'
+      - '.github/workflows/netlify-verify.yml'
+  push:
+    branches: ["master"]
+    paths:
+      - 'calculadora-prestamos/**'
+      - 'netlify.toml'
+      - '.github/workflows/netlify-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: read
+
+concurrency:
+  group: netlify-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NETLIFY_SITE_NAME: loancalcrd
+  PRODUCTION_URL: ${{ vars.NETLIFY_PRODUCTION_URL || 'https://loancalcrd.netlify.app' }}
+
+jobs:
+  deploy-preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: calculadora-prestamos
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for the Netlify Deploy Preview
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          context="netlify/${NETLIFY_SITE_NAME}/deploy-preview"
+          for attempt in $(seq 1 80); do
+            status=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${SHA}/statuses" \
+              --jq "[.[] | select(.context == \"${context}\")][0] | \"\(.state) \(.target_url) \(.description)\"" || true)
+            state=$(echo "$status" | cut -d' ' -f1); url=$(echo "$status" | cut -d' ' -f2); description=$(echo "$status" | cut -d' ' -f3-)
+            echo "Intento ${attempt}: ${state:-sin estado} ${description}"
+            if echo "$description" | grep -qi "cancel"; then
+              echo "::notice::Netlify omitió este Deploy Preview (sin cambios de frontend). No hay nada que verificar."
+              echo "skipped=true" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            case "$state" in
+              success)
+                url=${url%/}
+                echo "url=${url}" >> "$GITHUB_OUTPUT"
+                # Las vistas previas pueden estar protegidas en Netlify (Visitor access / Site protection):
+                # en ese caso no sirven nuestro build-info.json sino la página de acceso de Netlify.
+                code=$(curl -sS -L -o /tmp/build-info.json -w '%{http_code}' --max-time 20 "${url}/build-info.json?t=$(date +%s)" || true)
+                if [ "$code" != "200" ] || ! jq -e '.app == "loancalc-rd"' /tmp/build-info.json >/dev/null 2>&1; then
+                  echo "Respuesta de build-info.json: HTTP ${code}"
+                  echo "::warning::El Deploy Preview no sirve build-info.json (lo habitual es que esté protegido por Visitor access de Netlify), así que no puede verificarse automáticamente. El smoke del mismo build de producción ya corre en 'LoanCalc RD CI / e2e'. Para verificar la vista previa, desactiva la protección de despliegues no productivos (docs/DEPLOYMENT.md, A.3)."
+                  echo "skipped=true" >> "$GITHUB_OUTPUT"
+                  echo "protected=true" >> "$GITHUB_OUTPUT"
+                fi
+                exit 0 ;;
+              failure|error) echo "::error::Netlify no pudo generar el Deploy Preview. Revisa el log de Netlify: ${url}"; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "::error::Netlify no publicó el Deploy Preview en 20 minutos. Comprueba que Deploy Previews está activo en Netlify."
+          exit 1
+
+      - uses: actions/setup-node@v4
+        if: steps.preview.outputs.skipped != 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: calculadora-prestamos/package-lock.json
+      - if: steps.preview.outputs.skipped != 'true'
+        run: npm ci
+      - if: steps.preview.outputs.skipped != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test the Deploy Preview
+        if: steps.preview.outputs.skipped != 'true'
+        env:
+          E2E_BASE_URL: ${{ steps.preview.outputs.url }}
+          E2E_EXPECT_NETLIFY: '1'
+          E2E_EXPECT_COMMIT: ${{ github.event.pull_request.head.sha }}
+        run: npx playwright test --project=desktop --project=mobile
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Deploy Preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${{ steps.preview.outputs.url || 'no disponible' }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.preview.outputs.protected }}" = "true" ]; then
+            echo "- ⚠️ Vista previa protegida por Netlify: **no verificada automáticamente**." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "- Commit: \`${{ github.event.pull_request.head.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Resultado smoke: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+
+  production:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: netlify-production
+      url: ${{ vars.NETLIFY_PRODUCTION_URL || 'https://loancalcrd.netlify.app' }}
+    defaults:
+      run:
+        working-directory: calculadora-prestamos
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait until production serves this commit
+        run: |
+          final_url=$(curl -sS -L -o /dev/null -w '%{url_effective}' --max-time 20 "${PRODUCTION_URL}/" || true)
+          if echo "$final_url" | grep -q "edge-access\|app.netlify.com"; then
+            echo "::error::Producción exige inicio de sesión de Netlify (Visitor access). El sitio público no debe estar protegido."
+            exit 1
+          fi
+          for attempt in $(seq 1 80); do
+            deployed=$(curl -fsS --max-time 10 "${PRODUCTION_URL}/build-info.json?t=$(date +%s)" | jq -r '.commit' 2>/dev/null || true)
+            echo "Intento ${attempt}: publicado=${deployed:-desconocido} esperado=${GITHUB_SHA}"
+            [ "$deployed" = "$GITHUB_SHA" ] && exit 0
+            sleep 15
+          done
+          echo "::error::Producción no sirve ${GITHUB_SHA} tras 20 minutos. Revisa el despliegue en Netlify (rama de producción, auto publishing y log del build)."
+          exit 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: calculadora-prestamos/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Smoke test production
+        env:
+          E2E_BASE_URL: ${{ env.PRODUCTION_URL }}
+          E2E_EXPECT_NETLIFY: '1'
+          E2E_EXPECT_COMMIT: ${{ github.sha }}
+        run: npx playwright test --project=desktop --project=mobile
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Producción" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: ${PRODUCTION_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Commit: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Resultado: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"

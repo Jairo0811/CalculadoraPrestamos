@@ -1,1 +1,100 @@
 html,body{min-height:100%}html{scroll-behavior:smooth;--page-bg:#f8fafc;--page-bg-alt:#eef4ff;--surface:#ffffff;--soft:#f8fafc;--text:#0f172a;--muted:#475569;--border:#cbd5e1;color-scheme:light}body{margin:0;background:var(--page-bg);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;text-rendering:optimizeLegibility;transition:background-color .2s ease,color .2s ease}*{box-sizing:border-box}img,svg{max-width:100%}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed}::selection{background:#0d6efd;color:#fff}:focus-visible{outline:4px solid #facc15;outline-offset:4px;border-radius:8px}.form-control:focus-visible,.form-select:focus-visible,.btn:focus-visible{outline:4px solid #facc15;outline-offset:3px}.container{width:min(1180px,94%)}.visually-hidden-focusable:not(:focus):not(:focus-within){position:absolute!important;width:1px!important;height:1px!important;padding:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--soft)}::-webkit-scrollbar-thumb{background:#64748b;border-radius:999px}::-webkit-scrollbar-thumb:hover{background:#475569}@media(max-width:576px){.container{width:min(100% - 24px,1180px)}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* ==========================================================================
+   LoanCalc RD — tokens de diseño (interfaz exclusivamente clara)
+   Usados por las pantallas nuevas y refactorizadas; las páginas existentes
+   conservan sus estilos para evitar regresiones visuales.
+   ========================================================================== */
+:root {
+  --lc-navy-950: #041330;
+  --lc-navy-900: #061a3a;
+  --lc-blue-800: #0b3d91;
+  --lc-blue-700: #0a4fb5;
+  --lc-blue-600: #0b5ed7;
+  --lc-blue-500: #0d6efd;
+  --lc-blue-50: #eef4ff;
+  --lc-teal-500: #14b8a6;
+  --lc-text: #0f172a;
+  --lc-text-muted: #475569;
+  --lc-text-subtle: #64748b;
+  --lc-border: #d7e0ec;
+  --lc-border-strong: #b6c4d6;
+  --lc-surface: #ffffff;
+  --lc-surface-muted: #f4f7fb;
+  --lc-success: #047857;
+  --lc-success-bg: #ecfdf5;
+  --lc-danger: #b42318;
+  --lc-danger-bg: #fef3f2;
+  --lc-warning: #92400e;
+  --lc-warning-bg: #fffbeb;
+  --lc-info: #0b4a99;
+  --lc-info-bg: #eff6ff;
+  --lc-radius-sm: 10px;
+  --lc-radius: 14px;
+  --lc-radius-lg: 22px;
+  --lc-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .08);
+  --lc-shadow: 0 18px 44px rgba(15, 45, 87, .10);
+  --lc-header-height: 64px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -64px;
+  z-index: 2000;
+  padding: 10px 16px;
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-navy-900);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top .15s ease;
+}
+.skip-link:focus { top: 12px; color: #fff; }
+
+main[tabindex="-1"]:focus { outline: none; }
+
+/* Alertas accesibles compartidas (cuenta, estados de error y vacíos). */
+.lc-alert {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--lc-radius-sm);
+  font-size: .95rem;
+  line-height: 1.5;
+}
+.lc-alert > i { font-size: 1.1rem; line-height: 1.35; flex: none; }
+.lc-alert strong { display: block; }
+.lc-alert ul { margin: 6px 0 0; padding-left: 18px; }
+.lc-alert--danger { background: var(--lc-danger-bg); border-color: #fecdca; color: var(--lc-danger); }
+.lc-alert--success { background: var(--lc-success-bg); border-color: #a7f3d0; color: var(--lc-success); }
+.lc-alert--info { background: var(--lc-info-bg); border-color: #bfdbfe; color: var(--lc-info); }
+.lc-alert--warning { background: var(--lc-warning-bg); border-color: #fde68a; color: var(--lc-warning); }
+.lc-alert .lc-alert-action {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Indicador de carga dentro de botones. */
+.lc-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: lc-spin .7s linear infinite;
+  vertical-align: -0.125em;
+}
+@keyframes lc-spin { to { transform: rotate(360deg); } }
+
+/* Marca de campo obligatorio, accesible (el texto oculto lo lee el lector de pantalla). */
+.lc-required { color: var(--lc-danger); margin-left: 2px; }

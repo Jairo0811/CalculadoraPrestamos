@@ -31,10 +31,10 @@
       </div>
 
       <div class="summary-grid" role="list" aria-label="Resumen financiero">
-        <article class="summary-card"><span>Monto solicitado</span><strong>{{ result.request.amount | currency:'DOP':'symbol':'1.2-2' }}</strong><i class="bi bi-cash-stack" aria-hidden="true"></i></article>
-        <article class="summary-card highlight"><span>Cuota mensual</span><strong>{{ result.monthlyPayment | currency:'DOP':'symbol':'1.2-2' }}</strong><i class="bi bi-credit-card" aria-hidden="true"></i></article>
-        <article class="summary-card"><span>Interés total</span><strong>{{ result.totalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong><i class="bi bi-percent" aria-hidden="true"></i></article>
-        <article class="summary-card"><span>Total a pagar</span><strong>{{ result.totalPayment | currency:'DOP':'symbol':'1.2-2' }}</strong><i class="bi bi-wallet2" aria-hidden="true"></i></article>
+        <article class="summary-card"><span>Monto solicitado</span><strong>{{ result.request.amount | rd }}</strong><i class="bi bi-cash-stack" aria-hidden="true"></i></article>
+        <article class="summary-card highlight"><span>Cuota mensual</span><strong>{{ result.monthlyPayment | rd }}</strong><i class="bi bi-credit-card" aria-hidden="true"></i></article>
+        <article class="summary-card"><span>Interés total</span><strong>{{ result.totalInterest | rd }}</strong><i class="bi bi-percent" aria-hidden="true"></i></article>
+        <article class="summary-card"><span>Total a pagar</span><strong>{{ result.totalPayment | rd }}</strong><i class="bi bi-wallet2" aria-hidden="true"></i></article>
       </div>
 
       <section class="financial-dashboard" aria-labelledby="financial-dashboard-title">
@@ -56,7 +56,7 @@
           <article class="dashboard-kpi">
             <i class="bi bi-cash-coin" aria-hidden="true"></i>
             <span>Costo financiero</span>
-            <strong>{{ result.totalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <strong>{{ result.totalInterest | rd }}</strong>
             <small>Intereses totales</small>
           </article>
 
@@ -70,14 +70,14 @@
           <article class="dashboard-kpi">
             <i class="bi bi-calendar-month" aria-hidden="true"></i>
             <span>Costo mensual promedio</span>
-            <strong>{{ averageMonthlyInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <strong>{{ averageMonthlyInterest | rd }}</strong>
             <small>Interés promedio por mes</small>
           </article>
 
           <article class="dashboard-kpi">
             <i class="bi bi-calendar2-check" aria-hidden="true"></i>
             <span>Costo anual promedio</span>
-            <strong>{{ averageAnnualInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+            <strong>{{ averageAnnualInterest | rd }}</strong>
             <small>Referencia anual</small>
           </article>
         </div>
@@ -114,7 +114,7 @@
             <thead><tr><th>Entidad</th><th>Tasa</th><th>Cuota</th><th>Interés</th><th>Total</th></tr></thead>
             <tbody>
               @for (option of comparisons; track option.name; let first = $first) {
-                <tr [class.best-option]="first"><td><strong>{{ option.name }}</strong>@if (first) { <span class="best-badge">Mejor opción</span> }</td><td>{{ option.annualRate | number:'1.2-2' }}%</td><td>{{ option.monthlyPayment | currency:'DOP':'symbol':'1.2-2' }}</td><td>{{ option.totalInterest | currency:'DOP':'symbol':'1.2-2' }}</td><td>{{ option.totalPayment | currency:'DOP':'symbol':'1.2-2' }}</td></tr>
+                <tr [class.best-option]="first"><td><strong>{{ option.name }}</strong>@if (first) { <span class="best-badge">Mejor opción</span> }</td><td>{{ option.annualRate | number:'1.2-2' }}%</td><td>{{ option.monthlyPayment | rd }}</td><td>{{ option.totalInterest | rd }}</td><td>{{ option.totalPayment | rd }}</td></tr>
               }
             </tbody>
           </table>
@@ -298,7 +298,7 @@
           <strong>
             {{
               extraResult.interestSaved
-                | currency:'DOP':'symbol':'1.2-2'
+                | rd
             }}
           </strong>
 
@@ -327,7 +327,7 @@
           <strong>
             {{
               extraResult.newTotalInterest
-                | currency:'DOP':'symbol':'1.2-2'
+                | rd
             }}
           </strong>
 
@@ -374,12 +374,12 @@
             <div class="impact-values">
               <div>
                 <small>Original</small>
-                <strong>{{ extraResult.originalTotalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+                <strong>{{ extraResult.originalTotalInterest | rd }}</strong>
               </div>
 
               <div class="impact-new-value">
                 <small>Con abonos</small>
-                <strong>{{ extraResult.newTotalInterest | currency:'DOP':'symbol':'1.2-2' }}</strong>
+                <strong>{{ extraResult.newTotalInterest | rd }}</strong>
               </div>
             </div>
 
@@ -404,7 +404,7 @@
 
             <p class="impact-saving">
               Ahorras
-              <strong>{{ extraResult.interestSaved | currency:'DOP':'symbol':'1.2-2' }}</strong>
+              <strong>{{ extraResult.interestSaved | rd }}</strong>
             </p>
           </article>
 
@@ -483,7 +483,7 @@
             <strong>
               {{
                 extraResult.originalResult.monthlyPayment
-                  | currency:'DOP':'symbol':'1.2-2'
+                  | rd
               }}
             </strong>
           </div>
@@ -499,7 +499,7 @@
             <strong>
               {{
                 extraResult.finalMonthlyPayment
-                  | currency:'DOP':'symbol':'1.2-2'
+                  | rd
               }}
             </strong>
           </div>
@@ -535,7 +535,7 @@
                 <td>
                   {{
                     row.regularPayment
-                      | currency:'DOP':'symbol':'1.2-2'
+                      | rd
                   }}
                 </td>
 
@@ -546,7 +546,7 @@
                       <strong>
                         {{
                           row.extraPayment
-                            | currency:'DOP':'symbol':'1.2-2'
+                            | rd
                         }}
                       </strong>
                     </div>
@@ -558,21 +558,21 @@
                 <td>
                   {{
                     row.interest
-                      | currency:'DOP':'symbol':'1.2-2'
+                      | rd
                   }}
                 </td>
 
                 <td>
                   {{
                     row.principal
-                      | currency:'DOP':'symbol':'1.2-2'
+                      | rd
                   }}
                 </td>
 
                 <td>
                   {{
                     row.balance
-                      | currency:'DOP':'symbol':'1.2-2'
+                      | rd
                   }}
                 </td>
               </tr>
@@ -586,7 +586,7 @@
 
       <div class="details-grid">
         
-        <section class="panel-card"><div class="panel-title"><h2>Datos del solicitante</h2><i class="bi bi-person-lines-fill" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Nombre</dt><dd>{{ clientName(result) }}</dd></div><div><dt>Cédula</dt><dd>{{ result.request.documentId }}</dd></div><div><dt>Edad</dt><dd>{{ result.age ?? 'No especificada' }}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{{ result.request.birthDate ? formatInputDate(result.request.birthDate) : 'No especificada' }}</dd></div></dl></section>
+        <section class="panel-card"><div class="panel-title"><h2>Datos del solicitante</h2><i class="bi bi-person-lines-fill" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Nombre</dt><dd>{{ clientName(result) }}</dd></div><div><dt>Cédula</dt><dd>{{ result.request.documentId || 'No especificada' }}</dd></div><div><dt>Edad</dt><dd>{{ result.age ?? 'No especificada' }}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{{ result.request.birthDate ? formatInputDate(result.request.birthDate) : 'No especificada' }}</dd></div></dl></section>
         <section class="panel-card"><div class="panel-title"><h2>Condiciones del préstamo</h2><i class="bi bi-bank2" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Tipo</dt><dd>{{ result.request.loanType }}</dd></div><div><dt>Tasa anual</dt><dd>{{ result.request.annualRate | number:'1.2-2' }}%</dd></div><div><dt>Duración</dt><dd>{{ result.request.termMonths }} meses</dd></div><div><dt>Cuotas</dt><dd>{{ result.amortization.length }}</dd></div></dl></section>
       </div>
 
@@ -609,6 +609,11 @@
               </li>
             }
           </ul>
+          <p class="advice-disclaimer">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            Estas sugerencias son cálculos automáticos sobre los datos introducidos, no asesoría financiera personalizada.
+            Confirma tasas, comisiones, seguros y condiciones finales con tu entidad financiera antes de firmar.
+          </p>
         </section>
 
         <section class="feature-card timeline-card" aria-labelledby="timeline-title">
@@ -648,7 +653,7 @@
           <div class="feature-header"><div><span>Historial local</span><h2 id="history-title">Mis simulaciones</h2></div><button type="button" class="btn btn-outline-danger btn-sm" (click)="clearHistory()">Limpiar todo</button></div>
           <div class="history-list">
             @for (item of history; track $index) {
-              <article class="history-item"><button type="button" class="history-load" (click)="loadSimulation($index)"><strong>{{ item.request.loanType }}</strong><span>{{ clientName(item) }}</span><b>{{ item.request.amount | currency:'DOP':'symbol':'1.2-2' }}</b></button><button type="button" class="history-delete" (click)="removeHistoryItem($index)" aria-label="Eliminar simulación"><i class="bi bi-trash3"></i></button></article>
+              <article class="history-item"><button type="button" class="history-load" (click)="loadSimulation($index)"><strong>{{ item.request.loanType }}</strong><span>{{ clientName(item) }}</span><b>{{ item.request.amount | rd }}</b></button><button type="button" class="history-delete" (click)="removeHistoryItem($index)" aria-label="Eliminar simulación"><i class="bi bi-trash3"></i></button></article>
             }
           </div>
         </section>
@@ -656,7 +661,7 @@
 
       <section class="table-card" aria-labelledby="amortization-title">
         <div class="table-header"><div><span>Calendario de pagos</span><h2 id="amortization-title">Tabla de amortización</h2></div><i class="bi bi-table" aria-hidden="true"></i></div>
-        <div class="table-responsive" tabindex="0"><table class="table align-middle"><thead><tr><th>No.</th><th>Fecha</th><th>Cuota</th><th>Interés</th><th>Capital</th><th>Balance</th></tr></thead><tbody>@for (row of result.amortization; track row.number) {<tr><td>{{ row.number }}</td><td>{{ row.paymentDate }}</td><td>{{ row.payment | currency:'DOP':'symbol':'1.2-2' }}</td><td>{{ row.interest | currency:'DOP':'symbol':'1.2-2' }}</td><td>{{ row.principal | currency:'DOP':'symbol':'1.2-2' }}</td><td>{{ row.balance | currency:'DOP':'symbol':'1.2-2' }}</td></tr>}</tbody></table></div>
+        <div class="table-responsive" tabindex="0"><table class="table align-middle"><thead><tr><th>No.</th><th>Fecha</th><th>Cuota</th><th>Interés</th><th>Capital</th><th>Balance</th></tr></thead><tbody>@for (row of result.amortization; track row.number) {<tr><td>{{ row.number }}</td><td>{{ row.paymentDate }}</td><td>{{ row.payment | rd }}</td><td>{{ row.interest | rd }}</td><td>{{ row.principal | rd }}</td><td>{{ row.balance | rd }}</td></tr>}</tbody></table></div>
       </section>
     </div>
   </section>
