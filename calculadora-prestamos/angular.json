@@ -30,9 +30,7 @@
               "src/styles.css",
               "src/styles/results-refresh.css"
             ],
-            "scripts": [
-              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-            ],
+            "scripts": [],
             "security": {
               "allowedHosts": []
             }
