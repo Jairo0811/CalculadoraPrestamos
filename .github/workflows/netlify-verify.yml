@@ -63,9 +63,11 @@ jobs:
               success)
                 url=${url%/}
                 echo "url=${url}" >> "$GITHUB_OUTPUT"
-                # Las vistas previas pueden estar protegidas en Netlify (Visitor access / Site protection).
-                location=$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 20 "${url}/" || true)
-                if echo "$location" | grep -q "edge-access\|app.netlify.com"; then
+                # Las vistas previas pueden estar protegidas en Netlify (Visitor access / Site protection):
+                # en ese caso no sirven nuestro build-info.json sino la página de acceso de Netlify.
+                code=$(curl -sS -L -o /tmp/build-info.json -w '%{http_code}' --max-time 20 "${url}/build-info.json?t=$(date +%s)" || true)
+                if [ "$code" != "200" ] || ! jq -e '.app == "loancalc-rd"' /tmp/build-info.json >/dev/null 2>&1; then
+                  echo "Respuesta de build-info.json: HTTP ${code}"
                   echo "::warning::El Deploy Preview está protegido por Netlify (inicio de sesión requerido), así que no puede verificarse automáticamente. El smoke del mismo build de producción ya corre en 'LoanCalc RD CI / e2e'. Para verificar la vista previa, desactiva la protección de despliegues no productivos (docs/DEPLOYMENT.md, A.3)."
                   echo "skipped=true" >> "$GITHUB_OUTPUT"
                   echo "protected=true" >> "$GITHUB_OUTPUT"
@@ -123,8 +125,8 @@ jobs:
 
       - name: Wait until production serves this commit
         run: |
-          location=$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 20 "${PRODUCTION_URL}/" || true)
-          if echo "$location" | grep -q "edge-access\|app.netlify.com"; then
+          final_url=$(curl -sS -L -o /dev/null -w '%{url_effective}' --max-time 20 "${PRODUCTION_URL}/" || true)
+          if echo "$final_url" | grep -q "edge-access\|app.netlify.com"; then
             echo "::error::Producción exige inicio de sesión de Netlify (Visitor access). El sitio público no debe estar protegido."
             exit 1
           fi
