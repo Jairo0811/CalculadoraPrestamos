@@ -59,12 +59,25 @@ Estos pasos **no** pueden versionarse ni comprobarse desde GitHub. Revísalos en
    - *Deploy Previews*: **Any pull request against your production branch**.
 3. **Build settings**: deja vacíos los campos que define `netlify.toml` (el archivo tiene prioridad sobre la UI).
 4. **Deploys → Auto publishing**: activo (si está bloqueado, los builds de `master` se generan pero no se publican).
-5. **Environment variables**: ninguna es necesaria hoy. No añadas secretos de backend al frontend.
-6. Opcional: **Deploy notifications → GitHub commit statuses** para todos los contextos, si quieres ver también el estado de producción en cada commit de `master`.
+5. **Project configuration → General → Visitor access (Site protection)**: hoy los Deploy Previews exigen iniciar sesión en Netlify (comprobado: redirigen a `app.netlify.com/edge-access`). Así nadie fuera del equipo los ve, pero **GitHub Actions no puede verificarlos** y el job `deploy-preview` lo indica con un aviso. Las vistas previas no contienen secretos ni conectan con APIs (cuentas desactivadas), por lo que puedes:
+   - quitar la protección de despliegues no productivos para habilitar la verificación automática, o
+   - mantenerla y revisar la vista previa manualmente con tu sesión de Netlify.
+   La producción **nunca** debe estar protegida (el job `production` falla si lo está).
+6. **Environment variables**: ninguna es necesaria hoy. No añadas secretos de backend al frontend.
+7. Opcional: **Deploy notifications → GitHub commit statuses** para todos los contextos, si quieres ver también el estado de producción en cada commit de `master`.
 
-## A.4 Protección de `master` (GitHub)
+## A.4 Protección de `master` (GitHub) — **pendiente de activar en GitHub**
 
-Checks obligatorios antes de fusionar: `test-and-build`, `e2e` y `backend`. `Netlify Verify` no es obligatorio porque solo se ejecuta cuando cambia el frontend. El propietario puede fusionar su propio PR (no se exigen aprobaciones de terceros) y la protección no aplica a administradores para permitir correcciones urgentes. Ver *Settings → Branches → master*.
+No pudo aplicarse desde la sesión automatizada (sin permiso de escritura en la API de protección). Configúrala en *Settings → Rules → Rulesets → New branch ruleset* (o *Settings → Branches → Add classic branch protection rule*):
+
+1. **Target**: rama `master`. **Enforcement**: Active.
+2. **Require a pull request before merging** (aprobaciones requeridas: 0, para poder fusionar tus propios PR tras revisarlos).
+3. **Require status checks to pass**, añadiendo: `test-and-build`, `e2e` y `backend` (fuente: GitHub Actions).
+4. **Block force pushes** y **Restrict deletions**.
+5. Opcional: **Require conversation resolution before merging**.
+6. Deja tu usuario en *Bypass list* solo si quieres poder hacer correcciones urgentes.
+
+`Netlify Verify` no se marca como obligatorio porque solo se ejecuta cuando cambia el frontend. `backend` se ejecuta en todos los PR precisamente para poder exigirlo.
 
 ## A.5 Verificación posterior al despliegue
 
@@ -91,6 +104,7 @@ Contra cualquier URL: `E2E_BASE_URL=https://deploy-preview-57--loancalcrd.netlif
 |---|---|---|
 | El PR no tiene Deploy Preview | Solo cambió backend/docs (`netlify-ignore.sh` omitió el build) o Deploy Previews desactivado | Revisa el comentario de Netlify en el PR; ajusta A.3-2 |
 | `Netlify Verify / deploy-preview` falla esperando | Build de Netlify fallido | Abre el enlace del estado `netlify/loancalcrd/deploy-preview` → log |
+| `deploy-preview` en verde con aviso "protegido" | Visitor access activo para despliegues no productivos | Ver A.3-5; el smoke del mismo build ya corre en `LoanCalc RD CI / e2e` |
 | `Netlify Verify / production` no ve el commit | Auto publishing bloqueado, rama de producción distinta o build fallido | A.3-2/A.3-4 y log del deploy |
 | Rutas devuelven 404 al refrescar | Regla SPA no aplicada | El check *Redirect rules* de Netlify debe procesar ≥ 1 regla |
 | Usuarios ven una versión antigua | Caché del navegador de `index.html` | Comprueba que `/` responde `max-age=0`; los JS con hash nunca se reutilizan entre versiones |

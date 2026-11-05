@@ -60,7 +60,17 @@ jobs:
               echo "skipped=true" >> "$GITHUB_OUTPUT"; exit 0
             fi
             case "$state" in
-              success) echo "url=${url%/}" >> "$GITHUB_OUTPUT"; exit 0 ;;
+              success)
+                url=${url%/}
+                echo "url=${url}" >> "$GITHUB_OUTPUT"
+                # Las vistas previas pueden estar protegidas en Netlify (Visitor access / Site protection).
+                location=$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 20 "${url}/" || true)
+                if echo "$location" | grep -q "edge-access\|app.netlify.com"; then
+                  echo "::warning::El Deploy Preview está protegido por Netlify (inicio de sesión requerido), así que no puede verificarse automáticamente. El smoke del mismo build de producción ya corre en 'LoanCalc RD CI / e2e'. Para verificar la vista previa, desactiva la protección de despliegues no productivos (docs/DEPLOYMENT.md, A.3)."
+                  echo "skipped=true" >> "$GITHUB_OUTPUT"
+                  echo "protected=true" >> "$GITHUB_OUTPUT"
+                fi
+                exit 0 ;;
               failure|error) echo "::error::Netlify no pudo generar el Deploy Preview. Revisa el log de Netlify: ${url}"; exit 1 ;;
             esac
             sleep 15
@@ -92,6 +102,9 @@ jobs:
         run: |
           echo "### Deploy Preview" >> "$GITHUB_STEP_SUMMARY"
           echo "- URL: ${{ steps.preview.outputs.url || 'no disponible' }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.preview.outputs.protected }}" = "true" ]; then
+            echo "- ⚠️ Vista previa protegida por Netlify: **no verificada automáticamente**." >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo "- Commit: \`${{ github.event.pull_request.head.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Resultado smoke: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
 
@@ -110,6 +123,11 @@ jobs:
 
       - name: Wait until production serves this commit
         run: |
+          location=$(curl -sS -o /dev/null -w '%{redirect_url}' --max-time 20 "${PRODUCTION_URL}/" || true)
+          if echo "$location" | grep -q "edge-access\|app.netlify.com"; then
+            echo "::error::Producción exige inicio de sesión de Netlify (Visitor access). El sitio público no debe estar protegido."
+            exit 1
+          fi
           for attempt in $(seq 1 80); do
             deployed=$(curl -fsS --max-time 10 "${PRODUCTION_URL}/build-info.json?t=$(date +%s)" | jq -r '.commit' 2>/dev/null || true)
             echo "Intento ${attempt}: publicado=${deployed:-desconocido} esperado=${GITHUB_SHA}"
