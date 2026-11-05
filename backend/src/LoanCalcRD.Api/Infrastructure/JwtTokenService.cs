@@ -2,23 +2,28 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using LoanCalcRD.Infrastructure.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LoanCalcRD.Api.Infrastructure;
 
 public sealed record AccessTokenResponse(string AccessToken, string TokenType, DateTimeOffset ExpiresAtUtc);
 
-public sealed class JwtTokenService(IConfiguration configuration)
+public sealed class JwtTokenService(IOptions<JwtSettings> options, TimeProvider time)
 {
+    public const int MinimumKeyBytes = 32;
+
     public AccessTokenResponse CreateAccessToken(LoanCalcUser user, Guid sessionId)
     {
-        var key = configuration["Jwt:SigningKey"] ?? string.Empty;
-        if (Encoding.UTF8.GetByteCount(key) < 32)
+        var settings = options.Value;
+        if (Encoding.UTF8.GetByteCount(settings.SigningKey) < MinimumKeyBytes)
         {
             throw new InvalidOperationException("Configura Jwt__SigningKey con al menos 32 bytes aleatorios.");
         }
 
-        var expires = DateTimeOffset.UtcNow.AddMinutes(15);
+        var now = time.GetUtcNow();
+        // Tokens de acceso de corta duración: entre 5 y 30 minutos.
+        var expires = now.AddMinutes(Math.Clamp(settings.AccessTokenMinutes, 5, 30));
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -27,18 +32,15 @@ public sealed class JwtTokenService(IConfiguration configuration)
             new Claim("sid", sessionId.ToString())
         };
         var jwt = new JwtSecurityToken(
-            issuer: configuration["Jwt:Issuer"],
-            audience: configuration["Jwt:Audience"],
+            issuer: settings.Issuer,
+            audience: settings.Audience,
             claims: claims,
-            notBefore: DateTime.UtcNow,
+            notBefore: now.UtcDateTime,
             expires: expires.UtcDateTime,
             signingCredentials: new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SigningKey)),
                 SecurityAlgorithms.HmacSha256));
 
-        return new AccessTokenResponse(
-            new JwtSecurityTokenHandler().WriteToken(jwt),
-            "Bearer",
-            expires);
+        return new AccessTokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt), "Bearer", expires);
     }
 }

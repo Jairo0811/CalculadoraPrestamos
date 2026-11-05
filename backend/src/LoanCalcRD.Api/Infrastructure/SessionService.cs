@@ -3,23 +3,40 @@ using System.Text;
 using LoanCalcRD.Infrastructure.Identity;
 using LoanCalcRD.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace LoanCalcRD.Api.Infrastructure;
 
 public sealed record IssuedSession(AccessTokenResponse Access, string RefreshSecret, DateTimeOffset RefreshExpiresAtUtc);
 
-public sealed class SessionService(LoanCalcDbContext db, JwtTokenService jwt)
+/// <summary>
+/// Sesiones revocables por dispositivo con refresh tokens rotatorios de un solo uso.
+/// Solo se persiste el hash SHA-256 del secreto. Reutilizar un token consumido revoca la sesión completa.
+/// </summary>
+public sealed class SessionService(
+    LoanCalcDbContext db,
+    JwtTokenService jwt,
+    IOptionsMonitor<AuthSettings> options,
+    TimeProvider time)
 {
     public const string CookieName = "loancalcrd_refresh";
+    public const string CookiePath = "/api/v1/auth";
+    private const int MaxSecretLength = 256;
 
     public async Task<IssuedSession> CreateAsync(LoanCalcUser user, CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        var expires = now.AddDays(14);
+        var settings = options.CurrentValue;
+        var now = time.GetUtcNow();
+        var expires = now.AddDays(Math.Clamp(settings.RefreshTokenDays, 1, 90));
+
+        await EnforceSessionLimitAsync(user.Id, Math.Max(1, settings.MaxActiveSessionsPerUser), now, cancellationToken);
+
         var session = new AuthSession
         {
-            Id = Guid.NewGuid(), UserId = user.Id,
-            CreatedAtUtc = now, ExpiresAtUtc = expires
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            CreatedAtUtc = now,
+            ExpiresAtUtc = expires
         };
         var secret = GenerateSecret();
         db.AuthSessions.Add(session);
@@ -30,11 +47,10 @@ public sealed class SessionService(LoanCalcDbContext db, JwtTokenService jwt)
 
     public async Task<IssuedSession?> RotateAsync(string? secret, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(secret) || secret.Length > 256) return null;
+        if (string.IsNullOrWhiteSpace(secret) || secret.Length > MaxSecretLength) return null;
         var hash = Hash(secret);
-        var now = DateTimeOffset.UtcNow;
+        var now = time.GetUtcNow();
 
-        // Atomic consumption; concurrent/replayed tokens cannot both succeed.
         await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
         var token = await db.RefreshTokens.AsNoTracking()
             .SingleOrDefaultAsync(x => x.TokenHash == hash, cancellationToken);
@@ -47,26 +63,31 @@ public sealed class SessionService(LoanCalcDbContext db, JwtTokenService jwt)
 
         if (token.ConsumedAtUtc is not null)
         {
-            await RevokeFamilyAsync(session.Id, now, cancellationToken);
+            // Reutilización de un token ya rotado: posible robo. Se revoca toda la familia.
+            await RevokeSessionAsync(session.Id, now, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return null;
         }
 
+        // Consumo atómico. En PostgreSQL la segunda petición concurrente espera el bloqueo de fila,
+        // reevalúa la condición y actualiza 0 filas: nunca pueden ganar dos peticiones con el mismo token.
         var updated = await db.RefreshTokens
             .Where(x => x.Id == token.Id && x.ConsumedAtUtc == null && x.ExpiresAtUtc > now)
             .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.ConsumedAtUtc, now), cancellationToken);
 
         if (updated != 1)
         {
-            await RevokeFamilyAsync(session.Id, now, cancellationToken);
+            await RevokeSessionAsync(session.Id, now, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return null;
         }
 
-        var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == session.UserId, cancellationToken);
+        var user = await db.Users.AsNoTracking()
+            .SingleOrDefaultAsync(x => x.Id == session.UserId, cancellationToken);
         if (user is null) return null;
 
         var replacement = GenerateSecret();
+        // La rotación conserva la expiración absoluta de la sesión original.
         db.RefreshTokens.Add(NewRefresh(session.Id, replacement, now, session.ExpiresAtUtc));
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
@@ -75,61 +96,94 @@ public sealed class SessionService(LoanCalcDbContext db, JwtTokenService jwt)
 
     public async Task RevokeByRefreshAsync(string? secret, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(secret) || secret.Length > 256) return;
+        if (string.IsNullOrWhiteSpace(secret) || secret.Length > MaxSecretLength) return;
         var hash = Hash(secret);
-        var sessionId = await db.RefreshTokens.Where(x => x.TokenHash == hash)
-            .Select(x => (Guid?)x.SessionId).SingleOrDefaultAsync(cancellationToken);
+        var sessionId = await db.RefreshTokens.AsNoTracking()
+            .Where(x => x.TokenHash == hash)
+            .Select(x => (Guid?)x.SessionId)
+            .SingleOrDefaultAsync(cancellationToken);
         if (sessionId is not null)
         {
-            await RevokeFamilyAsync(sessionId.Value, DateTimeOffset.UtcNow, cancellationToken);
+            await RevokeSessionAsync(sessionId.Value, time.GetUtcNow(), cancellationToken);
         }
     }
 
-    public async Task RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default)
+    public Task<int> RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        await db.AuthSessions.Where(x => x.UserId == userId && x.RevokedAtUtc == null)
-            .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAtUtc, DateTimeOffset.UtcNow), cancellationToken);
+        var now = time.GetUtcNow();
+        return db.AuthSessions
+            .Where(x => x.UserId == userId && x.RevokedAtUtc == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAtUtc, now), cancellationToken);
     }
 
-    private Task<int> RevokeFamilyAsync(Guid sessionId, DateTimeOffset now, CancellationToken ct) =>
+    public Task<bool> IsActiveAsync(Guid sessionId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var now = time.GetUtcNow();
+        return db.AuthSessions.AsNoTracking().AnyAsync(
+            s => s.Id == sessionId && s.UserId == userId && s.RevokedAtUtc == null && s.ExpiresAtUtc > now,
+            cancellationToken);
+    }
+
+    private async Task EnforceSessionLimitAsync(Guid userId, int maxSessions, DateTimeOffset now, CancellationToken ct)
+    {
+        // Se deja hueco para la sesión nueva: se revocan las activas más antiguas por encima del límite.
+        var overflow = await db.AuthSessions.AsNoTracking()
+            .Where(x => x.UserId == userId && x.RevokedAtUtc == null && x.ExpiresAtUtc > now)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Select(x => x.Id)
+            .Skip(maxSessions - 1)
+            .ToListAsync(ct);
+        if (overflow.Count == 0) return;
+
+        await db.AuthSessions
+            .Where(x => overflow.Contains(x.Id) && x.RevokedAtUtc == null)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAtUtc, now), ct);
+    }
+
+    private Task<int> RevokeSessionAsync(Guid sessionId, DateTimeOffset now, CancellationToken ct) =>
         db.AuthSessions.Where(x => x.Id == sessionId && x.RevokedAtUtc == null)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAtUtc, now), ct);
 
     private static RefreshToken NewRefresh(Guid sessionId, string secret, DateTimeOffset now, DateTimeOffset expires) => new()
     {
-        Id = Guid.NewGuid(), SessionId = sessionId, TokenHash = Hash(secret),
-        CreatedAtUtc = now, ExpiresAtUtc = expires
+        Id = Guid.NewGuid(),
+        SessionId = sessionId,
+        TokenHash = Hash(secret),
+        CreatedAtUtc = now,
+        ExpiresAtUtc = expires
     };
 
     private static string GenerateSecret() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(48))
         .TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
-    private static string Hash(string secret) => Convert.ToHexString(
-        SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
+    private static string Hash(string secret) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(secret)));
 
     public static void SetCookie(HttpContext http, IssuedSession session)
     {
-        http.Response.Cookies.Append(CookieName, session.RefreshSecret, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = !http.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
-            Path = "/api/v1/auth",
-            Expires = session.RefreshExpiresAtUtc,
-            IsEssential = true
-        });
+        http.Response.Cookies.Append(CookieName, session.RefreshSecret, BuildCookieOptions(http, session.RefreshExpiresAtUtc));
         http.Response.Headers.CacheControl = "no-store";
     }
 
     public static void ClearCookie(HttpContext http)
     {
-        http.Response.Cookies.Delete(CookieName, new CookieOptions
+        http.Response.Cookies.Delete(CookieName, BuildCookieOptions(http, expires: null));
+        http.Response.Headers.CacheControl = "no-store";
+    }
+
+    private static CookieOptions BuildCookieOptions(HttpContext http, DateTimeOffset? expires)
+    {
+        var services = http.RequestServices;
+        var sameSite = services.GetRequiredService<IOptionsMonitor<AuthSettings>>().CurrentValue.Cookie.ResolveSameSite();
+        var isDevelopment = services.GetRequiredService<IHostEnvironment>().IsDevelopment();
+        return new CookieOptions
         {
             HttpOnly = true,
-            Secure = !http.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment(),
-            SameSite = SameSiteMode.Strict,
-            Path = "/api/v1/auth"
-        });
-        http.Response.Headers.CacheControl = "no-store";
+            // SameSite=None exige Secure en todos los navegadores modernos.
+            Secure = sameSite == SameSiteMode.None || !isDevelopment || http.Request.IsHttps,
+            SameSite = sameSite,
+            Path = CookiePath,
+            Expires = expires,
+            IsEssential = true
+        };
     }
 }
