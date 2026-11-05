@@ -8,10 +8,8 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
+  # Siempre en Pull Requests: "backend" es un check obligatorio de la protección de `master`.
   pull_request:
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
 
 permissions:
   contents: read
