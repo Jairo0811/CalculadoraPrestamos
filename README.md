@@ -55,7 +55,7 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 | Correo verificado, sesiones revocables y cambio de contraseña | — | ✅ (Fase 6) |
 | Simulaciones privadas guardadas en la nube | — | ⏳ API lista; interfaz en Fase 7 |
 
-> En el build de producción de Netlify las pantallas de cuenta están **desactivadas** (`features.accounts = false`) hasta que la API y el SMTP estén desplegados en la Fase 8. En desarrollo local están activas.
+> En el build de producción de Cloudflare Pages las pantallas de cuenta están **desactivadas** (`features.accounts = false`) hasta que la API y el SMTP estén desplegados en la Fase 8. En desarrollo local están activas.
 
 ---
 
@@ -194,7 +194,7 @@ npm start                 # http://localhost:4200 (cuentas activas, API en http:
 npm run test:ci           # pruebas unitarias y de componentes (Vitest)
 npm run e2e               # E2E con Playwright (API de cuentas simulada)
 npm run build             # build de producción (cuentas desactivadas)
-npm run e2e:smoke         # smoke del build de producción (como se publica en Netlify)
+npm run e2e:smoke         # smoke del build de producción (como se publica en Cloudflare Pages)
 ```
 
 La calculadora funciona aunque la API no esté ejecutándose.
@@ -215,11 +215,12 @@ dotnet run --project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj --urls http://loca
 
 ## 🌐 Despliegue continuo
 
-El frontend se publica automáticamente en **https://loancalcrd.netlify.app** mediante la integración nativa GitHub → Netlify:
+El frontend se publica en **https://loancalcrd.pages.dev** mediante Cloudflare Pages conectado a GitHub:
 
-1. Cada Pull Request a `master` ejecuta CI y obtiene un **Deploy Preview** (`deploy-preview-<n>--loancalcrd.netlify.app`), que GitHub Actions verifica con pruebas de humo.
-2. Al fusionar en `master`, Netlify compila y publica la nueva versión; el workflow **Netlify Verify** confirma que producción sirve ese commit y que funciona.
-3. No hay que subir `dist/` ni ejecutar comandos manuales. Las ramas experimentales no se publican.
+1. Cada Pull Request a `master` ejecuta CI. Cloudflare puede generar un **Preview Deployment** si está activado para la rama.
+2. Tras fusionar en `master`, Cloudflare Pages debería compilar y publicar automáticamente (requiere que `master` sea la rama de producción y estén activos los despliegues automáticos).
+3. El workflow **LoanCalc RD Cloudflare Verify** espera el commit de producción y comprueba la respuesta HTTP, Open Graph y la imagen. La confirmación real depende del resultado del workflow.
+4. El build mantiene las cuentas desactivadas hasta publicar API y SMTP (Fase 8).
 
 Configuración, rollback y diagnóstico: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 

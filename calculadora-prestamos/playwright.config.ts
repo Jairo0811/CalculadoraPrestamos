@@ -7,8 +7,8 @@ import { defineConfig, devices } from '@playwright/test';
  *    `page.route`; valida la interfaz y la sesión en el navegador, no ASP.NET Core/PostgreSQL/SMTP.
  *
  * 2. Smoke de un sitio ya compilado (`E2E_BASE_URL`): ejecuta solo `e2e/smoke.spec.ts` contra el build
- *    de producción (local, Deploy Preview de Netlify o el sitio publicado). Sin servidor propio.
- *    `E2E_EXPECT_NETLIFY=1` activa además las comprobaciones de cabeceras de Netlify y
+ *    de producción (local, Deploy Preview de Cloudflare o el sitio publicado). Sin servidor propio.
+ *    `E2E_EXPECT_CLOUDFLARE=1` activa además las comprobaciones de cabeceras de Cloudflare Pages y
  *    `E2E_EXPECT_COMMIT=<sha>` verifica que el despliegue sirve exactamente ese commit.
  */
 const externalBaseUrl = process.env['E2E_BASE_URL'];

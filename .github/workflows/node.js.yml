@@ -40,6 +40,9 @@ jobs:
       - name: Build Angular project
         run: npm run build
 
+      - name: Validate WhatsApp and social link preview metadata
+        run: node scripts/check-social-preview.mjs
+
   e2e:
     runs-on: ubuntu-latest
     needs: test-and-build
@@ -68,8 +71,8 @@ jobs:
       - name: Run end-to-end tests (UI + accessibility, simulated account API)
         run: npm run e2e
 
-      - name: Build production bundle (same command as Netlify)
-        run: npm run build && node scripts/write-build-info.mjs
+      - name: Build production bundle (same command as Cloudflare Pages)
+        run: npm run build
 
       - name: Smoke test the production build (accounts off, exports, SPA fallback)
         run: npm run e2e:smoke

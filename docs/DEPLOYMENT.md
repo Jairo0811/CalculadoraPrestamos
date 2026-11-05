@@ -1,138 +1,89 @@
 # Guía de despliegue y secretos — LoanCalc RD v3
 
-- **Parte A** — Despliegue continuo del frontend en Netlify (activo).
-- **Parte B** — Publicación de la API, base de datos y cuentas (Fase 8, **pendiente**: el frontend publicado mantiene las cuentas desactivadas con `features.accounts = false`).
+- **Parte A:** Cloudflare Pages y despliegue continuo de Angular.
+- **Parte B:** API, PostgreSQL, cuentas y SMTP (Fase 8; no publicados).
 
 ---
 
-# Parte A — Despliegue continuo del frontend (Netlify)
+# Parte A — Cloudflare Pages
 
-## A.1 Flujo
+## A.1 Sitio y Git
 
-```text
-rama de trabajo ──► Pull Request a master
-                     ├─ GitHub Actions: LoanCalc RD CI ........ test-and-build · e2e (dev + smoke del build de producción)
-                     ├─ GitHub Actions: LoanCalc RD Backend CI . backend (build, migraciones, upgrade Fase 5, xUnit, NuGet)
-                     ├─ Netlify (integración nativa) ........... Deploy Preview → deploy-preview-<n>--loancalcrd.netlify.app
-                     └─ GitHub Actions: Netlify Verify ......... espera el Deploy Preview y ejecuta el smoke sobre él
-         revisión + checks obligatorios en verde ──► merge a master
-                     ├─ Netlify (integración nativa) ........... build y publicación automática en loancalcrd.netlify.app
-                     └─ GitHub Actions: Netlify Verify ......... espera a que producción sirva ESE commit y ejecuta el smoke
-```
+- **URL de producción:** https://loancalcrd.pages.dev
+- **Repositorio:** `Jairo0811/CalculadoraPrestamos`
+- **Rama de producción deseada:** `master`.
+- **Integración:** Cloudflare Pages → GitHub. Cloudflare controla los despliegues, GitHub Actions los verifica sin tokens de Cloudflare.
+- **Preview branches:** configurable en Cloudflare → Workers & Pages → LoanCalc RD → Settings → Builds & deployments → Branch control.
 
-**Estrategia configurada: integración nativa GitHub → Netlify.** No hay tokens de Netlify en el repositorio ni workflows que desplieguen con Netlify CLI: el workflow `netlify-verify.yml` solo *verifica* lo que Netlify publica.
+Confirma en el panel que `master` está seleccionada y que los despliegues automáticos de producción están activos. La URL del usuario no prueba por sí sola esos ajustes. No actives cuentas: `environment.production.ts` mantiene `features.accounts = false`.
 
-Evidencia verificada desde GitHub (sin acceso al panel de Netlify): la app de Netlify publica el estado `netlify/loancalcrd/deploy-preview` y comenta en los PR; el PR #57 obtuvo `https://deploy-preview-57--loancalcrd.netlify.app` y Netlify aplicó las reglas de cabeceras y redirecciones de `netlify.toml`. La publicación automática de `master` en producción **no** es visible desde GitHub (Netlify no publica estado en esos commits); el job `production` de `netlify-verify.yml` la comprueba tras cada merge.
+## A.2 Ajustes de compilación
 
-## A.2 Configuración versionada (`netlify.toml`)
-
-| Ajuste | Valor | Motivo |
-|---|---|---|
-| Base directory | `calculadora-prestamos` | Proyecto Angular |
-| Build command | `npm ci && npm run build && node scripts/write-build-info.mjs` | Build de producción + `build-info.json` con el commit publicado |
-| Publish directory | `dist/calculadora-prestamos/browser` | Salida de `@angular/build:application` (Angular 21) |
-| Node | 22 | Igual que CI |
-| Ignore | `scripts/netlify-ignore.sh` | Omite *branch deploys* y builds sin cambios de frontend |
-| SPA | `/* → /index.html (200)` | Refrescar `/calculator` o `/results` funciona |
-
-Producción y Deploy Previews usan **el mismo build de producción**: `apiBaseUrl: '/api/v1'` (sin `localhost`), cuentas desactivadas, sin credenciales ni bases de datos.
-
-### Caché
-
-| Recurso | Cache-Control |
+| Campo | Valor |
 |---|---|
-| `index.html` y rutas SPA | Por defecto de Netlify: `public, max-age=0, must-revalidate` → nunca se sirve un `index.html` antiguo tras desplegar |
-| `/*.js`, `/*.css`, `/media/*` (con hash) | `public, max-age=31536000, immutable` |
-| `/assets/*` (logos WebP sin hash) | `public, max-age=86400, stale-while-revalidate=604800` |
-| `/build-info.json` | `no-store` |
+| Framework | Angular |
+| Directorio raíz | `calculadora-prestamos` |
+| Comando | `npm ci && npm run build` |
+| Output directory | `dist/calculadora-prestamos/browser` |
+| Node.js | 22 (`NODE_VERSION=22`) |
 
-Netlify comprime automáticamente con Brotli/gzip. No se fija `Cache-Control` en `/*` porque Netlify concatena valores cuando varias reglas definen la misma cabecera.
+El script `npm run build` ejecuta Angular y escribe `build-info.json` con `CF_PAGES_COMMIT_SHA` y `CF_PAGES_BRANCH` en Cloudflare. Estos metadatos son públicos y no incluyen secretos.
 
-## A.3 Ajustes que requieren el panel de Netlify
+## A.3 SEO y vista previa en WhatsApp
 
-Estos pasos **no** pueden versionarse ni comprobarse desde GitHub. Revísalos en *app.netlify.com → loancalcrd*:
+- El HTML compilado contiene `og:title`, `og:description`, `og:url`, `og:image`, `twitter:card` y la URL canónica.
+- La imagen absoluta es `https://loancalcrd.pages.dev/assets/img/logo-loancalc-rd-900.webp`. Debe responder sin autenticación y con contenido de imagen.
+- Los robots sociales no ejecutan Angular: las etiquetas se generan desde `src/index.html` y CI las comprueba con `scripts/check-social-preview.mjs`.
+- Prueba después de publicar pegando `https://loancalcrd.pages.dev/?v=1` en WhatsApp. Los clientes pueden almacenar caché y la previsualización exacta solo se confirma en WhatsApp.
 
-1. **Project configuration → Build & deploy → Continuous deployment → Repository**: vinculado a `Jairo0811/CalculadoraPrestamos`.
-2. **Branches and deploy contexts**:
-   - *Production branch*: `master`.
-   - *Branch deploys*: **Deploy only the production branch** (además, `netlify-ignore.sh` omite cualquier branch deploy).
-   - *Deploy Previews*: **Any pull request against your production branch**.
-3. **Build settings**: deja vacíos los campos que define `netlify.toml` (el archivo tiene prioridad sobre la UI).
-4. **Deploys → Auto publishing**: activo (si está bloqueado, los builds de `master` se generan pero no se publican).
-5. **Project configuration → General → Visitor access (Site protection)**: hoy los Deploy Previews exigen iniciar sesión en Netlify (comprobado: redirigen a `app.netlify.com/edge-access`). Así nadie fuera del equipo los ve, pero **GitHub Actions no puede verificarlos** y el job `deploy-preview` lo indica con un aviso. Las vistas previas no contienen secretos ni conectan con APIs (cuentas desactivadas), por lo que puedes:
-   - quitar la protección de despliegues no productivos para habilitar la verificación automática, o
-   - mantenerla y revisar la vista previa manualmente con tu sesión de Netlify.
-   La producción **nunca** debe estar protegida (el job `production` falla si lo está).
-6. **Environment variables**: ninguna es necesaria hoy. No añadas secretos de backend al frontend.
-7. Opcional: **Deploy notifications → GitHub commit statuses** para todos los contextos, si quieres ver también el estado de producción en cada commit de `master`.
+## A.4 Enrutamiento y cabeceras
 
-## A.4 Protección de `master` (GitHub) — **pendiente de activar en GitHub**
+- `calculadora-prestamos/public/_redirects`: fallback SPA (`/* /index.html 200`) sin afectar activos existentes.
+- `calculadora-prestamos/public/_headers`: HSTS, no-sniff, política de referer, caché para bundles con hash y `build-info.json` sin caché.
+- Las cookies de autenticación y el proxy `/api/*` no deben habilitarse hasta la Fase 8.
 
-No pudo aplicarse desde la sesión automatizada (sin permiso de escritura en la API de protección). Configúrala en *Settings → Rules → Rulesets → New branch ruleset* (o *Settings → Branches → Add classic branch protection rule*):
+## A.5 Verificación automática
 
-1. **Target**: rama `master`. **Enforcement**: Active.
-2. **Require a pull request before merging** (aprobaciones requeridas: 0, para poder fusionar tus propios PR tras revisarlos).
-3. **Require status checks to pass**, añadiendo: `test-and-build`, `e2e` y `backend` (fuente: GitHub Actions).
-4. **Block force pushes** y **Restrict deletions**.
-5. Opcional: **Require conversation resolution before merging**.
-6. Deja tu usuario en *Bypass list* solo si quieres poder hacer correcciones urgentes.
-
-`Netlify Verify` no se marca como obligatorio porque solo se ejecuta cuando cambia el frontend. `backend` se ejecuta en todos los PR precisamente para poder exigirlo.
-
-## A.5 Verificación posterior al despliegue
-
-Automática: job `production` de **LoanCalc RD Netlify Verify** (pestaña *Actions* o el commit en `master`). Comprueba que `https://loancalcrd.netlify.app/build-info.json` sirve el commit fusionado y ejecuta el smoke: Home sin errores de consola, logo, rutas profundas, cuentas desactivadas y sin llamadas a la API, simulación completa con tabla y RD$, PDF/Excel, responsive, WCAG A/AA, cabeceras de seguridad y caché.
-
-Manual (2 minutos):
-
-1. Abre `https://loancalcrd.netlify.app/build-info.json` → `commit` debe ser el último de `master`.
-2. Recarga con la caché vacía `/`, `/calculator` y `/results`.
-3. Simula un préstamo y descarga PDF y Excel.
-4. Abre la consola del navegador: sin errores ni peticiones a `localhost` o `/api`.
-
-Local, con el mismo build: `npm run build && node scripts/write-build-info.mjs && npm run e2e:smoke`.
-Contra cualquier URL: `E2E_BASE_URL=https://deploy-preview-57--loancalcrd.netlify.app E2E_EXPECT_NETLIFY=1 npx playwright test`.
+- `LoanCalc RD CI`: `npm ci`, auditoría npm, pruebas Angular, build y pruebas de metadatos; E2E y smoke del build público.
+- `LoanCalc RD Backend CI`: backend, EF migrations, xUnit y seguridad.
+- `LoanCalc RD Cloudflare Verify`: tras push a `master`, espera que `https://loancalcrd.pages.dev/build-info.json` refleje el commit y prueba HTML, Open Graph e imagen pública.
+- Si el verificador falla, comprobar el build en el panel de Cloudflare, la rama de producción y las reglas de dominio. **No confundir checks verdes de GitHub con un despliegue de Cloudflare confirmado.**
 
 ## A.6 Rollback
 
-- **Inmediato (sin código):** Netlify → *Deploys* → elige el último despliegue correcto → **Publish deploy**. Netlify sirve ese build al instante. Mientras tanto, *Lock publishing* evita que un nuevo merge lo sustituya.
-- **Definitivo:** `git revert <commit>` en una rama → PR → checks → merge. Después desbloquea *Auto publishing*.
+Desde Cloudflare Pages → Deployments, selecciona un despliegue estable y usa la opción de reversión o promoción que el panel habilite para ese proyecto. Para corregir permanentemente el código, crea `git revert <sha>` en una rama y fusiónalo con CI verde.
 
-## A.7 Diagnóstico de fallos
+## A.7 Diagnóstico
 
-| Síntoma | Causa probable | Acción |
-|---|---|---|
-| El PR no tiene Deploy Preview | Solo cambió backend/docs (`netlify-ignore.sh` omitió el build) o Deploy Previews desactivado | Revisa el comentario de Netlify en el PR; ajusta A.3-2 |
-| `Netlify Verify / deploy-preview` falla esperando | Build de Netlify fallido | Abre el enlace del estado `netlify/loancalcrd/deploy-preview` → log |
-| `deploy-preview` en verde con aviso "protegido" | Visitor access activo para despliegues no productivos | Ver A.3-5; el smoke del mismo build ya corre en `LoanCalc RD CI / e2e` |
-| `Netlify Verify / production` no ve el commit | Auto publishing bloqueado, rama de producción distinta o build fallido | A.3-2/A.3-4 y log del deploy |
-| Rutas devuelven 404 al refrescar | Regla SPA no aplicada | El check *Redirect rules* de Netlify debe procesar ≥ 1 regla |
-| Usuarios ven una versión antigua | Caché del navegador de `index.html` | Comprueba que `/` responde `max-age=0`; los JS con hash nunca se reutilizan entre versiones |
-| `npm ci` falla en Netlify | Lockfile desincronizado | Regenera el lockfile con `npm install` (npm 11) y súbelo |
-| Error `NODE_VERSION` | Node distinto a 22 | `netlify.toml` fija `NODE_VERSION = "22"` |
+| Problema | Verificación |
+|---|---|
+| El dominio no carga | Revisa el estado DNS, Pages Deployments y la URL del proyecto |
+| `build-info.json` no coincide | Verifica `master` como rama de producción, auto deploy y que `CF_PAGES_COMMIT_SHA` esté disponible |
+| WhatsApp no muestra miniatura | Abre `og:image` directamente; comprueba meta estático, respuesta 200, tamaño y caché |
+| Refrescar `/calculator` da 404 | Comprueba que `_redirects` esté copiado por Angular a la salida |
+| Cambios en PR no generan Preview | Revisa control de ramas y GitHub integration en Cloudflare |
 
 ---
-
 # Parte B — API, base de datos y cuentas (Fase 8)
 
 ## B.1 Topología recomendada
 
 ```text
-Navegador ──HTTPS──► loancalcrd.netlify.app (o dominio propio)
+Navegador ──HTTPS──► loancalcrd.pages.dev (o dominio propio)
                      ├── /*        → Angular (estático)
-                     └── /api/*    → proxy Netlify ──HTTPS──► API ASP.NET Core ──► PostgreSQL 17
+                     └── /api/*    → proxy de mismo origen (Worker / API route) ──HTTPS──► API ASP.NET Core ──► PostgreSQL 17
 ```
 
-**Evaluación:** el proxy de mismo origen `/api/*` es la estrategia adecuada para esta topología (frontend estático en Netlify + API ASP.NET Core en otro proveedor): mantiene `SameSite=Strict`, evita CORS en el navegador y no depende de cookies de terceros. Inconvenientes asumidos: un salto de red adicional y que la IP del cliente llega en `X-Forwarded-For` (configura `ForwardedHeaders`). Por eso la regla queda **comentada**: no se activa hasta que exista una API real.
+**Evaluación:** el proxy de mismo origen `/api/*` es la estrategia adecuada para esta topología (frontend estático en Cloudflare Pages + API ASP.NET Core en otro proveedor): mantiene `SameSite=Strict`, evita CORS en el navegador y no depende de cookies de terceros. Inconvenientes asumidos: un salto de red adicional y que la IP del cliente llega en `X-Forwarded-For` (configura `ForwardedHeaders`). Por eso la regla queda **comentada**: no se activa hasta que exista una API real.
 
-**Por qué un proxy de mismo origen:** el refresh token vive en una cookie `HttpOnly` con `SameSite=Strict`. Si Angular y la API están en sitios distintos (por ejemplo `*.netlify.app` y `*.onrender.com`), la cookie es de terceros: con `Strict` o `Lax` el navegador no la envía en `fetch`, y con `None` muchos navegadores la bloquean por la protección contra rastreo. Con el proxy, para el navegador todo es el mismo origen y `Strict` funciona.
+**Por qué un proxy de mismo origen:** el refresh token vive en una cookie `HttpOnly` con `SameSite=Strict`. Si Angular y la API están en sitios distintos (por ejemplo `*.pages.dev` y `*.onrender.com`), la cookie es de terceros: con `Strict` o `Lax` el navegador no la envía en `fetch`, y con `None` muchos navegadores la bloquean por la protección contra rastreo. Con el proxy, para el navegador todo es el mismo origen y `Strict` funciona.
 
 Pasos:
 
 1. Publica la API en HTTPS.
-2. En `netlify.toml`, descomenta la regla `/api/*` (antes de la regla SPA) con el dominio real de la API.
+2. Configura un proxy de mismo origen `/api/*` en Cloudflare (por ejemplo, un Worker/Pages Function bien securizado) cuando exista la API. No lo actives antes de tener la API publicada. El archivo `_redirects` actual sirve solo la SPA.
 3. Mantén `apiBaseUrl: '/api/v1'` en `environment.production.ts`.
-4. Configura en la API `Cors__AllowedOrigins__0=https://<sitio-netlify>` (para el `Origin` que reenvía el proxy) y `Auth__Cookie__SameSite=Strict`.
+4. Configura en la API `Cors__AllowedOrigins__0=https://loancalcrd.pages.dev` (para el `Origin` que reenvía el proxy) y `Auth__Cookie__SameSite=Strict`.
 5. Cuando todo esté verificado, cambia `features.accounts` a `true` en `environment.production.ts`.
 
 ### Alternativa: dominios distintos

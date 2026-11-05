@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
  * Smoke del BUILD DE PRODUCCIÓN (local, Deploy Preview o sitio publicado).
  * Comprueba que la versión candidata FUNCIONA, no solo que compila.
  */
-const expectNetlify = process.env['E2E_EXPECT_NETLIFY'] === '1';
+const expectCloudflare = process.env['E2E_EXPECT_CLOUDFLARE'] === '1';
 const expectedCommit = process.env['E2E_EXPECT_COMMIT'];
 
 /** Registra errores de consola/página y cualquier intento de llamar a la API o a localhost. */
@@ -113,7 +113,7 @@ test.describe('Smoke del build de producción', () => {
   });
 
   test('cabeceras de seguridad y caché del despliegue', async ({ request }) => {
-    test.skip(!expectNetlify, 'Solo aplica al sitio servido por Netlify');
+    test.skip(!expectCloudflare, 'Solo aplica al sitio servido por Cloudflare Pages');
 
     const html = await request.get('/');
     const headers = html.headers();
