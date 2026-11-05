@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -39,10 +39,11 @@ export class Results {
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
 
-  cloudSaving = false;
-  cloudSavedId: string | null = null;
-  cloudSaveError = '';
-  cloudSaveNotice = '';
+  // Signals: la respuesta asíncrona de HttpClient actualiza Angular sin depender de Zone.js.
+  readonly cloudSaving = signal(false);
+  readonly cloudSavedId = signal<string | null>(null);
+  readonly cloudSaveError = signal('');
+  readonly cloudSaveNotice = signal('');
 
 
   result: LoanResult | null = this.loanCalculator.getResult();
@@ -653,20 +654,20 @@ export class Results {
   /** Carga bajo demanda: el resultado sigue siendo gratuito aunque la API falle. */
   saveToCloud(): void {
     if (!this.auth.enabled || !this.auth.isAuthenticated() || !this.result ||
-        this.cloudSaving || this.cloudSavedId) return;
+        this.cloudSaving() || this.cloudSavedId()) return;
 
-    this.cloudSaving = true;
-    this.cloudSaveError = '';
-    this.cloudSaveNotice = '';
+    this.cloudSaving.set(true);
+    this.cloudSaveError.set('');
+    this.cloudSaveNotice.set('');
     this.api.saveSimulation(this.result.request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: saved => {
-        this.cloudSavedId = saved.id;
-        this.cloudSaving = false;
-        this.cloudSaveNotice = 'Guardada en tu cuenta. Puedes abrirla desde Mis simulaciones.';
+        this.cloudSavedId.set(saved.id);
+        this.cloudSaving.set(false);
+        this.cloudSaveNotice.set('Guardada en tu cuenta. Puedes abrirla desde Mis simulaciones.');
       },
       error: () => {
-        this.cloudSaving = false;
-        this.cloudSaveError = 'No se pudo guardar en la nube. Tus resultados locales siguen disponibles.';
+        this.cloudSaving.set(false);
+        this.cloudSaveError.set('No se pudo guardar en la nube. Tus resultados locales siguen disponibles.');
       }
     });
   }
@@ -679,9 +680,9 @@ export class Results {
     }
 
     this.result = item;
-    this.cloudSavedId = null;
-    this.cloudSaveNotice = '';
-    this.cloudSaveError = '';
+    this.cloudSavedId.set(null);
+    this.cloudSaveNotice.set('');
+    this.cloudSaveError.set('');
     this.clearExtraPaymentScenario();
   }
 

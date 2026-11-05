@@ -20,9 +20,9 @@
         <div class="actions-group">
           @if (auth.enabled) {
             @if (auth.isAuthenticated()) {
-              <button class="btn btn-outline-primary cloud-save-button" type="button" (click)="saveToCloud()" [disabled]="cloudSaving || !!cloudSavedId">
-                <i class="bi" [class.bi-cloud-upload]="!cloudSavedId" [class.bi-cloud-check]="!!cloudSavedId" aria-hidden="true"></i>
-                {{ cloudSaving ? 'Guardando…' : cloudSavedId ? 'Guardada en mi cuenta' : 'Guardar en mi cuenta' }}
+              <button class="btn btn-outline-primary cloud-save-button" type="button" (click)="saveToCloud()" [disabled]="cloudSaving() || !!cloudSavedId()">
+                <i class="bi" [class.bi-cloud-upload]="!cloudSavedId()" [class.bi-cloud-check]="!!cloudSavedId()" aria-hidden="true"></i>
+                {{ cloudSaving() ? 'Guardando…' : cloudSavedId() ? 'Guardada en mi cuenta' : 'Guardar en mi cuenta' }}
               </button>
               <a class="btn btn-outline-primary cloud-my-button" routerLink="/account/simulations">
                 <i class="bi bi-collection" aria-hidden="true"></i> Mis guardadas
@@ -44,11 +44,11 @@
           </button>
         </div>
       </div>
-      @if (cloudSaveNotice) {
-        <p class="cloud-results-feedback success" role="status">{{ cloudSaveNotice }}</p>
+      @if (cloudSaveNotice()) {
+        <p class="cloud-results-feedback success" role="status">{{ cloudSaveNotice() }}</p>
       }
-      @if (cloudSaveError) {
-        <p class="cloud-results-feedback error" role="alert">{{ cloudSaveError }}</p>
+      @if (cloudSaveError()) {
+        <p class="cloud-results-feedback error" role="alert">{{ cloudSaveError() }}</p>
       }
 
       <div class="summary-grid" role="list" aria-label="Resumen financiero">

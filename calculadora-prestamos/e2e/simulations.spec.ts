@@ -37,11 +37,6 @@ test.describe('Fase 7 — simulaciones privadas (API simulada)', () => {
 
   test('guarda una simulación desde resultados sin enviar identificadores personales', async ({ page }) => {
     const api = await mockAccountApi(page, { confirmed: true, loggedIn: true });
-    const pageErrors: string[] = [];
-    const requests: string[] = [];
-    page.on('pageerror', e => pageErrors.push(e.message));
-    page.on('requestfinished', req => { if (req.url().includes('/simulations')) requests.push('finished ' + req.url()); });
-    page.on('requestfailed', req => { if (req.url().includes('/simulations')) requests.push('failed ' + req.url() + ' ' + req.failure()?.errorText); });
     await page.goto('/calculator');
     await page.getByLabel('Monto solicitado').fill('500000');
     await page.getByLabel('Tipo de préstamo').selectOption('Personal');
@@ -49,15 +44,6 @@ test.describe('Fase 7 — simulaciones privadas (API simulada)', () => {
     await page.getByRole('button', { name: /^36 meses$/ }).click();
     await page.getByRole('button', { name: 'Calcular préstamo' }).click();
     await page.getByRole('button', { name: 'Guardar en mi cuenta' }).click();
-    await page.waitForTimeout(500);
-    console.log('phase7-save-diagnostic', JSON.stringify({
-      calls: api.calls,
-      simulations: api.simulations,
-      feedback: await page.locator('.cloud-results-feedback').allTextContents(),
-      button: await page.locator('.cloud-save-button').allTextContents(),
-      pageErrors,
-      requests
-    }));
     await expect(page.getByText('Guardada en tu cuenta')).toBeVisible();
     expect(api.simulations).toHaveLength(1);
     expect(JSON.stringify(api.simulations[0])).not.toContain('documentId');
