@@ -18,6 +18,17 @@ export class Calculator {
   errorMessage = '';
   cedulaTouched = false;
   amountDisplay = '';
+  submitted = false;
+  showPersonalData = false;
+
+  /** Campos numéricos vacíos por defecto (en lugar de mostrar "0"). */
+  annualRate: number | null = null;
+  termMonths: number | null = null;
+
+  readonly maxAmount = 1_000_000_000;
+  readonly maxAnnualRate = 100;
+  readonly maxTermMonths = 600;
+  readonly termPresets = [12, 24, 36, 48, 60, 120, 240];
 
   request: LoanRequest = {
     firstName: '',
@@ -44,31 +55,92 @@ export class Calculator {
     return isValidDominicanId(this.request.documentId);
   }
 
+  /** La cédula es opcional: solo se valida si el usuario decide escribirla. */
+  get hasCedula(): boolean {
+    return this.cedulaDigits.length > 0;
+  }
+
   get showCedulaValidation(): boolean {
-    return this.cedulaTouched || this.cedulaIsComplete;
+    return this.hasCedula && (this.cedulaTouched || this.cedulaIsComplete);
+  }
+
+  get amountError(): string | null {
+    if (!this.submitted) return null;
+    if (!(this.request.amount > 0)) return 'Indica el monto que deseas financiar.';
+    if (this.request.amount > this.maxAmount) return 'El monto no puede superar RD$ 1,000,000,000.';
+    return null;
+  }
+
+  get loanTypeError(): string | null {
+    return this.submitted && !this.request.loanType ? 'Selecciona el tipo de préstamo.' : null;
+  }
+
+  get rateError(): string | null {
+    if (!this.submitted) return null;
+    const rate = this.annualRate;
+    if (rate === null || !Number.isFinite(rate) || rate <= 0) return 'Indica una tasa anual mayor que 0 %.';
+    if (rate > this.maxAnnualRate) return 'La tasa anual no puede superar el 100 %.';
+    return null;
+  }
+
+  get termError(): string | null {
+    if (!this.submitted) return null;
+    const term = this.termMonths;
+    if (term === null || !Number.isInteger(term) || term <= 0) return 'Indica el plazo en meses (número entero).';
+    if (term > this.maxTermMonths) return 'El plazo no puede superar 600 meses (50 años).';
+    return null;
+  }
+
+  get monthlyRateHint(): string | null {
+    const rate = this.annualRate;
+    return rate && rate > 0 && rate <= this.maxAnnualRate
+      ? `Equivale a ${(rate / 12).toFixed(3)} % mensual en el método francés.`
+      : null;
+  }
+
+  get termHint(): string | null {
+    const term = this.termMonths;
+    if (!term || term <= 0 || !Number.isInteger(term)) return null;
+    const years = Math.floor(term / 12);
+    const months = term % 12;
+    const parts = [years ? `${years} ${years === 1 ? 'año' : 'años'}` : '', months ? `${months} ${months === 1 ? 'mes' : 'meses'}` : ''];
+    return parts.filter(Boolean).join(' y ');
+  }
+
+  selectTerm(months: number): void {
+    this.termMonths = months;
+    this.errorMessage = '';
   }
 
   calculate(): void {
     this.errorMessage = '';
+    this.submitted = true;
     this.syncAmountFromDisplay();
     this.cedulaTouched = true;
 
-    if (!this.hasRequiredFields()) {
-      this.errorMessage = 'Completa todos los campos obligatorios para generar la simulación.';
+    if (this.amountError || this.loanTypeError || this.rateError || this.termError) {
+      this.errorMessage = 'Revisa los campos marcados para generar la simulación.';
+      this.focusFirstInvalid();
       return;
     }
 
-    if (!this.cedulaIsComplete) {
-      this.errorMessage = 'La cédula debe contener exactamente 11 dígitos.';
+    if (this.hasCedula && !this.cedulaIsComplete) {
+      this.showPersonalData = true;
+      this.errorMessage = 'La cédula debe contener exactamente 11 dígitos, o déjala vacía.';
       return;
     }
 
-    if (!this.cedulaIsValid) {
-      this.errorMessage = 'La cédula introducida no es válida. Verifica el número e inténtalo nuevamente.';
+    if (this.hasCedula && !this.cedulaIsValid) {
+      this.showPersonalData = true;
+      this.errorMessage = 'La cédula introducida no es válida. Corrígela o déjala vacía: es opcional.';
       return;
     }
 
-    this.request.documentId = this.formatCedula(this.request.documentId);
+    this.request.annualRate = this.annualRate!;
+    this.request.termMonths = this.termMonths!;
+    this.request.firstName = this.request.firstName.trim();
+    this.request.lastName = this.request.lastName.trim();
+    this.request.documentId = this.hasCedula ? this.formatCedula(this.request.documentId) : '';
 
     const result = this.loanCalculator.calculate(this.request);
     this.loanCalculator.saveResult(result);
@@ -88,7 +160,10 @@ export class Calculator {
     };
 
     this.amountDisplay = '';
+    this.annualRate = null;
+    this.termMonths = null;
     this.errorMessage = '';
+    this.submitted = false;
     this.cedulaTouched = false;
     this.loanCalculator.clearResult();
   }
@@ -158,15 +233,10 @@ export class Calculator {
     this.request.amount = Number.isFinite(amount) ? amount : 0;
   }
 
-  private hasRequiredFields(): boolean {
-    return Boolean(
-      this.request.firstName.trim() &&
-        this.request.lastName.trim() &&
-        this.request.loanType &&
-        this.request.amount > 0 &&
-        this.request.annualRate > 0 &&
-        this.request.termMonths > 0
-    );
+  private focusFirstInvalid(): void {
+    if (typeof document === 'undefined') return;
+    // Tras el siguiente render, cuando los campos ya tienen aria-invalid.
+    setTimeout(() => document.querySelector<HTMLElement>('.calculator-wrapper [aria-invalid="true"]')?.focus());
   }
 
   private formatCedula(value: string): string {
