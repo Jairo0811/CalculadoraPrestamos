@@ -68,6 +68,12 @@ jobs:
       - name: Run end-to-end tests (UI + accessibility, simulated account API)
         run: npm run e2e
 
+      - name: Build production bundle (same command as Netlify)
+        run: npm run build && node scripts/write-build-info.mjs
+
+      - name: Smoke test the production build (accounts off, exports, SPA fallback)
+        run: npm run e2e:smoke
+
       - name: Upload Playwright traces
         if: failure()
         uses: actions/upload-artifact@v4

@@ -1,32 +1,43 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Pruebas E2E del frontend.
+ * Dos modos:
  *
- * Se ejecutan contra `ng serve` (configuración de desarrollo, cuentas habilitadas).
- * La API de autenticación se SIMULA con `page.route`: estas pruebas validan la interfaz,
- * la navegación y el manejo de sesión en el navegador, NO la integración real con
- * ASP.NET Core, PostgreSQL ni SMTP (cubiertas por las pruebas xUnit del backend).
+ * 1. Desarrollo (por defecto): `ng serve` con cuentas habilitadas. La API de cuentas se SIMULA con
+ *    `page.route`; valida la interfaz y la sesión en el navegador, no ASP.NET Core/PostgreSQL/SMTP.
+ *
+ * 2. Smoke de un sitio ya compilado (`E2E_BASE_URL`): ejecuta solo `e2e/smoke.spec.ts` contra el build
+ *    de producción (local, Deploy Preview de Netlify o el sitio publicado). Sin servidor propio.
+ *    `E2E_EXPECT_NETLIFY=1` activa además las comprobaciones de cabeceras de Netlify y
+ *    `E2E_EXPECT_COMMIT=<sha>` verifica que el despliegue sirve exactamente ese commit.
  */
+const externalBaseUrl = process.env['E2E_BASE_URL'];
+
 export default defineConfig({
   testDir: './e2e',
+  testMatch: externalBaseUrl ? 'smoke.spec.ts' : '*.spec.ts',
+  testIgnore: externalBaseUrl ? [] : ['smoke.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 1 : 0,
   reporter: process.env['CI'] ? [['github'], ['list']] : 'list',
   use: {
-    baseURL: 'http://localhost:4300',
+    baseURL: externalBaseUrl ?? 'http://localhost:4300',
     trace: 'retain-on-failure',
-    locale: 'es-DO'
+    locale: 'es-DO',
+    acceptDownloads: true
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 900 } } },
+    { name: 'tablet', use: { ...devices['Desktop Chrome'], viewport: { width: 820, height: 1180 }, hasTouch: true } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } }
   ],
-  webServer: {
-    command: 'npx ng serve --port 4300',
-    url: 'http://localhost:4300',
-    reuseExistingServer: !process.env['CI'],
-    timeout: 180_000
-  }
+  webServer: externalBaseUrl
+    ? undefined
+    : {
+        command: 'npx ng serve --port 4300',
+        url: 'http://localhost:4300',
+        reuseExistingServer: !process.env['CI'],
+        timeout: 180_000
+      }
 });

@@ -9,7 +9,8 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false",
     "serve:ssr:calculadora-prestamos": "node dist/calculadora-prestamos/server/server.mjs",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:smoke": "node scripts/serve-dist-smoke.mjs"
   },
   "private": true,
   "packageManager": "npm@11.16.0",
