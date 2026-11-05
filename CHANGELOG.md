@@ -6,7 +6,7 @@ El proyecto sigue un esquema de versionado semántico.
 
 ## [Unreleased] — v3, Fase 7 (Plataforma financiera personal)
 
-> En desarrollo en `feature/v3-phase-7-user-platform` / PR #59. El frontend público sigue siendo anónimo; las cuentas se activarán en Fase 8.
+> Fase 7 integrada en `master` mediante PR #59, commit `348659b7`. El frontend público sigue siendo anónimo; las cuentas se habilitarán en Fase 8.
 
 ### Añadido
 - Dashboard privado de simulaciones con indicadores descriptivos, filtros, búsqueda y ordenación.

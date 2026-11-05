@@ -13,7 +13,7 @@
 
 <p align="center">
   <img alt="Versión estable" src="https://img.shields.io/badge/versión%20estable-2.1.0-0d6efd" />
-  <img alt="v3 en desarrollo" src="https://img.shields.io/badge/v3-en%20desarrollo%20(Fase%206)-f59e0b" />
+  <img alt="v3 en desarrollo" src="https://img.shields.io/badge/v3-en%20desarrollo%20(Fase%208%20pendiente)-f59e0b" />
   <img alt="Licencia" src="https://img.shields.io/badge/licencia-MIT-success" />
   <img alt="Pruebas frontend" src="https://img.shields.io/badge/pruebas%20frontend-85-success" />
   <img alt="Pruebas backend" src="https://img.shields.io/badge/pruebas%20backend-48-success" />
@@ -41,7 +41,7 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 |---|---|:---:|
 | 5 | Backend ASP.NET Core 10 + PostgreSQL 17 (Clean Architecture, EF Core, CI) | ✅ Fusionada |
 | 6 | Cuentas, autenticación, seguridad de sesiones y renovación UX/UI | ✅ Fusionada (PR #57) |
-| 7 | Dashboard personal, historial en nube, favoritos y comparador privado | 🔄 PR #59 en desarrollo |
+| 7 | Dashboard personal, historial en nube, favoritos y comparador privado | ✅ Fusionada (PR #59) |
 | 8 | Publicación de API, base de datos, SMTP y dominio definitivos | ⏳ Pendiente |
 
 ### Calculadora pública vs. funciones con cuenta
@@ -53,7 +53,7 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 | Exportación PDF/Excel y compartir | ✅ | ✅ |
 | Historial local (solo en el dispositivo) | ✅ | ✅ |
 | Correo verificado, sesiones revocables y cambio de contraseña | — | ✅ (Fase 6) |
-| Simulaciones privadas guardadas en la nube | — | 🔄 Interfaz Fase 7 en desarrollo (sin publicar) |
+| Simulaciones privadas guardadas en la nube | — | ✅ Implementadas en código; habilitación pendiente de Fase 8 |
 
 > En el build de producción de Cloudflare Pages las pantallas de cuenta están **desactivadas** (`features.accounts = false`) hasta que la API y el SMTP estén desplegados en la Fase 8. En desarrollo local están activas.
 
@@ -82,9 +82,9 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 
 ---
 
-## ☁️ Fase 7 — plataforma financiera privada (en desarrollo)
+## ☁️ Fase 7 — plataforma financiera privada (integrada, aún sin activar)
 
-La rama `feature/v3-phase-7-user-platform` incorpora una interfaz Angular protegida bajo `/account/simulations`:
+El PR #59 integró en `master` una interfaz Angular protegida bajo `/account/simulations`:
 
 - Dashboard privado con capital **simulado** (no deuda bancaria real), tasas promedio, cantidad de escenarios y favoritos.
 - Historial en la nube: filtrar, buscar, ordenar, renombrar, marcar favoritos, eliminar y abrir los resultados para reconstruir la amortización localmente.
@@ -260,8 +260,8 @@ Configuración, rollback y diagnóstico: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.
 
 - La entrega real de correos requiere configurar un proveedor SMTP (pendiente de Fase 8).
 - La cola de correo es en memoria: un reinicio puede perder mensajes en tránsito (el usuario puede reenviarlos).
-- Las simulaciones privadas aún no se gestionan desde la interfaz (Fase 7).
-- Las simulaciones de la Fase 5 no tienen clave foránea hacia usuarios; se añadirá con una migración de limpieza en Fase 7.
+- La interfaz privada está desarrollada, pero no estará accesible en el sitio público hasta desplegar API, PostgreSQL y SMTP en Fase 8.
+- La tabla de simulaciones mantiene `UserId` sin clave foránea a `AspNetUsers`; la API aplica autorización por propietario. La integridad referencial de datos heredados debe evaluarse antes del lanzamiento público.
 
 ---
 
