@@ -23,6 +23,12 @@ export const routes: Routes = [
         title: 'Tu cuenta · LoanCalc RD'
       },
       {
+        path: 'simulations',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/simulations/simulations').then(m => m.Simulations),
+        title: 'Mis simulaciones guardadas · LoanCalc RD'
+      },
+      {
         path: 'security',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/account-security/account-security').then(m => m.AccountSecurity),

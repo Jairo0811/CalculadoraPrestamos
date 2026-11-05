@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import jsPDF from 'jspdf';
@@ -14,6 +15,8 @@ import {
 } from '../../core/models/loan.model';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
 import { RdCurrencyPipe, formatRd } from '../../core/formatting/rd-currency';
+import { AuthService } from '../../core/services/auth';
+import { LoanApiService } from '../../core/services/loan-api';
 
 interface ComparisonOption {
   name: string;
@@ -32,6 +35,15 @@ interface ComparisonOption {
 export class Results {
   private readonly router = inject(Router);
   private readonly loanCalculator = inject(LoanCalculatorService);
+  private readonly api = inject(LoanApiService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly auth = inject(AuthService);
+
+  cloudSaving = false;
+  cloudSavedId: string | null = null;
+  cloudSaveError = '';
+  cloudSaveNotice = '';
+
 
   result: LoanResult | null = this.loanCalculator.getResult();
   history: LoanResult[] = this.loanCalculator.getHistory();
@@ -638,6 +650,27 @@ export class Results {
     );
   }
 
+  /** Carga bajo demanda: el resultado sigue siendo gratuito aunque la API falle. */
+  saveToCloud(): void {
+    if (!this.auth.enabled || !this.auth.isAuthenticated() || !this.result ||
+        this.cloudSaving || this.cloudSavedId) return;
+
+    this.cloudSaving = true;
+    this.cloudSaveError = '';
+    this.cloudSaveNotice = '';
+    this.api.saveSimulation(this.result.request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: saved => {
+        this.cloudSavedId = saved.id;
+        this.cloudSaving = false;
+        this.cloudSaveNotice = 'Guardada en tu cuenta. Puedes abrirla desde Mis simulaciones.';
+      },
+      error: () => {
+        this.cloudSaving = false;
+        this.cloudSaveError = 'No se pudo guardar en la nube. Tus resultados locales siguen disponibles.';
+      }
+    });
+  }
+
   loadSimulation(index: number): void {
     const item = this.loanCalculator.loadHistoryItem(index);
 
@@ -646,6 +679,9 @@ export class Results {
     }
 
     this.result = item;
+    this.cloudSavedId = null;
+    this.cloudSaveNotice = '';
+    this.cloudSaveError = '';
     this.clearExtraPaymentScenario();
   }
 

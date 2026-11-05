@@ -14,6 +14,9 @@
       </a>
       @if (auth.enabled) {
         @if (auth.isAuthenticated()) {
+          <a class="cloud-nav-link" routerLink="/account/simulations" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <i class="bi bi-cloud-check" aria-hidden="true"></i><span>Mis simulaciones</span>
+          </a>
           <a class="account-link signed-in" routerLink="/account/security" routerLinkActive="active" ariaCurrentWhenActive="page"
              [attr.title]="auth.profile()?.email">
             <i class="bi bi-person-check" aria-hidden="true"></i><span class="label-long">Mi cuenta</span>

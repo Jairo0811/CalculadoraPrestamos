@@ -83,7 +83,7 @@
               <article class="cloud-item" role="listitem">
                 <div class="cloud-item-top">
                   <span class="loan-type-chip">{{ loanType(item.loanType) }}</span>
-                  <span class="saved-date"><i class="bi bi-clock" aria-hidden="true"></i> {{ item.createdAtUtc | date:'dd/MM/yyyy':'':'es-DO' }}</span>
+                  <span class="saved-date"><i class="bi bi-clock" aria-hidden="true"></i> {{ item.createdAtUtc | date:'dd/MM/yyyy' }}</span>
                 </div>
                 @if (editingId() === item.id) {
                   <form class="rename-form" (ngSubmit)="rename(item)">
