@@ -1,8 +1,9 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
+import { APP_CONFIG } from '../config/app-config';
+import { formatRd } from '../formatting/rd-currency';
 import { LoanRequest } from '../models/loan.model';
-import { AuthService } from './auth';
 
 export interface PersistedLoanSimulation {
   id: string;
@@ -17,68 +18,63 @@ export interface PersistedLoanSimulation {
   updatedAtUtc: string;
 }
 
+/** Contrato que se envía a la API: SOLO datos financieros. Nunca nombre, fecha de nacimiento ni cédula. */
+export interface CreateSimulationPayload {
+  name: string;
+  loanType: number;
+  amount: number;
+  annualRate: number;
+  termMonths: number;
+}
+
+const LOAN_TYPES: Record<string, number> = {
+  Personal: 1,
+  Hipotecario: 2,
+  Vehículo: 3,
+  Educativo: 4,
+  Comercial: 5
+};
+
+/**
+ * Cliente de simulaciones privadas. La autenticación (Bearer, renovación y reintento)
+ * la aplica `authInterceptor`; el servidor identifica al propietario solo por el JWT.
+ */
 @Injectable({ providedIn: 'root' })
 export class LoanApiService {
   private readonly http = inject(HttpClient);
-  private readonly auth = inject(AuthService);
-  private readonly endpoint = 'http://localhost:5000/api/v1/simulations';
+  private readonly config = inject(APP_CONFIG);
+
+  private get endpoint(): string {
+    return `${this.config.apiBaseUrl}/simulations`;
+  }
 
   list(): Observable<PersistedLoanSimulation[]> {
-    const headers = this.headers();
-    return headers
-      ? this.http.get<PersistedLoanSimulation[]>(this.endpoint, { headers })
-      : throwError(() => new Error('Debes iniciar sesión para ver tus simulaciones guardadas.'));
+    return this.http.get<PersistedLoanSimulation[]>(this.endpoint);
   }
 
   saveSimulation(request: LoanRequest): Observable<PersistedLoanSimulation> {
-    const headers = this.headers();
-    if (!headers) {
-      return throwError(() => new Error('Debes iniciar sesión para guardar en la nube.'));
-    }
-
-    return this.http.post<PersistedLoanSimulation>(this.endpoint, {
-      name: `${request.loanType} · RD$${request.amount.toLocaleString('en-US')}`,
-      loanType: this.mapLoanType(request.loanType),
-      amount: request.amount,
-      annualRate: request.annualRate,
-      termMonths: request.termMonths
-    }, { headers });
+    return this.http.post<PersistedLoanSimulation>(this.endpoint, toCreatePayload(request));
   }
 
   rename(id: string, name: string): Observable<PersistedLoanSimulation> {
-    const headers = this.headers();
-    return headers
-      ? this.http.patch<PersistedLoanSimulation>(`${this.endpoint}/${encodeURIComponent(id)}/name`, { name }, { headers })
-      : throwError(() => new Error('Sesión requerida.'));
+    return this.http.patch<PersistedLoanSimulation>(`${this.endpoint}/${encodeURIComponent(id)}/name`, { name });
   }
 
   setFavorite(id: string, isFavorite: boolean): Observable<PersistedLoanSimulation> {
-    const headers = this.headers();
-    return headers
-      ? this.http.patch<PersistedLoanSimulation>(`${this.endpoint}/${encodeURIComponent(id)}/favorite`, { isFavorite }, { headers })
-      : throwError(() => new Error('Sesión requerida.'));
+    return this.http.patch<PersistedLoanSimulation>(`${this.endpoint}/${encodeURIComponent(id)}/favorite`, { isFavorite });
   }
 
   delete(id: string): Observable<void> {
-    const headers = this.headers();
-    return headers
-      ? this.http.delete<void>(`${this.endpoint}/${encodeURIComponent(id)}`, { headers })
-      : throwError(() => new Error('Sesión requerida.'));
+    return this.http.delete<void>(`${this.endpoint}/${encodeURIComponent(id)}`);
   }
+}
 
-  private headers(): HttpHeaders | null {
-    const token = this.auth.accessToken();
-    return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : null;
-  }
-
-  private mapLoanType(loanType: string): number {
-    const values: Record<string, number> = {
-      Personal: 1,
-      Hipotecario: 2,
-      Vehículo: 3,
-      Educativo: 4,
-      Comercial: 5
-    };
-    return values[loanType] ?? 1;
-  }
+export function toCreatePayload(request: LoanRequest): CreateSimulationPayload {
+  return {
+    name: `${request.loanType || 'Préstamo'} · ${formatRd(request.amount, 0)}`.slice(0, 120),
+    loanType: LOAN_TYPES[request.loanType] ?? 1,
+    amount: request.amount,
+    annualRate: request.annualRate,
+    termMonths: request.termMonths
+  };
 }

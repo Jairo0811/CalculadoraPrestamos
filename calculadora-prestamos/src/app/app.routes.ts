@@ -1,15 +1,34 @@
-import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
 import { Home } from './pages/home/home';
 import { Calculator } from './pages/calculator/calculator';
-import { Results } from './pages/results/results';
-import { Account } from './pages/account/account';
+import { accountsEnabledGuard, authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: Home },
-  { path: 'calculator', component: Calculator },
-  { path: 'results', component: Results },
-  // Account UI remains development-only until verified email, refresh and hosted API are ready.
-  ...(isDevMode() ? [{ path: 'account', component: Account }] : []),
+  { path: '', component: Home, title: 'LoanCalc RD · Simulador financiero dominicano' },
+  { path: 'calculator', component: Calculator, title: 'Calculadora de préstamos · LoanCalc RD' },
+  {
+    // Carga diferida: jsPDF, AutoTable y QRCode solo se descargan al ver resultados.
+    path: 'results',
+    loadComponent: () => import('./pages/results/results').then(m => m.Results),
+    title: 'Resultados de la simulación · LoanCalc RD'
+  },
+  {
+    // Las cuentas solo existen en entornos donde la API y el correo están disponibles (ver environments/).
+    path: 'account',
+    canMatch: [accountsEnabledGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/account/account').then(m => m.Account),
+        title: 'Tu cuenta · LoanCalc RD'
+      },
+      {
+        path: 'security',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/account-security/account-security').then(m => m.AccountSecurity),
+        title: 'Seguridad de la cuenta · LoanCalc RD'
+      }
+    ]
+  },
   { path: '**', redirectTo: '' }
 ];
