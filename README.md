@@ -194,6 +194,7 @@ npm start                 # http://localhost:4200 (cuentas activas, API en http:
 npm run test:ci           # pruebas unitarias y de componentes (Vitest)
 npm run e2e               # E2E con Playwright (API de cuentas simulada)
 npm run build             # build de producción (cuentas desactivadas)
+npm run e2e:smoke         # smoke del build de producción (como se publica en Netlify)
 ```
 
 La calculadora funciona aunque la API no esté ejecutándose.
@@ -209,6 +210,18 @@ docker compose up -d postgres
 dotnet ef database update --project src/LoanCalcRD.Infrastructure/LoanCalcRD.Infrastructure.csproj --startup-project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj
 dotnet run --project src/LoanCalcRD.Api/LoanCalcRD.Api.csproj --urls http://localhost:5000
 ```
+
+---
+
+## 🌐 Despliegue continuo
+
+El frontend se publica automáticamente en **https://loancalcrd.netlify.app** mediante la integración nativa GitHub → Netlify:
+
+1. Cada Pull Request a `master` ejecuta CI y obtiene un **Deploy Preview** (`deploy-preview-<n>--loancalcrd.netlify.app`), que GitHub Actions verifica con pruebas de humo.
+2. Al fusionar en `master`, Netlify compila y publica la nueva versión; el workflow **Netlify Verify** confirma que producción sirve ese commit y que funciona.
+3. No hay que subir `dist/` ni ejecutar comandos manuales. Las ramas experimentales no se publican.
+
+Configuración, rollback y diagnóstico: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ---
 
