@@ -3,7 +3,29 @@
   command = "npm ci && npm run build"
   publish = "dist/calculadora-prestamos/browser"
 
+# Fase 8 — proxy de mismo origen hacia la API (recomendado para cookies SameSite=Strict).
+# Descomentar cuando la API esté publicada y sustituir el dominio. Debe ir ANTES de la regla SPA.
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://api.loancalcrd.example/api/:splat"
+#   status = 200
+#   force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
