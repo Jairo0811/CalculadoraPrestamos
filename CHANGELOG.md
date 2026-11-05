@@ -4,7 +4,23 @@ Todos los cambios importantes de LoanCalc RD se documentarán en este archivo.
 
 El proyecto sigue un esquema de versionado semántico.
 
+## [Unreleased] — v3, Fase 7 (Plataforma financiera personal)
+
+> En desarrollo en `feature/v3-phase-7-user-platform` / PR #59. El frontend público sigue siendo anónimo; las cuentas se activarán en Fase 8.
+
+### Añadido
+- Dashboard privado de simulaciones con indicadores descriptivos, filtros, búsqueda y ordenación.
+- Vista de préstamos guardados con favoritos, cambio de nombre, eliminación y recuperación de resultados.
+- Comparación visual de dos simulaciones guardadas, con cuotas, intereses, totales y plazos.
+- Guardado explícito desde la pantalla de resultados y migración voluntaria del historial local sin enviar datos personales.
+- Rutas protegidas por autenticación y desactivadas por el feature flag de producción.
+- Pruebas unitarias y E2E de las acciones privadas y controles de privacidad.
+
+---
+
 ## [Unreleased] — v3, Fase 6 (Cuentas, seguridad y renovación UX/UI)
+
+> Fase 6 integrada en `master` (PR #57).
 
 > No publicado. La versión estable sigue siendo 2.1.0.
 

@@ -87,3 +87,10 @@
 @media print {
   .site-header { display: none; }
 }
+
+/* Acceso privado de la Fase 7; sin ensanchar la cabecera en tabletas. */
+@media(max-width:1050px) {
+  .main-nav .cloud-nav-link { width:44px; padding:8px; justify-content:center; }
+  .main-nav .cloud-nav-link span { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap; }
+  .main-nav .cloud-nav-link i { font-size:1.15rem; }
+}

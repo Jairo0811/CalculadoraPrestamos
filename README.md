@@ -40,8 +40,8 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 | Fase | Alcance | Estado |
 |---|---|:---:|
 | 5 | Backend ASP.NET Core 10 + PostgreSQL 17 (Clean Architecture, EF Core, CI) | ✅ Fusionada |
-| 6 | Cuentas, autenticación, seguridad de sesiones y renovación UX/UI | 🔄 PR #57 en revisión |
-| 7 | Simulaciones privadas sincronizadas desde la interfaz | ⏳ Pendiente |
+| 6 | Cuentas, autenticación, seguridad de sesiones y renovación UX/UI | ✅ Fusionada (PR #57) |
+| 7 | Dashboard personal, historial en nube, favoritos y comparador privado | 🔄 PR #59 en desarrollo |
 | 8 | Publicación de API, base de datos, SMTP y dominio definitivos | ⏳ Pendiente |
 
 ### Calculadora pública vs. funciones con cuenta
@@ -53,7 +53,7 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 | Exportación PDF/Excel y compartir | ✅ | ✅ |
 | Historial local (solo en el dispositivo) | ✅ | ✅ |
 | Correo verificado, sesiones revocables y cambio de contraseña | — | ✅ (Fase 6) |
-| Simulaciones privadas guardadas en la nube | — | ⏳ API lista; interfaz en Fase 7 |
+| Simulaciones privadas guardadas en la nube | — | 🔄 Interfaz Fase 7 en desarrollo (sin publicar) |
 
 > En el build de producción de Cloudflare Pages las pantallas de cuenta están **desactivadas** (`features.accounts = false`) hasta que la API y el SMTP estén desplegados en la Fase 8. En desarrollo local están activas.
 
@@ -79,6 +79,23 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 ### Calidad
 
 - **GitHub Actions:** `LoanCalc RD CI` (pruebas, build y E2E del frontend) y `LoanCalc RD Backend CI` (build, migraciones, actualización desde Fase 5, pruebas, auditoría NuGet).
+
+---
+
+## ☁️ Fase 7 — plataforma financiera privada (en desarrollo)
+
+La rama `feature/v3-phase-7-user-platform` incorpora una interfaz Angular protegida bajo `/account/simulations`:
+
+- Dashboard privado con capital **simulado** (no deuda bancaria real), tasas promedio, cantidad de escenarios y favoritos.
+- Historial en la nube: filtrar, buscar, ordenar, renombrar, marcar favoritos, eliminar y abrir los resultados para reconstruir la amortización localmente.
+- Comparador de dos simulaciones guardadas (cuota mensual, intereses, total y plazo).
+- Guardado explícito desde la página de resultados, solo cuando se ha iniciado sesión.
+- Importación **voluntaria** del historial local y deduplicación por condiciones financieras.
+- El backend de la Fase 6 mantiene los permisos por propietario mediante JWT: ningún `userId` enviado desde Angular concede acceso.
+- Nunca se envían nombre, cédula ni fecha de nacimiento en la API de simulaciones.
+- Las funciones privadas permanecen **ocultas y desactivadas en Cloudflare Pages** (`features.accounts = false`) hasta que la API, PostgreSQL y SMTP estén operativos en Fase 8.
+
+Consulta [la guía de Fase 7](docs/PHASE7.md). Las pruebas E2E del frontend utilizan una API simulada; la verificación real del flujo entre dispositivos depende de desplegar el backend.
 
 ---
 

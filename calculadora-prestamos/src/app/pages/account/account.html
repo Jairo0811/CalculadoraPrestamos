@@ -23,6 +23,7 @@
           <h1 id="account-title" #heading tabindex="-1">Ya iniciaste sesión</h1>
           <p>Estás conectado como <strong>{{ auth.profile()?.email }}</strong>.</p>
           <div class="signed-in-actions">
+            <a class="btn btn-outline-primary btn-lg" routerLink="/account/simulations"><i class="bi bi-cloud-check" aria-hidden="true"></i> Mis simulaciones</a>
             <a class="btn btn-primary btn-lg" routerLink="/account/security"><i class="bi bi-shield-check" aria-hidden="true"></i> Seguridad de la cuenta</a>
             <button type="button" class="btn btn-outline-secondary btn-lg" (click)="logout()" [disabled]="busy()">
               @if (busy()) { <span class="lc-spinner" aria-hidden="true"></span> }

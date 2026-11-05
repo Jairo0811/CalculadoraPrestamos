@@ -1400,3 +1400,9 @@ html[data-theme='dark'] .timeline-icon {
 .loan-score.score-medium strong { color: #92400e; }
 .loan-score.score-high strong { color: #b42318; }
 .loan-score span, .loan-score small { color: #475569; }
+
+/* Integración opcional de guardado en la nube, solo cuando hay cuentas habilitadas. */
+.actions-bar .cloud-save-button,.actions-bar .cloud-my-button,.actions-bar .cloud-login-button{background:#fff;border:1px solid #b7cff0;color:#114e9c}
+.actions-bar .cloud-save-button:hover,.actions-bar .cloud-my-button:hover,.actions-bar .cloud-login-button:hover{background:#eaf4ff}
+.cloud-results-feedback{margin:0 0 18px;border-radius:13px;padding:12px 16px;font-weight:650;background:#e9f8f1;color:#11653d}
+.cloud-results-feedback.error{background:#fff0f0;color:#9b2121}
