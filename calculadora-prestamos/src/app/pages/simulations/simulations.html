@@ -1,0 +1,159 @@
+<main class="cloud-page" id="main-content">
+  <section class="cloud-hero">
+    <div class="container">
+      <span class="cloud-eyebrow"><i class="bi bi-cloud-check" aria-hidden="true"></i> Tu espacio financiero privado</span>
+      <h1>Mis simulaciones</h1>
+      <p>Guarda tus escenarios de préstamos, revisa sus condiciones y compáralos desde tu cuenta.</p>
+      <div class="cloud-hero-actions">
+        <a class="btn btn-light" routerLink="/calculator"><i class="bi bi-plus-circle" aria-hidden="true"></i> Nueva simulación</a>
+        <a class="btn btn-outline-light" routerLink="/account/security"><i class="bi bi-shield-check" aria-hidden="true"></i> Seguridad</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="container cloud-body">
+    <div class="cloud-note" role="note">
+      <i class="bi bi-info-circle" aria-hidden="true"></i>
+      <span>Estos importes son <strong>simulaciones</strong>, no deudas ni saldos bancarios reales. Los cálculos no constituyen una oferta de crédito.</span>
+    </div>
+
+    @if (!loading()) {
+      <section class="cloud-stats" aria-label="Indicadores de simulaciones guardadas">
+        <div class="cloud-stat"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>Escenarios guardados</span><strong>{{ total() }}</strong></div>
+        <div class="cloud-stat"><i class="bi bi-star" aria-hidden="true"></i><span>Favoritos</span><strong>{{ favorites() }}</strong></div>
+        <div class="cloud-stat"><i class="bi bi-cash-stack" aria-hidden="true"></i><span>Capital total simulado</span><strong>{{ totalSimulated() | rd }}</strong></div>
+        <div class="cloud-stat"><i class="bi bi-percent" aria-hidden="true"></i><span>Tasa promedio simple</span><strong>{{ averageRate() | number:'1.1-2' }}%</strong></div>
+      </section>
+    }
+
+    <section class="cloud-panel" aria-labelledby="saved-title">
+      <div class="cloud-panel-header">
+        <div><h2 id="saved-title">Historial en la nube</h2><p>Solo tú puedes consultar y administrar estas simulaciones.</p></div>
+        <div class="cloud-header-actions">
+          <button class="btn btn-outline-secondary" type="button" (click)="reload()" [disabled]="loading() || !!busy()">
+            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Actualizar
+          </button>
+          <button class="btn btn-outline-primary" type="button" (click)="importLocal()" [disabled]="loading() || !!busy()">
+            <i class="bi bi-cloud-upload" aria-hidden="true"></i> Importar historial local
+          </button>
+        </div>
+      </div>
+
+      @if (notice()) { <p class="cloud-message success-message" role="status">{{ notice() }}</p> }
+      @if (error()) { <p class="cloud-message error-message" role="alert">{{ error() }}</p> }
+
+      @if (loading()) {
+        <div class="cloud-placeholder" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Cargando tus simulaciones…</div>
+      } @else {
+        <div class="cloud-controls">
+          <div class="cloud-tabs" role="group" aria-label="Filtrar simulaciones">
+            <button type="button" [class.active]="filter() === 'all'" [attr.aria-pressed]="filter() === 'all'" (click)="filter.set('all')">Todas</button>
+            <button type="button" [class.active]="filter() === 'favorites'" [attr.aria-pressed]="filter() === 'favorites'" (click)="filter.set('favorites')">Favoritas</button>
+          </div>
+          <label class="cloud-search">
+            <span>Buscar por nombre o tipo</span>
+            <input type="search" name="search" [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Ej. Hipotecario" maxlength="120" />
+          </label>
+          <label class="cloud-sort">
+            <span>Ordenar por</span>
+            <select name="order" [ngModel]="order()" (ngModelChange)="order.set($event)">
+              <option value="recent">Más recientes</option>
+              <option value="oldest">Más antiguas</option>
+              <option value="amount">Mayor monto</option>
+              <option value="rate">Menor tasa</option>
+            </select>
+          </label>
+        </div>
+
+        @if (!total()) {
+          <div class="cloud-empty">
+            <i class="bi bi-cloud" aria-hidden="true"></i>
+            <h3>Todavía no tienes simulaciones guardadas</h3>
+            <p>Calcula un préstamo y selecciona “Guardar en mi cuenta” para consultarlo desde otros dispositivos.</p>
+            <a routerLink="/calculator" class="btn btn-primary">Crear mi primera simulación</a>
+          </div>
+        } @else if (!visible().length) {
+          <div class="cloud-empty">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <h3>Sin coincidencias</h3><p>Prueba otro nombre, tipo de préstamo o filtro.</p>
+          </div>
+        } @else {
+          <div class="cloud-list" role="list" aria-label="Simulaciones guardadas">
+            @for (item of visible(); track item.id) {
+              <article class="cloud-item" role="listitem">
+                <div class="cloud-item-top">
+                  <span class="loan-type-chip">{{ loanType(item.loanType) }}</span>
+                  <span class="saved-date"><i class="bi bi-clock" aria-hidden="true"></i> {{ item.createdAtUtc | date:'dd/MM/yyyy':'':'es-DO' }}</span>
+                </div>
+                @if (editingId() === item.id) {
+                  <form class="rename-form" (ngSubmit)="rename(item)">
+                    <label [for]="'rename-' + item.id">Nombre de la simulación</label>
+                    <input [id]="'rename-' + item.id" name="editName" [(ngModel)]="editName" maxlength="120" required />
+                    <button class="btn btn-primary btn-sm" type="submit" [disabled]="!!busy() || !editName.trim()">Guardar</button>
+                    <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelRename()">Cancelar</button>
+                  </form>
+                } @else {
+                  <h3>{{ item.name }}</h3>
+                }
+                <dl class="cloud-loan-data">
+                  <div><dt>Monto</dt><dd>{{ item.amount | rd }}</dd></div>
+                  <div><dt>Cuota estimada</dt><dd>{{ monthlyPayment(item) | rd }}</dd></div>
+                  <div><dt>Tasa anual</dt><dd>{{ item.annualRate | number:'1.1-2' }}%</dd></div>
+                  <div><dt>Plazo</dt><dd>{{ item.termMonths }} meses</dd></div>
+                </dl>
+                <div class="cloud-item-actions">
+                  <button type="button" class="btn btn-primary btn-sm" (click)="open(item)" [disabled]="!!busy()">
+                    <i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Ver resultados
+                  </button>
+                  <button type="button" class="cloud-icon-button" (click)="toggleFavorite(item)" [disabled]="!!busy()"
+                    [attr.aria-label]="item.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'"
+                    [attr.aria-pressed]="item.isFavorite" [title]="item.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'">
+                    <i class="bi" [class.bi-star-fill]="item.isFavorite" [class.bi-star]="!item.isFavorite" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="cloud-icon-button" (click)="beginRename(item)" [disabled]="!!busy()" aria-label="Renombrar simulación" title="Renombrar">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="cloud-icon-button danger" (click)="delete(item)" [disabled]="!!busy()" aria-label="Eliminar simulación" title="Eliminar">
+                    <i class="bi bi-trash3" aria-hidden="true"></i>
+                  </button>
+                  <label class="compare-control">
+                    <input type="checkbox" [checked]="selected().includes(item.id)" (change)="toggleCompare(item)"
+                      [disabled]="selected().length >= 2 && !selected().includes(item.id) || !!busy()" />
+                    Comparar
+                  </label>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+    </section>
+
+    @if (comparisons().length > 0) {
+      <section class="cloud-panel compare-panel" aria-labelledby="compare-title">
+        <div class="cloud-panel-header">
+          <div><h2 id="compare-title">Comparador de escenarios</h2><p>Selecciona hasta dos préstamos guardados.</p></div>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="clearComparison()">Limpiar selección</button>
+        </div>
+        @if (comparisons().length === 1) {
+          <p class="cloud-placeholder">Selecciona otro préstamo para verlos lado a lado.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table compare-table">
+              <thead><tr><th scope="col">Indicador</th>
+                @for (item of comparisons(); track item.id) { <th scope="col">{{ item.name }}</th> }
+              </tr></thead>
+              <tbody>
+                <tr><th scope="row">Cuota mensual</th>@for (item of comparisons(); track item.id) { <td>{{ item.monthlyPayment | rd }}</td> }</tr>
+                <tr><th scope="row">Interés total</th>@for (item of comparisons(); track item.id) { <td>{{ item.totalInterest | rd }}</td> }</tr>
+                <tr><th scope="row">Total a pagar</th>@for (item of comparisons(); track item.id) { <td>{{ item.totalPayment | rd }}</td> }</tr>
+                <tr><th scope="row">Plazo</th>@for (item of comparisons(); track item.id) { <td>{{ item.termMonths }} meses</td> }</tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="compare-disclaimer">Las condiciones y plazos pueden variar. Una cuota menor no significa necesariamente un préstamo más económico.</p>
+        }
+      </section>
+    }
+  </div>
+</main>
