@@ -58,6 +58,9 @@ describe('safeReturnUrl', () => {
   it('only accepts internal paths to prevent open redirects', () => {
     expect(safeReturnUrl('/results')).toBe('/results');
     expect(safeReturnUrl('/account/security')).toBe('/account/security');
+    expect(safeReturnUrl('/account/simulations')).toBe('/account/simulations');
+    expect(safeReturnUrl('/account/simulations?sort=recent')).toBe('/account/simulations?sort=recent');
+    expect(safeReturnUrl('/account/simulations-evil')).toBe('/account/security');
     expect(safeReturnUrl('https://evil.example')).toBe('/account/security');
     expect(safeReturnUrl('//evil.example')).toBe('/account/security');
     expect(safeReturnUrl('/\\evil.example')).toBe('/account/security');

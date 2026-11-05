@@ -20,6 +20,9 @@ export const authGuard: CanActivateFn = (_route, state) => {
 /** Acepta solo rutas internas para redirigir tras el login (evita redirecciones abiertas). */
 export function safeReturnUrl(value: string | null | undefined, fallback = '/account/security'): string {
   if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) return fallback;
-  if (value.startsWith('/account') && !value.startsWith('/account/security')) return fallback;
+  // Permitir únicamente las rutas privadas conocidas; nunca redirigir de vuelta al formulario de login.
+  const path = value.split(/[?#]/)[0];
+  if (path === '/account' || (path.startsWith('/account/') &&
+      path !== '/account/security' && path !== '/account/simulations')) return fallback;
   return value;
 }
