@@ -1,66 +1,167 @@
 <main class="account-page" id="main-content">
-  <div class="account-card">
-    <a routerLink="/" class="back-link">← Volver a LoanCalc RD</a>
-    <span class="eyebrow">Fase 6 · Pruebas locales</span>
-    <h1>Tu cuenta de LoanCalc RD</h1>
-    <p>La calculadora pública sigue siendo gratuita y sin registro. La cuenta permite acceder a tus simulaciones privadas.</p>
+  <div class="container account-shell">
+    <aside class="account-aside" aria-labelledby="account-aside-title">
+      <span class="aside-eyebrow"><i class="bi bi-shield-lock" aria-hidden="true"></i> Cuenta LoanCalc RD</span>
+      <h2 id="account-aside-title">Tu información financiera, protegida.</h2>
+      <p>La calculadora sigue siendo gratuita y no requiere registro. La cuenta habilita el acceso seguro a funciones privadas.</p>
+      <ul class="aside-list">
+        <li><i class="bi bi-lock" aria-hidden="true"></i><span><strong>Sesión segura</strong> Acceso temporal en memoria y renovación con cookie protegida.</span></li>
+        <li><i class="bi bi-envelope-check" aria-hidden="true"></i><span><strong>Correo verificado</strong> Solo tú puedes activar y recuperar tu cuenta.</span></li>
+        <li><i class="bi bi-person-vcard" aria-hidden="true"></i><span><strong>Sin datos innecesarios</strong> No pedimos cédula ni datos personales para crear la cuenta.</span></li>
+      </ul>
+      <a class="aside-link" routerLink="/calculator">Usar la calculadora sin cuenta <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </aside>
 
-    @if (auth.isAuthenticated() && mode !== 'confirm' && mode !== 'reset') {
-      <div class="session-card" role="status">
-        <strong>Sesión iniciada</strong>
-        <span>JWT de corta duración en memoria y renovación mediante cookie HttpOnly.</span>
-        <button type="button" (click)="logout()" [disabled]="busy" class="btn btn-outline-secondary">Cerrar sesión</button>
-        <button type="button" (click)="logoutAll()" [disabled]="busy" class="btn btn-outline-danger">Cerrar todas las sesiones</button>
-      </div>
-    } @else {
-      <form (ngSubmit)="submit()" #accountForm="ngForm">
-        <h2>
-          @switch (mode) {
-            @case ('register') { Crear una cuenta }
-            @case ('forgot') { Recuperar mi contraseña }
-            @case ('confirm') { Confirmar correo electrónico }
-            @case ('reset') { Crear una contraseña nueva }
-            @default { Iniciar sesión }
-          }
-        </h2>
-
-        @if (mode !== 'confirm') {
-          <label for="email" class="form-label">Correo electrónico</label>
-          <input id="email" name="email" class="form-control" type="email" autocomplete="username" required email [(ngModel)]="email" />
-        }
-
-        @if (mode === 'login' || mode === 'register' || mode === 'reset') {
-          <label for="password" class="form-label">{{ mode === 'reset' ? 'Nueva contraseña' : 'Contraseña' }}</label>
-          <input id="password" name="password" class="form-control" type="password"
-            [attr.autocomplete]="mode === 'login' ? 'current-password' : 'new-password'"
-            [attr.minlength]="mode === 'register' || mode === 'reset' ? 12 : null" required [(ngModel)]="password" />
-          @if (mode === 'register' || mode === 'reset') {
-            <small class="help">Mínimo 12 caracteres; mayúsculas, minúsculas, números y símbolos.</small>
-          }
-        }
-
-        @if (mode === 'confirm') {
-          <p>Presiona el botón para verificar que este correo te pertenece.</p>
-        }
-        <button type="submit" class="btn btn-primary" [disabled]="busy || accountForm.invalid">
-          {{ busy ? 'Procesando…' : mode === 'login' ? 'Entrar' :
-             mode === 'register' ? 'Crear cuenta' :
-             mode === 'forgot' ? 'Enviar instrucciones' :
-             mode === 'confirm' ? 'Confirmar mi correo' : 'Cambiar contraseña' }}
-        </button>
-      </form>
-
-      @if (mode === 'login') {
-        <button type="button" class="mode-link" (click)="setMode('register')">¿No tienes cuenta? Regístrate</button>
-        <button type="button" class="mode-link" (click)="setMode('forgot')">Olvidé mi contraseña</button>
-        <button type="button" class="mode-link" (click)="resend()">Reenviar correo de confirmación</button>
+    <section class="account-card" aria-labelledby="account-title">
+      @if (auth.status() === 'restoring') {
+        <div class="session-loading" role="status">
+          <span class="lc-spinner" aria-hidden="true"></span> Comprobando tu sesión…
+        </div>
+      } @else if (auth.isAuthenticated() && mode() !== 'confirm' && mode() !== 'reset') {
+        <div class="signed-in">
+          <span class="signed-in-icon" aria-hidden="true"><i class="bi bi-person-check"></i></span>
+          <h1 id="account-title" #heading tabindex="-1">Ya iniciaste sesión</h1>
+          <p>Estás conectado como <strong>{{ auth.profile()?.email }}</strong>.</p>
+          <div class="signed-in-actions">
+            <a class="btn btn-primary btn-lg" routerLink="/account/security"><i class="bi bi-shield-check" aria-hidden="true"></i> Seguridad de la cuenta</a>
+            <button type="button" class="btn btn-outline-secondary btn-lg" (click)="logout()" [disabled]="busy()">
+              @if (busy()) { <span class="lc-spinner" aria-hidden="true"></span> }
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
       } @else {
-        <button type="button" class="mode-link" (click)="setMode('login')">Volver a iniciar sesión</button>
-      }
-    }
+        @if (mode() === 'login' || mode() === 'register') {
+          <div class="segmented" role="group" aria-label="Elige una opción">
+            <button type="button" [class.active]="mode() === 'login'" [attr.aria-pressed]="mode() === 'login'" (click)="setMode('login')">Iniciar sesión</button>
+            <button type="button" [class.active]="mode() === 'register'" [attr.aria-pressed]="mode() === 'register'" (click)="setMode('register')">Crear cuenta</button>
+          </div>
+        } @else {
+          <button type="button" class="back-button" (click)="setMode('login')">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a iniciar sesión
+          </button>
+        }
 
-    @if (error) { <p class="alert alert-danger" role="alert">{{ error }}</p> }
-    @if (notice) { <p class="alert alert-info" role="status">{{ notice }}</p> }
-    <p class="security-note">Entorno de desarrollo. El correo real requiere SMTP seguro configurado en el backend.</p>
+        <header class="card-heading">
+          <h1 id="account-title" #heading tabindex="-1">{{ copy().title }}</h1>
+          <p>{{ copy().subtitle }}</p>
+        </header>
+
+        <div class="feedback" aria-live="polite">
+          @if (notice(); as n) {
+            <div [class]="'lc-alert lc-alert--' + n.tone" role="status">
+              <i [class]="'bi ' + n.icon" aria-hidden="true"></i>
+              <div><strong>{{ n.title }}</strong>{{ n.text }}
+                @if (n.action === 'resend') {
+                  <br /><button type="button" class="lc-alert-action" (click)="resendConfirmation()" [disabled]="busy()">¿No llegó? Reenviar enlace</button>
+                }
+              </div>
+            </div>
+          }
+          @if (error(); as e) {
+            <div class="lc-alert lc-alert--danger" role="alert">
+              <i class="bi bi-exclamation-octagon" aria-hidden="true"></i>
+              <div>
+                {{ e.message }}
+                @if (e.details.length) {
+                  <ul>@for (detail of e.details; track detail) { <li>{{ detail }}</li> }</ul>
+                }
+                @if (e.kind === 'email-not-confirmed') {
+                  <br /><button type="button" class="lc-alert-action" (click)="resendConfirmation()" [disabled]="busy()">Reenviar enlace de confirmación</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <form class="account-form" #accountForm="ngForm" (ngSubmit)="submit(accountForm)" novalidate>
+          @if (mode() === 'login' || mode() === 'register' || mode() === 'forgot') {
+            <div class="field">
+              <label for="email">Correo electrónico <span class="lc-required" aria-hidden="true">*</span></label>
+              <div class="input-shell">
+                <i class="bi bi-envelope" aria-hidden="true"></i>
+                <input id="email" name="email" type="email" inputmode="email" autocomplete="username" required maxlength="254"
+                  [(ngModel)]="email" [attr.aria-invalid]="fieldInvalid('email')"
+                  [attr.aria-describedby]="fieldInvalid('email') ? 'email-error' : null" placeholder="tu@correo.com" />
+              </div>
+              @if (fieldInvalid('email')) {
+                <p id="email-error" class="field-error"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Introduce un correo electrónico válido.</p>
+              }
+            </div>
+          }
+
+          @if (mode() === 'confirm') {
+            <div class="lc-alert lc-alert--info">
+              <i class="bi bi-envelope-open" aria-hidden="true"></i>
+              <div>Pulsa el botón para confirmar que este correo te pertenece. El enlace es de un solo uso.</div>
+            </div>
+          }
+
+          @if (mode() === 'login' || needsNewPassword()) {
+            <div class="field">
+              <div class="label-row">
+                <label for="password">{{ mode() === 'reset' ? 'Nueva contraseña' : 'Contraseña' }} <span class="lc-required" aria-hidden="true">*</span></label>
+                @if (mode() === 'login') {
+                  <button type="button" class="link-button" (click)="setMode('forgot')">¿Olvidaste tu contraseña?</button>
+                }
+              </div>
+              <div class="input-shell">
+                <i class="bi bi-key" aria-hidden="true"></i>
+                <input id="password" name="password" [type]="showPassword() ? 'text' : 'password'" required maxlength="128"
+                  [attr.autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+                  [(ngModel)]="password" [attr.aria-invalid]="fieldInvalid('password')"
+                  [attr.aria-describedby]="needsNewPassword() ? 'password-rules' : (fieldInvalid('password') ? 'password-error' : null)" />
+                <button type="button" class="reveal" (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword()">
+                  <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()" aria-hidden="true"></i>
+                </button>
+              </div>
+              @if (mode() === 'login' && fieldInvalid('password')) {
+                <p id="password-error" class="field-error"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Introduce tu contraseña.</p>
+              }
+              @if (needsNewPassword()) {
+                <ul id="password-rules" class="password-rules" aria-label="Requisitos de la contraseña">
+                  @for (check of passwordChecks(); track check.rule.id) {
+                    <li [class.met]="check.met">
+                      <i class="bi" [class.bi-check-circle-fill]="check.met" [class.bi-circle]="!check.met" aria-hidden="true"></i>
+                      {{ check.rule.label }}<span class="visually-hidden">{{ check.met ? ': cumplido' : ': pendiente' }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+
+            @if (needsNewPassword()) {
+              <div class="field">
+                <label for="confirmPassword">Repite la contraseña <span class="lc-required" aria-hidden="true">*</span></label>
+                <div class="input-shell">
+                  <i class="bi bi-key-fill" aria-hidden="true"></i>
+                  <input id="confirmPassword" name="confirmPassword" [type]="showPassword() ? 'text' : 'password'" required maxlength="128"
+                    autocomplete="new-password" [(ngModel)]="confirmPassword" [attr.aria-invalid]="fieldInvalid('confirm')"
+                    [attr.aria-describedby]="fieldInvalid('confirm') ? 'confirm-error' : null" />
+                </div>
+                @if (fieldInvalid('confirm')) {
+                  <p id="confirm-error" class="field-error"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Las contraseñas no coinciden.</p>
+                }
+              </div>
+            }
+          }
+
+          <button type="submit" class="btn btn-primary btn-lg submit-button" [disabled]="busy()" [attr.aria-busy]="busy()">
+            @if (busy()) { <span class="lc-spinner" aria-hidden="true"></span> {{ copy().busy }} }
+            @else { {{ copy().submit }} <i class="bi bi-arrow-right" aria-hidden="true"></i> }
+          </button>
+        </form>
+
+        @if (mode() === 'login') {
+          <p class="form-footnote">¿Registraste tu cuenta y no confirmaste el correo?
+            <button type="button" class="link-button" (click)="resendConfirmation()" [disabled]="busy() || !isValidEmail(email)">Reenviar confirmación</button>
+          </p>
+        }
+        @if (mode() === 'register') {
+          <p class="form-footnote">Al crear la cuenta recibirás un enlace de confirmación válido durante 2 horas. LoanCalc RD ofrece simulaciones matemáticas, no asesoría financiera personalizada.</p>
+        }
+      }
+    </section>
   </div>
 </main>

@@ -1,0 +1,30 @@
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" routerLink="/" aria-label="LoanCalc RD, ir al inicio">
+      <span class="brand-mark" aria-hidden="true"><i class="bi bi-calculator"></i></span>
+      <span class="brand-name">LoanCalc <b>RD</b></span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">
+        <i class="bi bi-house" aria-hidden="true"></i><span>Inicio</span>
+      </a>
+      <a routerLink="/calculator" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <i class="bi bi-calculator" aria-hidden="true"></i><span>Calculadora</span>
+      </a>
+      @if (auth.enabled) {
+        @if (auth.isAuthenticated()) {
+          <a class="account-link signed-in" routerLink="/account/security" routerLinkActive="active" ariaCurrentWhenActive="page"
+             [attr.title]="auth.profile()?.email">
+            <i class="bi bi-person-check" aria-hidden="true"></i><span class="label-long">Mi cuenta</span>
+            <span class="visually-hidden">(sesión iniciada como {{ auth.profile()?.email }})</span>
+          </a>
+        } @else {
+          <a class="account-link" routerLink="/account" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">
+            <i class="bi bi-person-circle" aria-hidden="true"></i><span class="label-long">Iniciar sesión</span><span class="label-short" aria-hidden="true">Entrar</span>
+          </a>
+        }
+      }
+    </nav>
+  </div>
+</header>

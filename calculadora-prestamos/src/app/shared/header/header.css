@@ -1,0 +1,89 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background: rgba(255, 255, 255, .94);
+  border-bottom: 1px solid var(--lc-border);
+  backdrop-filter: saturate(1.4) blur(10px);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--lc-header-height);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--lc-navy-900);
+  text-decoration: none;
+  font-weight: 800;
+  letter-spacing: -.02em;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--lc-blue-800), var(--lc-blue-500));
+  color: #fff;
+  font-size: 1.05rem;
+  box-shadow: 0 6px 14px rgba(11, 61, 145, .25);
+}
+
+.brand-name { font-size: 1.15rem; white-space: nowrap; }
+.label-short { display: none; }
+.main-nav a { white-space: nowrap; }
+.brand-name b { color: var(--lc-blue-600); font-weight: 900; }
+
+.main-nav { display: flex; align-items: center; gap: 4px; }
+
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--lc-text-muted);
+  font-weight: 650;
+  font-size: .95rem;
+  text-decoration: none;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.main-nav a:hover { background: var(--lc-surface-muted); color: var(--lc-text); }
+.main-nav a.active { background: var(--lc-blue-50); color: var(--lc-blue-700); }
+
+.main-nav .account-link {
+  margin-left: 6px;
+  border: 1px solid var(--lc-border-strong);
+  color: var(--lc-navy-900);
+}
+.main-nav .account-link.signed-in { border-color: #a7f3d0; background: var(--lc-success-bg); color: var(--lc-success); }
+
+@media (max-width: 640px) {
+  .label-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .label-short { display: inline; }
+  .main-nav .account-link.signed-in { width: 44px; padding: 8px; justify-content: center; }
+  .main-nav .account-link.signed-in i { font-size: 1.15rem; }
+  .brand-name { font-size: 1.02rem; }
+  .main-nav a { padding: 8px 10px; gap: 6px; }
+  .main-nav a:not(.account-link) span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .main-nav a:not(.account-link) { width: 44px; justify-content: center; }
+  .main-nav a:not(.account-link) i { font-size: 1.15rem; }
+}
+
+@media (max-width: 380px) {
+  .brand-name { display: none; }
+}
+
+@media print {
+  .site-header { display: none; }
+}

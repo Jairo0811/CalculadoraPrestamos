@@ -1,0 +1,133 @@
+<main class="security-page" id="main-content">
+  <div class="container security-container">
+    <header class="security-header">
+      <span class="eyebrow"><i class="bi bi-shield-lock" aria-hidden="true"></i> Área privada</span>
+      <h1>Seguridad de la cuenta</h1>
+      <p>Administra tu contraseña y las sesiones abiertas en tus dispositivos.</p>
+    </header>
+
+    <section class="panel profile-panel" aria-labelledby="profile-title">
+      <span class="avatar" aria-hidden="true"><i class="bi bi-person"></i></span>
+      <div class="profile-copy">
+        <h2 id="profile-title">Perfil</h2>
+        <p class="profile-email">{{ auth.profile()?.email }}</p>
+        @if (auth.profile()?.emailConfirmed) {
+          <span class="badge-verified"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Correo verificado</span>
+        }
+      </div>
+      <a class="btn btn-outline-primary" routerLink="/calculator"><i class="bi bi-calculator" aria-hidden="true"></i> Ir a la calculadora</a>
+    </section>
+
+    <div class="panels-grid">
+      <section class="panel" aria-labelledby="password-title">
+        <div class="panel-heading">
+          <span class="panel-icon" aria-hidden="true"><i class="bi bi-key"></i></span>
+          <div>
+            <h2 id="password-title">Cambiar contraseña</h2>
+            <p>Al cambiarla se cierran todas las demás sesiones abiertas.</p>
+          </div>
+        </div>
+
+        <div aria-live="polite">
+          @if (changeSuccess()) {
+            <div class="lc-alert lc-alert--success" role="status">
+              <i class="bi bi-shield-check" aria-hidden="true"></i>
+              <div><strong>Contraseña actualizada</strong>Cerramos tus otras sesiones y mantuvimos activa la de este dispositivo.</div>
+            </div>
+          }
+          @if (changeError(); as e) {
+            <div class="lc-alert lc-alert--danger" role="alert">
+              <i class="bi bi-exclamation-octagon" aria-hidden="true"></i>
+              <div>{{ e.message }}
+                @if (e.details.length) { <ul>@for (d of e.details; track d) { <li>{{ d }}</li> }</ul> }
+              </div>
+            </div>
+          }
+        </div>
+
+        <form #passwordForm="ngForm" (ngSubmit)="changePassword(passwordForm)" class="password-form" novalidate>
+          <input type="text" name="username" autocomplete="username" [value]="auth.profile()?.email ?? ''" hidden readonly />
+          <div class="field">
+            <label for="currentPassword">Contraseña actual <span class="lc-required" aria-hidden="true">*</span></label>
+            <input id="currentPassword" name="currentPassword" [type]="showPasswords() ? 'text' : 'password'" autocomplete="current-password"
+              required maxlength="128" [(ngModel)]="currentPassword" [attr.aria-invalid]="invalid('current')"
+              [attr.aria-describedby]="invalid('current') ? 'current-error' : null" />
+            @if (invalid('current')) { <p id="current-error" class="field-error">Introduce tu contraseña actual.</p> }
+          </div>
+          <div class="field">
+            <label for="newPassword">Nueva contraseña <span class="lc-required" aria-hidden="true">*</span></label>
+            <input id="newPassword" name="newPassword" [type]="showPasswords() ? 'text' : 'password'" autocomplete="new-password"
+              required maxlength="128" [(ngModel)]="newPassword" [attr.aria-invalid]="invalid('new')" aria-describedby="new-rules" />
+            <ul id="new-rules" class="password-rules" aria-label="Requisitos de la contraseña">
+              @for (check of passwordChecks(); track check.rule.id) {
+                <li [class.met]="check.met">
+                  <i class="bi" [class.bi-check-circle-fill]="check.met" [class.bi-circle]="!check.met" aria-hidden="true"></i>
+                  {{ check.rule.label }}<span class="visually-hidden">{{ check.met ? ': cumplido' : ': pendiente' }}</span>
+                </li>
+              }
+            </ul>
+            @if (submitted && newPassword && newPassword === currentPassword) {
+              <p class="field-error">La nueva contraseña debe ser distinta de la actual.</p>
+            }
+          </div>
+          <div class="field">
+            <label for="confirmNewPassword">Repite la nueva contraseña <span class="lc-required" aria-hidden="true">*</span></label>
+            <input id="confirmNewPassword" name="confirmNewPassword" [type]="showPasswords() ? 'text' : 'password'" autocomplete="new-password"
+              required maxlength="128" [(ngModel)]="confirmPassword" [attr.aria-invalid]="invalid('confirm')"
+              [attr.aria-describedby]="invalid('confirm') ? 'confirm-new-error' : null" />
+            @if (invalid('confirm')) { <p id="confirm-new-error" class="field-error">Las contraseñas no coinciden.</p> }
+          </div>
+          <label class="toggle">
+            <input type="checkbox" [checked]="showPasswords()" (change)="showPasswords.set(!showPasswords())" />
+            Mostrar contraseñas
+          </label>
+          <button type="submit" class="btn btn-primary btn-lg" [disabled]="changing()" [attr.aria-busy]="changing()">
+            @if (changing()) { <span class="lc-spinner" aria-hidden="true"></span> Guardando… } @else { Actualizar contraseña }
+          </button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="sessions-title">
+        <div class="panel-heading">
+          <span class="panel-icon" aria-hidden="true"><i class="bi bi-laptop"></i></span>
+          <div>
+            <h2 id="sessions-title">Sesiones</h2>
+            <p>Tu acceso dura 15 minutos y se renueva de forma segura mientras usas la aplicación.</p>
+          </div>
+        </div>
+
+        @if (sessionError(); as e) {
+          <div class="lc-alert lc-alert--danger" role="alert"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i><div>{{ e.message }}</div></div>
+        }
+
+        <div class="session-action">
+          <div>
+            <strong>Este dispositivo</strong>
+            <span>Cierra la sesión aquí y revócala en el servidor.</span>
+          </div>
+          <button type="button" class="btn btn-outline-secondary" (click)="logout()" [disabled]="sessionBusy() !== null">
+            @if (sessionBusy() === 'logout') { <span class="lc-spinner" aria-hidden="true"></span> }
+            Cerrar sesión
+          </button>
+        </div>
+
+        <div class="session-action danger">
+          <div>
+            <strong>Todos los dispositivos</strong>
+            <span>Úsalo si perdiste un dispositivo o sospechas de un acceso no autorizado.</span>
+          </div>
+          <div class="confirm-group" aria-live="polite">
+            @if (confirmAll()) {
+              <span class="confirm-text">¿Confirmas cerrar todas las sesiones?</span>
+              <button type="button" class="btn btn-light" (click)="confirmAll.set(false)" [disabled]="sessionBusy() !== null">Cancelar</button>
+            }
+            <button type="button" class="btn btn-danger" (click)="logoutAll()" [disabled]="sessionBusy() !== null">
+              @if (sessionBusy() === 'all') { <span class="lc-spinner" aria-hidden="true"></span> }
+              {{ confirmAll() ? 'Sí, cerrar todas' : 'Cerrar todas las sesiones' }}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
