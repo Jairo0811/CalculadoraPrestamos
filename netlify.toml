@@ -1,16 +1,36 @@
+# Configuración versionada de Netlify para el frontend Angular.
+# Estrategia de despliegue: integración nativa GitHub → Netlify (sin tokens en el repositorio).
+#   - Producción: cada push a `master` (rama de producción configurada en Netlify).
+#   - Deploy Previews: cada Pull Request (URL deploy-preview-<n>--loancalcrd.netlify.app).
+#   - Branch deploys: desactivados (ver [context.branch-deploy]).
+# Guía completa: docs/DEPLOYMENT.md
+
 [build]
   base = "calculadora-prestamos"
-  command = "npm ci && npm run build"
+  command = "npm ci && npm run build && node scripts/write-build-info.mjs"
   publish = "dist/calculadora-prestamos/browser"
+  # Código de salida 0 = omitir el build; distinto de 0 = compilar. Se ejecuta dentro de `base`.
+  #  - Las ramas experimentales (branch deploys) nunca se publican.
+  #  - Producción y Deploy Previews solo compilan si cambió el frontend o esta configuración.
+  ignore = "bash scripts/netlify-ignore.sh"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Producción y Deploy Previews usan el MISMO build de producción de Angular
+# (environment.production.ts: apiBaseUrl relativo y cuentas desactivadas).
+# Ninguna vista previa recibe credenciales ni apunta a bases de datos.
 
 # Fase 8 — proxy de mismo origen hacia la API (recomendado para cookies SameSite=Strict).
-# Descomentar cuando la API esté publicada y sustituir el dominio. Debe ir ANTES de la regla SPA.
+# Mantener comentado hasta que exista una API real publicada. Debe ir ANTES de la regla SPA.
 # [[redirects]]
 #   from = "/api/*"
-#   to = "https://api.loancalcrd.example/api/:splat"
+#   to = "https://<dominio-real-de-la-api>/api/:splat"
 #   status = 200
 #   force = true
 
+# SPA: cualquier ruta Angular (p. ej. /calculator al refrescar) sirve index.html.
+# Los archivos existentes tienen prioridad porque la regla no usa `force`.
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -25,7 +45,33 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains"
 
+# index.html no se fija aquí a propósito: Netlify ya lo sirve con
+# "public, max-age=0, must-revalidate", así que tras cada despliegue se obtiene la versión nueva.
+# (Netlify concatena valores si varias reglas fijan la misma cabecera, por eso no se repite.)
+
+# Archivos con hash de contenido generados por Angular (outputHashing: all): inmutables.
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/media/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Imágenes sin hash: caché de un día con revalidación en segundo plano.
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+  for = "/build-info.json"
+  [headers.values]
+    Cache-Control = "no-store"
