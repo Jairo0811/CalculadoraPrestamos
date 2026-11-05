@@ -4,6 +4,50 @@ Todos los cambios importantes de LoanCalc RD se documentarán en este archivo.
 
 El proyecto sigue un esquema de versionado semántico.
 
+## [Unreleased] — v3, Fase 6 (Cuentas, seguridad y renovación UX/UI)
+
+> No publicado. La versión estable sigue siendo 2.1.0.
+
+### Seguridad
+
+- Sin enumeración de usuarios en registro, reenvío y recuperación: la contraseña se valida antes de consultar el correo, las respuestas son idénticas y los correos se envían desde una cola en segundo plano.
+- Tiempo de login igualado para correos inexistentes; el estado "cuenta sin confirmar" solo se revela con la contraseña correcta.
+- CSRF reforzado: además del encabezado `X-LoanCalc-CSRF` se valida `Origin`/`Referer` contra los orígenes permitidos.
+- `SameSite` de la cookie de refresh configurable (`None` fuerza `Secure`) y guía de topología de mismo origen.
+- Límite de 10 sesiones activas por usuario y limpieza periódica de sesiones expiradas o revocadas.
+- JWT restringido a HS256; claves de Data Protection persistentes mediante `DataProtection:KeysPath`.
+- Rate limiting configurable por política (login, registro, verificación, recuperación, sesión y API) con `Retry-After`.
+- Encabezados de seguridad y HSTS en la API; encabezados de seguridad en Netlify.
+- Dependencias de producción del frontend sin vulnerabilidades conocidas (Angular 21.2.26, express y transitivas actualizadas).
+
+### Añadido
+
+- `POST /api/v1/auth/change-password` (revoca todas las sesiones y emite una nueva).
+- Avisos por correo de "cuenta existente" y "contraseña cambiada".
+- Health checks `/health/live` y `/health` (con PostgreSQL).
+- Frontend: `authInterceptor` (Bearer solo hacia la API, renovación única y reintento único), `authGuard`, `accountsEnabledGuard`, configuración por entorno (`APP_CONFIG`), recuperación de sesión al recargar y serialización de renovaciones entre pestañas (Web Locks).
+- Pantallas de cuenta rediseñadas (inicio de sesión, registro, confirmación, recuperación, restablecimiento) y área privada "Seguridad de la cuenta".
+- Cabecera de navegación global y enlace "Saltar al contenido".
+- Home: explicación del método francés, abonos, LoanCalc Score, comparación y diferencias entre uso con y sin cuenta.
+- Pruebas: 85 unitarias/componentes (antes 22), E2E con Playwright + axe-core, y 48 pruebas de backend contra PostgreSQL (antes 10).
+
+### Cambiado
+
+- `Program.cs` dividido en módulos de endpoints y extensiones sin cambiar las rutas `/api/v1`.
+- Errores en Problem Details con códigos estables (`code`) y mensajes en español; JSON malformado devuelve 400 en todos los entornos.
+- Los enlaces de correo ya no incluyen el correo electrónico; `reset-password` usa `userId`.
+- Validaciones de dominio: tipo de préstamo válido, monto ≤ RD$ 1,000,000,000, tasa 0–100 %, plazo 1–600 meses, nombre ≤ 120 caracteres.
+- Calculadora: nombre, fecha de nacimiento y cédula pasan a ser **opcionales**; validación por campo, plazos rápidos y campos numéricos vacíos por defecto.
+- Formato monetario único `RD$ 1,234.56` en pantalla, PDF y Excel.
+- LoanCalc Score con colores accesibles; aviso explícito de que las recomendaciones no son asesoría financiera.
+- Página de resultados cargada de forma diferida (bundle inicial de 1.37 MB a 0.83 MB).
+- Logo optimizado en WebP (de 900 KB a 22 KB).
+
+### Corregido
+
+- Mención a un "tema oscuro" inexistente en la Home y la documentación.
+- Contraste insuficiente de textos secundarios de la Home (WCAG AA).
+
 ## [2.1.0] - 2026-07-25
 
 ### Añadido
@@ -27,7 +71,7 @@ El proyecto sigue un esquema de versionado semántico.
 ### Mejorado
 
 - Presentación de resultados financieros.
-- Visualización en tema oscuro.
+- Visualización en tema oscuro (retirado posteriormente: la interfaz es exclusivamente clara).
 - Diseño responsive del módulo de resultados.
 - Validación de datos financieros.
 - Organización de los reportes PDF y Excel.
