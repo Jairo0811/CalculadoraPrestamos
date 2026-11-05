@@ -1,6 +1,6 @@
 # LoanCalc RD v3 — Fase 7: plataforma financiera personal
 
-**Estado:** trabajo en curso, PR #59. No publicado en el sitio público de Cloudflare Pages.
+**Estado:** implementación completa y fusionada en `master` (PR #59, `348659b7`). Las funciones privadas permanecen desactivadas en Cloudflare Pages hasta Fase 8.
 
 ## Alcance de la fase
 
@@ -49,12 +49,14 @@ La Fase 6 ya incluye en ASP.NET Core 10 los endpoints protegidos de `/api/v1/sim
 - El backend ASP.NET Core, PostgreSQL, SMTP, proxy HTTPS de mismo origen y pruebas reales de extremo a extremo en entornos desplegados pertenecen a la **Fase 8**.
 - No activar cuentas en producción antes de configurar esos servicios y comprobar login, refresh, CORS/CSRF y cookies en HTTPS.
 
-## Criterios de revisión
+## Cierre de la Fase 7
 
-- [ ] Angular CI (unitarias/build) verde.
-- [ ] Playwright E2E (API simulada) verde.
-- [ ] Backend CI + PostgreSQL verde.
-- [ ] Verificar que el build Cloudflare todavía oculta `/account`.
-- [ ] Revisar accesibilidad y vistas móvil/tableta/escritorio.
-- [ ] Revisar que ningún dato personal se transmita al API ni aparezca en enlaces.
-- [ ] Revisar el PR #59; no fusionar mientras haya checks fallidos.
+- [x] Angular CI y build aprobados antes del merge.
+- [x] 35 pruebas Playwright E2E (API simulada) aprobadas.
+- [x] 17 pruebas de humo del build de producción aprobadas; cuentas ocultas por feature flag.
+- [x] Backend CI y 48 pruebas sobre PostgreSQL aprobadas.
+- [x] Comprobación de accesibilidad automatizada en desktop, tablet y móvil.
+- [x] API de simulaciones sin campos de identificación personal; importación voluntaria.
+- [x] PR #59 revisado y fusionado en `master`.
+
+**Pendiente de Fase 8:** publicación de API, PostgreSQL y SMTP, prueba real de sincronización entre dispositivos, y habilitación supervisada del área privada.
