@@ -17,6 +17,25 @@ public sealed class ValidationExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
+        if (exception is BadHttpRequestException badRequest)
+        {
+            // JSON malformado o tipos inválidos: 400 en todos los entornos y sin detalles del parser.
+            logger.LogInformation("Cuerpo de solicitud inválido en {Path}", httpContext.Request.Path);
+            httpContext.Response.StatusCode = badRequest.StatusCode;
+            var malformed = new ProblemDetails
+            {
+                Status = badRequest.StatusCode,
+                Title = "Solicitud inválida",
+                Detail = "El contenido de la solicitud no tiene un formato válido."
+            };
+            malformed.Extensions["code"] = "malformed_request";
+            return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+            {
+                HttpContext = httpContext,
+                ProblemDetails = malformed
+            });
+        }
+
         if (exception is not ArgumentException argumentException)
         {
             return false;

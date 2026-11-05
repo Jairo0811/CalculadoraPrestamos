@@ -170,6 +170,9 @@ public sealed class SimulationAuthorizationTests(AuthTestFactory factory) : ICla
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", owner.AccessToken);
         using var response = await client.SendAsync(request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.DoesNotContain("Npgsql", await response.Content.ReadAsStringAsync());
+        Assert.Equal("malformed_request", await AuthFlow.ReadProblemCodeAsync(response));
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("JsonException", body);
+        Assert.DoesNotContain("Npgsql", body);
     }
 }
