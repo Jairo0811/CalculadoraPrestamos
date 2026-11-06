@@ -33,7 +33,12 @@
             "scripts": [],
             "security": {
               "allowedHosts": []
-            }
+            },
+            "externalDependencies": [
+              "canvg",
+              "html2canvas",
+              "dompurify"
+            ]
           },
           "configurations": {
             "production": {

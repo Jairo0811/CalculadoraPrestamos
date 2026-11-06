@@ -1,0 +1,42 @@
+# Temporary lockfile regeneration for a branch-only performance experiment.
+# Removed before opening the PR.
+name: Prepare PDF export lockfile
+on:
+  push:
+    branches: [perf/pdf-on-demand-esm]
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: calculadora-prestamos
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.4'
+          cache: npm
+          cache-dependency-path: calculadora-prestamos/package-lock.json
+      - name: Regenerate and verify lockfile without bypassing peers
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          node - <<'JS'
+          const manifest = require('./package.json');
+          const lock = require('./package-lock.json');
+          if (manifest.dependencies.qrcode || manifest.devDependencies['@types/qrcode']) throw new Error('Legacy QR dependencies remain');
+          if (lock.packages[''].dependencies.uqr !== '^0.1.3') throw new Error('ESM QR library missing');
+          if (!lock.packages['node_modules/uqr']) throw new Error('uqr is unresolved');
+          console.log('QR dependency tree verified:',lock.packages['node_modules/uqr'].version);
+          JS
+      - name: Commit generated lockfile to migration branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(deps): regenerate PDF export lockfile"
+            git push origin HEAD:perf/pdf-on-demand-esm
+          fi
