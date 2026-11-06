@@ -49,6 +49,20 @@ test.describe('Smoke del build de producción', () => {
     expect(apiCalls).toEqual([]);
   });
 
+  test('las páginas de privacidad y acerca del proyecto son públicas y accesibles', async ({ page }) => {
+    for (const item of [
+      { path: '/privacy', title: 'Política de privacidad' },
+      { path: '/about', title: 'Acerca de LoanCalc RD' }
+    ]) {
+      const response = await page.goto(item.path);
+      expect(response?.status()).toBe(200);
+      await expect(page.getByRole('heading', { name: item.title, level: 1 })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Política de privacidad' }).first()).toBeVisible();
+      const scan = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+      expect(scan.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+    }
+  });
+
   test('las rutas profundas funcionan al refrescar (fallback SPA)', async ({ page }) => {
     for (const path of ['/calculator', '/results', '/ruta-inexistente']) {
       const response = await page.goto(path);

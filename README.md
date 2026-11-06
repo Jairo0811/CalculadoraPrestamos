@@ -99,6 +99,16 @@ Consulta [la guía de Fase 7](docs/PHASE7.md). Las pruebas E2E del frontend util
 
 ---
 
+## 💰 Google AdSense (integración preparada)
+
+LoanCalc RD puede verificar la propiedad del dominio público `loancalcrd.pages.dev` mediante una metaetiqueta y un archivo `ads.txt` generados durante el build de Cloudflare Pages, cuando se indique el ID de editor real.
+
+**Los anuncios están desactivados por defecto**. Se habilitarán únicamente después de la aprobación de este sitio en AdSense y de configurar los controles de consentimiento aplicables. La calculadora gratuita y la vista previa de WhatsApp no dependen de la publicidad.
+
+Consulta [docs/ADSENSE-CLOUDFLARE.md](docs/ADSENSE-CLOUDFLARE.md) para la configuración de variables y el proceso de revisión del sitio.
+
+---
+
 ## ✨ Funcionalidades
 
 ### 💰 Simulación del préstamo
