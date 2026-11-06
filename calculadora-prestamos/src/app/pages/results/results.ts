@@ -3,9 +3,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import QRCode from 'qrcode';
+import type { jsPDF } from 'jspdf';
 
 import {
   ExtraPaymentFrequency,
@@ -749,6 +747,11 @@ export class Results {
     loanResult: LoanResult,
     extraResult: ExtraPaymentResult,
   ): Promise<void> {
+    // Los módulos PDF no se descargan hasta solicitar una exportación.
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF('p', 'mm', 'a4');
 
     const reportNumber = `AB-${this.dateKey()}-${Date.now().toString().slice(-6)}`;
@@ -914,7 +917,7 @@ export class Results {
       },
     });
 
-    const qr = await QRCode.toDataURL('https://github.com/Jairo0811/CalculadoraPrestamos');
+    const qr = await this.pdfQrDataUrl();
 
     const lastPage = doc.getNumberOfPages();
 
@@ -941,6 +944,10 @@ export class Results {
   }
 
   private async generatePdf(result: LoanResult): Promise<void> {
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF('p', 'mm', 'a4');
 
     doc.setTextColor('#0d47a1');
@@ -992,13 +999,46 @@ export class Results {
       headStyles: { fillColor: '#0d47a1' },
     });
 
-    const qr = await QRCode.toDataURL('https://github.com/Jairo0811/CalculadoraPrestamos');
+    const qr = await this.pdfQrDataUrl();
 
     const lastPage = doc.getNumberOfPages();
 
     doc.setPage(lastPage);
     doc.addImage(qr, 'PNG', 174, 265, 20, 20);
     doc.save(`LoanCalcRD-${this.dateKey()}.pdf`);
+  }
+
+  /**
+   * QR del informe como PNG para jsPDF, con un margen blanco de cuatro módulos.
+   * uqr es ESM y se descarga exclusivamente cuando se exporta un PDF.
+   */
+  private async pdfQrDataUrl(): Promise<string> {
+    const { encode } = await import('uqr');
+    const { data, size } = encode('https://github.com/Jairo0811/CalculadoraPrestamos', { ecc: 'M' });
+    const modulePixels = 6;
+    const quietZone = 4;
+    const dimension = (size + quietZone * 2) * modulePixels;
+    const canvas = document.createElement('canvas');
+    canvas.width = dimension;
+    canvas.height = dimension;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      throw new Error('No se pudo generar el código QR del reporte.');
+    }
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, dimension, dimension);
+    context.fillStyle = '#000000';
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        if (data[y]?.[x]) {
+          context.fillRect((x + quietZone) * modulePixels, (y + quietZone) * modulePixels, modulePixels, modulePixels);
+        }
+      }
+    }
+
+    return canvas.toDataURL('image/png');
   }
 
   private shareText(): string {
