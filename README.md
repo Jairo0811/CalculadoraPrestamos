@@ -19,6 +19,9 @@
   <img alt="Pruebas backend" src="https://img.shields.io/badge/pruebas%20backend-48-success" />
 </p>
 
+
+> 🛡️ **Seguridad de dependencias:** ver [auditoría de npm (6 de noviembre de 2026)](docs/security-audit-2026-11-06.md). La aplicación pública y el proyecto histórico Angular 9 se evalúan por separado.
+
 ---
 
 ## 📖 Descripción

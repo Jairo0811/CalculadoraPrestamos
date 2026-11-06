@@ -1,0 +1,112 @@
+name: LoanCalc RD Security Inventory
+
+on:
+  push:
+    branches: [master, feature/security-audit-loancalc]
+  pull_request:
+    branches: [master]
+    paths:
+      - 'calculadora-prestamos/package*.json'
+      - 'legacy/package.json'
+      - '.github/workflows/security-audit.yml'
+  schedule:
+    - cron: '19 13 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  current-npm:
+    name: Audit Angular 21 (production + development)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: calculadora-prestamos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit exact lockfile (all dependencies)
+        run: npm audit --package-lock-only --json > audit-all.json || true
+      - name: Audit production dependency tree only
+        run: npm audit --omit=dev --package-lock-only --json > audit-production.json || true
+      - name: Print audit findings and detect registry errors
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for report in sorted(Path(".").glob("audit-*.json")):
+              print(f"\n=== AUDIT_REPORT: {report} ===")
+              try:
+                  data = json.loads(report.read_text())
+              except Exception as exc:
+                  print("AUDIT_ERROR: invalid JSON:", exc)
+                  raise SystemExit(1)
+              if data.get("error"):
+                  print("AUDIT_ERROR:", json.dumps(data["error"],ensure_ascii=False))
+                  raise SystemExit(1)
+              print("AUDIT_COUNTS:", json.dumps(data.get("metadata", {}).get("vulnerabilities", {})))
+              vulns = data.get("vulnerabilities", {})
+              order = {"critical":0,"high":1,"moderate":2,"low":3,"info":4}
+              for name, v in sorted(vulns.items(), key=lambda x:(order.get(x[1].get("severity",""),9),x[0])):
+                  details = [{"title":a.get("title"),"url":a.get("url"),"severity":a.get("severity"),"range":a.get("range")} for a in v.get("via",[]) if isinstance(a,dict)]
+                  finding={"name":name,"severity":v.get("severity"),"isDirect":v.get("isDirect"),"range":v.get("range"),"fixAvailable":v.get("fixAvailable"),"via":details[:4],"effects":v.get("effects",[])[:10]}
+                  print("AUDIT_FINDING:",json.dumps(finding,ensure_ascii=False))
+          
+          PY
+      - name: Upload current inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-inventory-angular21
+          path: calculadora-prestamos/audit-*.json
+          retention-days: 7
+
+  legacy-npm:
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'feature/security-audit-loancalc'
+    name: Audit archived Angular 9 (not deployed)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: legacy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve historical package manifest without executing installs
+        run: npm install --package-lock-only --ignore-scripts --legacy-peer-deps --no-fund --no-audit
+      - name: Audit archive dependencies
+        run: npm audit --package-lock-only --json > audit-legacy.json || true
+      - name: Print findings and detect registry errors
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for report in sorted(Path(".").glob("audit-*.json")):
+              print(f"\n=== AUDIT_REPORT: {report} ===")
+              try:
+                  data = json.loads(report.read_text())
+              except Exception as exc:
+                  print("AUDIT_ERROR: invalid JSON:", exc)
+                  raise SystemExit(1)
+              if data.get("error"):
+                  print("AUDIT_ERROR:", json.dumps(data["error"],ensure_ascii=False))
+                  raise SystemExit(1)
+              print("AUDIT_COUNTS:", json.dumps(data.get("metadata", {}).get("vulnerabilities", {})))
+              vulns = data.get("vulnerabilities", {})
+              order = {"critical":0,"high":1,"moderate":2,"low":3,"info":4}
+              for name, v in sorted(vulns.items(), key=lambda x:(order.get(x[1].get("severity",""),9),x[0])):
+                  details = [{"title":a.get("title"),"url":a.get("url"),"severity":a.get("severity"),"range":a.get("range")} for a in v.get("via",[]) if isinstance(a,dict)]
+                  finding={"name":name,"severity":v.get("severity"),"isDirect":v.get("isDirect"),"range":v.get("range"),"fixAvailable":v.get("fixAvailable"),"via":details[:4],"effects":v.get("effects",[])[:10]}
+                  print("AUDIT_FINDING:",json.dumps(finding,ensure_ascii=False))
+          
+          PY
+      - name: Upload archive inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-inventory-angular9-legacy
+          path: legacy/audit-*.json
+          retention-days: 7
