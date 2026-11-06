@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   current-npm:
-    name: Audit Angular 21 (production + development)
+    name: Audit Angular 22 (production + development)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -58,6 +58,6 @@ jobs:
       - name: Upload current inventory
         uses: actions/upload-artifact@v4
         with:
-          name: security-inventory-angular21
+          name: security-inventory-angular22
           path: calculadora-prestamos/audit-*.json
           retention-days: 7

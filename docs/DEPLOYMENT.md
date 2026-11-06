@@ -25,7 +25,7 @@ Confirma en el panel que `master` está seleccionada y que los despliegues autom
 | Directorio raíz | `calculadora-prestamos` |
 | Comando | `npm ci && npm run build` |
 | Output directory | `dist/calculadora-prestamos/browser` |
-| Node.js | 22 (`NODE_VERSION=22`) |
+| Node.js | 22.23.4 (`NODE_VERSION=22.23.4`; también fijado en `calculadora-prestamos/.node-version`) |
 
 El script `npm run build` ejecuta Angular y escribe `build-info.json` con `CF_PAGES_COMMIT_SHA` y `CF_PAGES_BRANCH` en Cloudflare. Estos metadatos son públicos y no incluyen secretos.
 
