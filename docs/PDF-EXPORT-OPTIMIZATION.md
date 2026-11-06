@@ -20,7 +20,7 @@ Referencias: [jsPDF — optional dependencies](https://www.npmjs.com/package/jsp
 
 - `npm ci` y `npm audit --omit=dev --audit-level=moderate` correctos.
 - `npm run test:ci`, `npm run test:adsense`, `npm run build` y validación Open Graph.
-- Playwright E2E y `npm run e2e:smoke` completos. El smoke de producción comprueba que el PDF empieza por `%PDF-`, incluye una imagen incrustada (`/Subtype /Image`) y permite descargar el Excel.
+- Playwright E2E y `npm run e2e:smoke` completos. El smoke de producción comprueba que ambos PDF (normal y abonos extraordinarios) empiezan por `%PDF-`, incluyen una imagen incrustada (`/Subtype /Image`) y permiten descargar el Excel.
 - Backend .NET sin cambios; CI aprobado.
 - El build de Cloudflare mantiene `ads.txt` y las cuentas deshabilitadas, sin cambios en AdSense.
 
@@ -28,7 +28,9 @@ Referencias: [jsPDF — optional dependencies](https://www.npmjs.com/package/jsp
 
 **Antes** (build de referencia del usuario): `results` 545.92 kB brutos, `html2canvas` 201.15 kB brutos, chunk inicial total 772.78 kB (152.77 kB transferencia estimada).
 
-**Después**: comparar el tamaño de `results` y el total inicial en los logs del build de este PR; no fijar una reducción hasta verificarla. El tamaño del bundle inicial puede mantenerse similar: la optimización prioriza **diferir el coste del PDF hasta hacer clic**.
+**Después** (build de CI del PR #85): `results` **78.13 kB** brutos (15.51 kB transferencia estimada), PDF jsPDF **412.02 kB** y AutoTable **31.31 kB** en chunks bajo demanda. Total inicial **771.99 kB** (151.69 kB transferencia estimada).
+
+**Efecto comprobado:** el chunk `results` reduce su tamaño bruto **85.7 %** frente a la referencia (de 545.92 a 78.13 kB); la transferencia estimada de esa ruta baja de 143.90 a 15.51 kB (**89.2 %**). La carga inicial apenas cambia; el coste de PDF se retrasa hasta pulsar exportar. Ya no se listan chunks de `html2canvas` ni advertencias CommonJS en el build de producción analizado. Los valores concretos pueden cambiar con nuevas dependencias.
 
 ### Restricciones
 

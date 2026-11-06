@@ -133,6 +133,26 @@ test.describe('Smoke del build de producción', () => {
     expect(excel.suggestedFilename()).toMatch(/\.xls$/);
   });
 
+  test('exporta el PDF de abonos extraordinarios con QR incrustado', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Descargas verificadas en escritorio y tableta');
+    await simulate(page);
+    await page.getByLabel('Monto del abono').fill('50000');
+    await page.getByRole('button', { name: 'Calcular ahorro' }).click();
+    const exportButton = page.getByRole('button', { name: 'Exportar escenario a PDF' });
+    await expect(exportButton).toBeVisible();
+
+    const [pdf] = await Promise.all([page.waitForEvent('download'), exportButton.click()]);
+    expect(pdf.suggestedFilename()).toMatch(/^LoanCalcRD-Abonos-.*\\.pdf$/);
+    const pdfStream = await pdf.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of pdfStream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const pdfContents = Buffer.concat(chunks).toString('latin1');
+    expect(pdfContents.slice(0, 5)).toBe('%PDF-');
+    expect(pdfContents).toContain('/Subtype /Image');
+  });
+
   test('responsive sin desplazamiento horizontal y sin violaciones WCAG graves', async ({ page }) => {
     for (const path of ['/', '/calculator']) {
       await page.goto(path);
