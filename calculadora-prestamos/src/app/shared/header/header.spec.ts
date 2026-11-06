@@ -22,6 +22,15 @@ describe('Header', () => {
     return fixture;
   }
 
+  it('muestra el isotipo oficial en la cabecera', () => {
+    const fixture = setup(false);
+    const logo = fixture.nativeElement.querySelector('.brand-isotipo') as HTMLImageElement;
+    expect(logo).toBeTruthy();
+    expect(logo.getAttribute('src')).toBe('/assets/img/isotipo-loancalc-rd-256.webp');
+    expect(logo.getAttribute('alt')).toBe('');
+    expect(fixture.nativeElement.querySelector('.brand-name')?.textContent).toContain('LoanCalc');
+  });
+
   it('hides account links when accounts are disabled for the environment', () => {
     const fixture = setup(false);
     expect(fixture.nativeElement.textContent).not.toContain('Iniciar sesión');

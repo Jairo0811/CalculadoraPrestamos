@@ -25,16 +25,12 @@
   letter-spacing: -.02em;
 }
 
-.brand-mark {
-  display: grid;
-  place-items: center;
+.brand-isotipo {
+  display: block;
+  flex: none;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--lc-blue-800), var(--lc-blue-500));
-  color: #fff;
-  font-size: 1.05rem;
-  box-shadow: 0 6px 14px rgba(11, 61, 145, .25);
+  object-fit: contain;
 }
 
 .brand-name { font-size: 1.15rem; white-space: nowrap; }
