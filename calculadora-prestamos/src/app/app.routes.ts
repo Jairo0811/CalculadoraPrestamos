@@ -6,6 +6,8 @@ import { accountsEnabledGuard, authGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   { path: '', component: Home, title: 'LoanCalc RD · Simulador financiero dominicano' },
   { path: 'calculator', component: Calculator, title: 'Calculadora de préstamos · LoanCalc RD' },
+  { path: 'privacy', loadComponent: () => import('./pages/privacy/privacy').then(m => m.Privacy), title: 'Política de privacidad · LoanCalc RD' },
+  { path: 'about', loadComponent: () => import('./pages/about/about').then(m => m.About), title: 'Acerca del proyecto · LoanCalc RD' },
   {
     // Carga diferida: jsPDF, AutoTable y QRCode solo se descargan al ver resultados.
     path: 'results',
