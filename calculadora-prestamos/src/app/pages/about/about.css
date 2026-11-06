@@ -10,3 +10,7 @@
 .about-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:25px}
 .about-actions .btn{min-height:44px;border-radius:10px}
 @media(max-width:600px){.about-hero{padding:43px 0 51px}.about-content{padding:18px 4px 53px}}
+
+/* Botón outline con contraste WCAG AA sobre el fondo de la sección. */
+.about-actions .btn-outline-primary{color:#0a438a;border-color:#0a438a}
+.about-actions .btn-outline-primary:hover{background:#0a438a;color:#fff}
