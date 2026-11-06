@@ -22,6 +22,13 @@ describe('Footer', () => {
     expect(component).toBeTruthy();
   });
 
+  it('muestra el logo oficial en el pie de página', () => {
+    const logo = fixture.nativeElement.querySelector('.footer-logo') as HTMLImageElement;
+    expect(logo).toBeTruthy();
+    expect(logo.getAttribute('src')).toBe('/assets/img/logo-loancalc-rd-900.webp');
+    expect(logo.getAttribute('alt')).toBe('LoanCalc RD');
+  });
+
   it('ofrece enlaces internos a privacidad, términos y contacto', () => {
     const links = [...fixture.nativeElement.querySelectorAll('.footer-legal a')] as HTMLAnchorElement[];
     expect(links.map(a => a.getAttribute('href'))).toEqual(

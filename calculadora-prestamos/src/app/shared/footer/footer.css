@@ -85,3 +85,10 @@
 .footer-legal a:hover{color:#bfdbfe}
 .footer-legal small{font-size:.8rem;color:#cbd5e1;line-height:1.5}
 @media(max-width:576px){.footer-card{grid-template-columns:1fr}}
+
+.footer-logo {
+  display: block;
+  width: min(340px, 100%);
+  height: auto;
+  object-fit: contain;
+}
