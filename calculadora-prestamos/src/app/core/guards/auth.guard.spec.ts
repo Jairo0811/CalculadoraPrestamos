@@ -49,7 +49,7 @@ describe('accountsEnabledGuard', () => {
       TestBed.configureTestingModule({
         providers: [{ provide: APP_CONFIG, useValue: { production: false, apiBaseUrl: '/api/v1', features: { accounts: enabled } } }]
       });
-      expect(TestBed.runInInjectionContext(() => accountsEnabledGuard({} as never, []))).toBe(enabled);
+      expect(TestBed.runInInjectionContext(() => accountsEnabledGuard({} as never, [], {} as never))).toBe(enabled);
     }
   });
 });
