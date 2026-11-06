@@ -21,4 +21,12 @@ describe('Footer', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('ofrece enlaces internos a privacidad, términos y contacto', () => {
+    const links = [...fixture.nativeElement.querySelectorAll('.footer-legal a')] as HTMLAnchorElement[];
+    expect(links.map(a => a.getAttribute('href'))).toEqual(
+      expect.arrayContaining(['/privacy', '/terms', '/contact'])
+    );
+    expect(links.some(a => a.href.startsWith('mailto:'))).toBe(false);
+  });
 });

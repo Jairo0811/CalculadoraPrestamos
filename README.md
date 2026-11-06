@@ -99,6 +99,18 @@ Consulta [la guía de Fase 7](docs/PHASE7.md). Las pruebas E2E del frontend util
 
 ---
 
+## 📋 Páginas legales y soporte
+
+El sitio público mantiene accesibles las páginas [Política de Privacidad](https://loancalcrd.pages.dev/privacy), [Términos de Uso](https://loancalcrd.pages.dev/terms) y [Contacto](https://loancalcrd.pages.dev/contact), enlazadas en el pie de página y en el sitemap.
+
+- **Privacidad:** información sobre el historial local, los datos personales opcionales, Cloudflare y AdSense (pendiente de activación de anuncios).
+- **Términos:** simulación educativa, límites de los cálculos y uso responsable.
+- **Contacto:** soporte y sugerencias por GitHub Issues, que es público. No introducir allí información personal o financiera sensible. No hay formulario privado de contacto mientras no se publique un canal seguro.
+
+Los textos son informativos y requieren revisión jurídica antes de utilizar funcionalidades con cuentas o nuevas operaciones financieras.
+
+---
+
 ## 💰 Google AdSense (integración preparada)
 
 LoanCalc RD puede verificar la propiedad del dominio público `loancalcrd.pages.dev` mediante una metaetiqueta y un archivo `ads.txt` generados durante el build de Cloudflare Pages, cuando se indique el ID de editor real.
