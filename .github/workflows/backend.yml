@@ -56,7 +56,7 @@ jobs:
         run: dotnet build backend/src/LoanCalcRD.Api/LoanCalcRD.Api.csproj --configuration Release --no-restore
 
       - name: Install EF Core CLI
-        run: dotnet tool install --global dotnet-ef --version 10.0.10
+        run: dotnet tool install --global dotnet-ef --version 10.0.14
 
       - name: Verify upgrade path from a Phase 5 database
         env:
