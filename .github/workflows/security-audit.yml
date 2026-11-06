@@ -56,7 +56,7 @@ jobs:
           
           PY
       - name: Upload current inventory
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-inventory-angular22
           path: calculadora-prestamos/audit-*.json
