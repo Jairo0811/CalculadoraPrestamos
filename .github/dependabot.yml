@@ -1,0 +1,41 @@
+version: 2
+
+# Dependabot maintenances only supported active projects; Angular 9 in legacy/
+# is a historical snapshot, not a deployable application.
+updates:
+  - package-ecosystem: "npm"
+    directory: "/calculadora-prestamos"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Santo_Domingo"
+    open-pull-requests-limit: 5
+    groups:
+      frontend-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "nuget"
+    directory: "/backend/src/LoanCalcRD.Api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "nuget"
+    directory: "/backend/src/LoanCalcRD.Infrastructure"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "nuget"
+    directory: "/backend/tests/LoanCalcRD.Tests"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3

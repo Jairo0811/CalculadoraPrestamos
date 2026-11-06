@@ -2,13 +2,15 @@ name: LoanCalc RD Security Inventory
 
 on:
   push:
-    branches: [feature/security-audit-loancalc]
+    branches: [master, feature/security-audit-loancalc]
   pull_request:
     branches: [master]
     paths:
       - 'calculadora-prestamos/package*.json'
       - 'legacy/package.json'
       - '.github/workflows/security-audit.yml'
+  schedule:
+    - cron: '19 13 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -62,6 +64,7 @@ jobs:
           retention-days: 7
 
   legacy-npm:
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'feature/security-audit-loancalc'
     name: Audit archived Angular 9 (not deployed)
     runs-on: ubuntu-latest
     timeout-minutes: 15
