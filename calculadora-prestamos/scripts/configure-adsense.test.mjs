@@ -65,7 +65,7 @@ test('the public publisher is embedded by default, but ad delivery remains off',
     });
     const built = readFileSync(join(root, 'index.html'), 'utf8');
     assert.match(built, new RegExp('ca-' + PUBLISHER_ID));
-    assert.doesNotMatch(built, /adsbygoogle\\.js/);
+    assert.doesNotMatch(built, /adsbygoogle\.js/);
     assert.equal(readFileSync(join(root, 'ads.txt'), 'utf8'), adsTxtFor(PUBLISHER_ID));
   } finally {
     rmSync(root, { recursive: true, force: true });
