@@ -13,3 +13,7 @@
 .legal-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
 .legal-actions a{min-height:44px;border-radius:11px}
 @media(max-width:600px){.legal-hero{padding:42px 0 49px}.legal-content{padding:17px 4px 50px}}
+
+/* Contraste AA para enlaces sobre fondos claros (axe: ratio mínimo 4.5:1). */
+.legal-content a:not(.btn){color:#0a438a;text-underline-offset:3px}
+.legal-content a:not(.btn):hover{color:#073367}
