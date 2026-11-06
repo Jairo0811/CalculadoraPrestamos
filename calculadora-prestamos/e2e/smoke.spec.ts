@@ -142,7 +142,7 @@ test.describe('Smoke del build de producción', () => {
     await expect(exportButton).toBeVisible();
 
     const [pdf] = await Promise.all([page.waitForEvent('download'), exportButton.click()]);
-    expect(pdf.suggestedFilename()).toMatch(/^LoanCalcRD-Abonos-.*\\.pdf$/);
+    expect(pdf.suggestedFilename()).toMatch(/^LoanCalcRD-Abonos-.*\.pdf$/);
     const pdfStream = await pdf.createReadStream();
     const chunks: Buffer[] = [];
     for await (const chunk of pdfStream) {
