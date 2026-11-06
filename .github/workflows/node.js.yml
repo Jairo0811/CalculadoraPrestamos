@@ -37,6 +37,9 @@ jobs:
       - name: Run automated tests
         run: npm run test:ci
 
+      - name: Test AdSense integration (safe defaults and release gates)
+        run: npm run test:adsense
+
       - name: Build Angular project
         run: npm run build
 
