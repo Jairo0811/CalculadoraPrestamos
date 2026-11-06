@@ -38,7 +38,7 @@
     "@angular/cli": "^21.2.29",
     "@angular/compiler-cli": "^21.2.26",
     "@axe-core/playwright": "^4.14.0",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.1",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "@types/qrcode": "^1.5.6",
