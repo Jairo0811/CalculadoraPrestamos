@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.23.4'
       - name: Audit exact lockfile (all dependencies)
         run: npm audit --package-lock-only --json > audit-all.json || true
       - name: Audit production dependency tree only
