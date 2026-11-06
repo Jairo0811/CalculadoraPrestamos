@@ -20,7 +20,7 @@
 </p>
 
 
-> 🛡️ **Seguridad de dependencias:** ver [auditoría de npm (6 de noviembre de 2026)](docs/security-audit-2026-11-06.md). La aplicación pública y el proyecto histórico Angular 9 se evalúan por separado.
+> 🛡️ **Seguridad de dependencias:** ver [auditoría de npm (6 de noviembre de 2026)](docs/security-audit-2026-11-06.md). La versión histórica de Angular 9 fue retirada del árbol activo; permanece recuperable mediante el historial de Git.
 
 ---
 
@@ -217,8 +217,8 @@ CalculadoraPrestamos
 │   ├── src/environments           # environment.ts / environment.production.ts
 │   └── e2e                        # Playwright
 ├── backend                        # API ASP.NET Core 10 (ver backend/README.md)
-├── docs/DEPLOYMENT.md             # Despliegue, secretos y topología de cookies
-├── legacy                         # Implementación original (2020), conservada
+├── docs                           # Guías de despliegue, seguridad y fases
+├── .github                        # CI/CD, auditorías y Dependabot
 ├── CHANGELOG.md
 └── README.md
 ```
