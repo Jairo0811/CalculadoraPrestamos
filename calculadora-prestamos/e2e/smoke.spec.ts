@@ -55,7 +55,8 @@ test.describe('Smoke del build de producción', () => {
       { path: '/privacy', title: 'Política de privacidad' },
       { path: '/terms', title: 'Términos de Uso' },
       { path: '/contact', title: 'Contacto' },
-      { path: '/about', title: 'Acerca de LoanCalc RD' }
+      { path: '/about', title: 'Acerca de LoanCalc RD' },
+      { path: '/guide', title: 'Guía para entender tu préstamo' }
     ]) {
       const response = await page.goto(item.path);
       expect(response?.status(), item.path).toBe(200);
@@ -66,6 +67,10 @@ test.describe('Smoke del build de producción', () => {
       const scan = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
       expect(scan.violations.filter(v => v.impact === 'serious' || v.impact === 'critical').map(v => v.id), item.path).toEqual([]);
     }
+    await page.goto('/guide');
+    await expect(page.getByRole('heading', { name: 'Cómo se calcula una cuota mensual' })).toBeVisible();
+    await expect(page.getByText('RD$ 7,500', { exact: false }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Probar la calculadora' }).first()).toBeVisible();
     await page.goto('/contact');
     await expect(page.getByRole('link', { name: /Abrir una incidencia en GitHub/ })).toHaveAttribute('href', 'https://github.com/Jairo0811/CalculadoraPrestamos/issues/new');
     await expect(page.getByText(/las incidencias de GitHub son públicas/i)).toBeVisible();
@@ -102,6 +107,7 @@ test.describe('Smoke del build de producción', () => {
 
     await expect(page.getByText('RD$ 18,076.20').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Tabla de amortización' })).toBeVisible();
+    await expect(page.getByText('Las tasas precargadas son', { exact: false })).toBeVisible();
     await expect(page.locator('table tbody tr')).not.toHaveCount(0);
     await expect(page.getByText('no asesoría financiera personalizada')).toBeVisible();
 

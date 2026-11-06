@@ -1,7 +1,7 @@
 # LoanCalc RD — Integración Google AdSense + Cloudflare Pages
 
 **Dominio público:** https://loancalcrd.pages.dev  
-**Plataforma:** Angular 21 estático, Cloudflare Pages con GitHub → `master`.  
+**Plataforma:** Angular 22 estático, Cloudflare Pages con GitHub → `master`.  
 **Estado:** ID público de editor integrado para la verificación del sitio; la aprobación de LoanCalc RD todavía se debe confirmar en el panel AdSense.
 
 ## 1. Añadir el sitio en Google AdSense
@@ -29,7 +29,7 @@ Comando de build sin cambios:
 Root directory: calculadora-prestamos
 Build command: npm ci && npm run build
 Build output: dist/calculadora-prestamos/browser
-Node.js: 22
+Node.js: 22.23.4
 ```
 
 **Por ahora, no se muestran anuncios.** Las siguientes opciones deben continuar sin definir (o en `0`): `ADSENSE_AUTO_ADS_ENABLED`, `ADSENSE_SITE_APPROVED` y `ADSENSE_CMP_READY`.
