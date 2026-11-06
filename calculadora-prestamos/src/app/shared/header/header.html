@@ -12,6 +12,9 @@
       <a routerLink="/calculator" routerLinkActive="active" ariaCurrentWhenActive="page">
         <i class="bi bi-calculator" aria-hidden="true"></i><span>Calculadora</span>
       </a>
+      <a routerLink="/guide" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <i class="bi bi-journal-text" aria-hidden="true"></i><span>Guía</span>
+      </a>
       @if (auth.enabled) {
         @if (auth.isAuthenticated()) {
           <a class="cloud-nav-link" routerLink="/account/simulations" routerLinkActive="active" ariaCurrentWhenActive="page">

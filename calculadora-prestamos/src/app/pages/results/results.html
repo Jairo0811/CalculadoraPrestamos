@@ -124,7 +124,8 @@
       </div>
 
       <section class="feature-card comparator-card" aria-labelledby="comparator-title">
-        <div class="feature-header"><div><span>Comparador</span><h2 id="comparator-title">Escenarios por entidad</h2><p>Edita las tasas para comparar condiciones reales.</p></div><i class="bi bi-bank" aria-hidden="true"></i></div>
+        <div class="feature-header"><div><span>Comparador</span><h2 id="comparator-title">Escenarios por entidad</h2><p>Introduce las tasas de las ofertas que deseas comparar.</p></div><i class="bi bi-bank" aria-hidden="true"></i></div>
+        <p class="small text-muted">Las tasas precargadas son <strong>ejemplos ilustrativos</strong>, no cotizaciones oficiales ni tasas bancarias en tiempo real. La comparación no incluye comisiones, seguros ni impuestos. Consulta las condiciones vigentes con cada entidad.</p>
         <div class="rate-editor no-print">
           @for (bank of bankRates; track bank.name) {
             <label>{{ bank.name }}<span><input type="number" min="0" step="0.01" [(ngModel)]="bank.annualRate" /> %</span></label>
@@ -135,7 +136,7 @@
             <thead><tr><th>Entidad</th><th>Tasa</th><th>Cuota</th><th>Interés</th><th>Total</th></tr></thead>
             <tbody>
               @for (option of comparisons; track option.name; let first = $first) {
-                <tr [class.best-option]="first"><td><strong>{{ option.name }}</strong>@if (first) { <span class="best-badge">Mejor opción</span> }</td><td>{{ option.annualRate | number:'1.2-2' }}%</td><td>{{ option.monthlyPayment | rd }}</td><td>{{ option.totalInterest | rd }}</td><td>{{ option.totalPayment | rd }}</td></tr>
+                <tr [class.best-option]="first"><td><strong>{{ option.name }}</strong>@if (first) { <span class="best-badge">Menor total simulado</span> }</td><td>{{ option.annualRate | number:'1.2-2' }}%</td><td>{{ option.monthlyPayment | rd }}</td><td>{{ option.totalInterest | rd }}</td><td>{{ option.totalPayment | rd }}</td></tr>
               }
             </tbody>
           </table>
