@@ -17,3 +17,7 @@
 /* Contraste AA para enlaces sobre fondos claros (axe: ratio mínimo 4.5:1). */
 .legal-content a:not(.btn){color:#0a438a;text-underline-offset:3px}
 .legal-content a:not(.btn):hover{color:#073367}
+
+/* Botón outline con contraste WCAG AA sobre el fondo de la sección. */
+.legal-actions .btn-outline-primary{color:#0a438a;border-color:#0a438a}
+.legal-actions .btn-outline-primary:hover{background:#0a438a;color:#fff}
