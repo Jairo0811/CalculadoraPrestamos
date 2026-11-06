@@ -120,8 +120,14 @@ test.describe('Smoke del build de producción', () => {
     const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'PDF', exact: true }).click()]);
     expect(pdf.suggestedFilename()).toMatch(/^LoanCalcRD-.*\.pdf$/);
     const pdfStream = await pdf.createReadStream();
-    const head = await new Promise<string>(resolve => pdfStream.once('data', chunk => resolve(chunk.toString('latin1', 0, 5))));
-    expect(head).toBe('%PDF-');
+    const pdfChunks: Buffer[] = [];
+    for await (const chunk of pdfStream) {
+      pdfChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const pdfContents = Buffer.concat(pdfChunks).toString('latin1');
+    expect(pdfContents.slice(0, 5)).toBe('%PDF-');
+    // El PDF debe incluir la imagen PNG del QR, no solo las tablas del préstamo.
+    expect(pdfContents).toContain('/Subtype /Image');
 
     const [excel] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Excel', exact: true }).click()]);
     expect(excel.suggestedFilename()).toMatch(/\.xls$/);
