@@ -8,7 +8,7 @@
 
 <p align="center">
   <strong>Simulador financiero dominicano para calcular, analizar y comparar préstamos amortizados.</strong><br>
-  Angular 21 · ASP.NET Core 10 · PostgreSQL 17
+  Angular 22 · ASP.NET Core 10 · PostgreSQL 17
 </p>
 
 <p align="center">
@@ -66,7 +66,7 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 
 ### Frontend — `calculadora-prestamos/`
 
-- **Angular 21** (componentes standalone, signals, control flow, rutas lazy) y **TypeScript 5.9**.
+- **Angular 22** (componentes standalone, signals, control flow, rutas lazy) y **TypeScript 6.0**.
 - **Bootstrap 5** + **Bootstrap Icons**; sistema de tokens CSS propio. Interfaz **exclusivamente clara**.
 - **jsPDF / jsPDF AutoTable / QRCode** para reportes; **SpreadsheetML** para Excel.
 - **Vitest** (pruebas unitarias y de componentes) y **Playwright + axe-core** (E2E y accesibilidad).
@@ -231,7 +231,7 @@ CalculadoraPrestamos
 
 ```bash
 cd calculadora-prestamos
-npm ci
+npm ci                 # Requiere Node.js 22.23.4 (ver .node-version)
 npm start                 # http://localhost:4200 (cuentas activas, API en http://localhost:5000)
 npm run test:ci           # pruebas unitarias y de componentes (Vitest)
 npm run e2e               # E2E con Playwright (API de cuentas simulada)
