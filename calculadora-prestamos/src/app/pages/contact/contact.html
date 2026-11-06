@@ -1,0 +1,44 @@
+<main id="main-content" class="contact-page">
+  <header class="contact-hero">
+    <div class="container">
+      <span class="contact-eyebrow"><i class="bi bi-chat-dots" aria-hidden="true"></i> Ayuda y comunicación</span>
+      <h1>Contacto</h1>
+      <p>¿Encontraste un error, tienes una sugerencia o necesitas información sobre LoanCalc RD? Conoce nuestros canales actuales.</p>
+      <small>Proyecto independiente de simulación financiera.</small>
+    </div>
+  </header>
+  <div class="container contact-content">
+    <section class="contact-card" aria-labelledby="contact-support">
+      <div class="contact-symbol" aria-hidden="true"><i class="bi bi-github"></i></div>
+      <div>
+        <h2 id="contact-support">Soporte y sugerencias</h2>
+        <p>Para reportar errores de la calculadora, problemas de accesibilidad o proponer mejoras, utiliza el registro de incidencias del repositorio oficial. Puedes consultar el seguimiento de cada reporte.</p>
+        <a class="btn btn-primary" href="https://github.com/Jairo0811/CalculadoraPrestamos/issues/new" target="_blank" rel="noopener noreferrer">
+          Abrir una incidencia en GitHub <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+        </a>
+        <p class="contact-note"><strong>Aviso:</strong> las incidencias de GitHub son públicas. No publiques cédulas, números de cuenta, correos privados, contraseñas ni datos confidenciales.</p>
+      </div>
+    </section>
+    <section class="contact-card" aria-labelledby="contact-privacy">
+      <div class="contact-symbol" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
+      <div>
+        <h2 id="contact-privacy">Privacidad y datos personales</h2>
+        <p>El simulador público no requiere registro. Si has guardado datos personales opcionales en una simulación, puedes eliminar su historial local desde la aplicación o la configuración del navegador.</p>
+        <p><strong>No envíes información personal por GitHub Issues.</strong> El sitio no dispone todavía de un formulario privado de contacto ni de una bandeja de atención para datos sensibles. Antes de habilitar las cuentas se incorporará un canal privado para estas solicitudes.</p>
+        <a routerLink="/privacy" class="contact-text-link">Leer la Política de Privacidad</a>
+      </div>
+    </section>
+    <section class="contact-card" aria-labelledby="contact-purpose">
+      <div class="contact-symbol" aria-hidden="true"><i class="bi bi-calculator"></i></div>
+      <div>
+        <h2 id="contact-purpose">Sobre los resultados financieros</h2>
+        <p>LoanCalc RD no es un banco ni una entidad de préstamos. Si tienes preguntas sobre una tasa, comisiones, seguros o la aprobación de un crédito, consulta directamente a la institución financiera correspondiente.</p>
+        <a routerLink="/terms" class="contact-text-link">Consultar los Términos de Uso</a>
+      </div>
+    </section>
+    <nav class="contact-actions" aria-label="Navegación">
+      <a routerLink="/" class="btn btn-outline-primary">Volver al inicio</a>
+      <a routerLink="/calculator" class="btn btn-outline-secondary">Abrir calculadora</a>
+    </nav>
+  </div>
+</main>

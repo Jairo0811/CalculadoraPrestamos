@@ -21,3 +21,6 @@
 /* Botón outline con contraste WCAG AA sobre el fondo de la sección. */
 .legal-actions .btn-outline-primary{color:#0a438a;border-color:#0a438a}
 .legal-actions .btn-outline-primary:hover{background:#0a438a;color:#fff}
+
+.legal-actions .btn-outline-secondary{color:#334155;border-color:#475569}
+.legal-actions .btn-outline-secondary:hover{background:#475569;color:#fff}

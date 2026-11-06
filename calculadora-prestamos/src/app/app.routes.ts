@@ -7,6 +7,8 @@ export const routes: Routes = [
   { path: '', component: Home, title: 'LoanCalc RD · Simulador financiero dominicano' },
   { path: 'calculator', component: Calculator, title: 'Calculadora de préstamos · LoanCalc RD' },
   { path: 'privacy', loadComponent: () => import('./pages/privacy/privacy').then(m => m.Privacy), title: 'Política de privacidad · LoanCalc RD' },
+  { path: 'terms', loadComponent: () => import('./pages/terms/terms').then(m => m.Terms), title: 'Términos de Uso · LoanCalc RD' },
+  { path: 'contact', loadComponent: () => import('./pages/contact/contact').then(m => m.Contact), title: 'Contacto y soporte · LoanCalc RD' },
   { path: 'about', loadComponent: () => import('./pages/about/about').then(m => m.About), title: 'Acerca del proyecto · LoanCalc RD' },
   {
     // Carga diferida: jsPDF, AutoTable y QRCode solo se descargan al ver resultados.
