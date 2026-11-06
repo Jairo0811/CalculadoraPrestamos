@@ -49,18 +49,30 @@ test.describe('Smoke del build de producción', () => {
     expect(apiCalls).toEqual([]);
   });
 
-  test('las páginas de privacidad y acerca del proyecto son públicas y accesibles', async ({ page }) => {
+  test('privacidad, términos, contacto y acerca del proyecto son públicos y accesibles', async ({ page }) => {
+    const { apiCalls, problems } = watch(page);
     for (const item of [
       { path: '/privacy', title: 'Política de privacidad' },
+      { path: '/terms', title: 'Términos de Uso' },
+      { path: '/contact', title: 'Contacto' },
       { path: '/about', title: 'Acerca de LoanCalc RD' }
     ]) {
       const response = await page.goto(item.path);
-      expect(response?.status()).toBe(200);
+      expect(response?.status(), item.path).toBe(200);
       await expect(page.getByRole('heading', { name: item.title, level: 1 })).toBeVisible();
-      await expect(page.getByRole('link', { name: 'Política de privacidad' }).first()).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Términos de Uso' }).first()).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Contacto', exact: true }).first()).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), item.path).toBeLessThanOrEqual(0);
       const scan = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
-      expect(scan.violations.filter(v => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+      expect(scan.violations.filter(v => v.impact === 'serious' || v.impact === 'critical').map(v => v.id), item.path).toEqual([]);
     }
+    await page.goto('/contact');
+    await expect(page.getByRole('link', { name: /Abrir una incidencia en GitHub/ })).toHaveAttribute('href', 'https://github.com/Jairo0811/CalculadoraPrestamos/issues/new');
+    await expect(page.getByText(/las incidencias de GitHub son públicas/i)).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Contacto', level: 1 })).toBeVisible();
+    expect(apiCalls).toEqual([]);
+    expect(problems).toEqual([]);
   });
 
   test('las rutas profundas funcionan al refrescar (fallback SPA)', async ({ page }) => {

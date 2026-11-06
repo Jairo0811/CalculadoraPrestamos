@@ -4,6 +4,15 @@ Todos los cambios importantes de LoanCalc RD se documentarán en este archivo.
 
 El proyecto sigue un esquema de versionado semántico.
 
+## [Unreleased] — páginas legales y contacto
+
+- Política de Privacidad ampliada para aclarar datos opcionales e historial almacenado en el navegador.
+- Términos de Uso y página de Contacto públicas, accesibles y enlazadas desde el pie de página.
+- Sitemap actualizado y prueba E2E/a11y para privacidad, términos, contacto y acerca del proyecto.
+- Contacto mediante GitHub Issues con advertencia explícita sobre la naturaleza pública del canal; sin simular un formulario privado.
+
+---
+
 ## [Unreleased] — integración opcional Google AdSense
 
 - Infraestructura de verificación en Cloudflare Pages: metaetiqueta de editor y `ads.txt` generados desde variables de entorno.
