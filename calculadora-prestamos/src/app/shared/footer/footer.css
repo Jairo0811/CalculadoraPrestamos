@@ -6,7 +6,7 @@
 
 .footer-card {
   display: grid;
-  grid-template-columns: 1fr 1.35fr 0.9fr;
+  grid-template-columns: repeat(2,minmax(0,1fr));
   gap: 28px;
   align-items: start;
   background: rgba(255, 255, 255, 0.06);
@@ -79,3 +79,9 @@
     border-radius: 22px;
   }
 }
+.footer-legal{display:flex;flex-direction:column;gap:10px}
+.footer-legal span{font-size:.82rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:#93c5fd}
+.footer-legal a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.footer-legal a:hover{color:#bfdbfe}
+.footer-legal small{font-size:.8rem;color:#cbd5e1;line-height:1.5}
+@media(max-width:576px){.footer-card{grid-template-columns:1fr}}

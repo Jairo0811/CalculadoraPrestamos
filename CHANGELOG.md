@@ -4,6 +4,15 @@ Todos los cambios importantes de LoanCalc RD se documentarán en este archivo.
 
 El proyecto sigue un esquema de versionado semántico.
 
+## [Unreleased] — integración opcional Google AdSense
+
+- Infraestructura de verificación en Cloudflare Pages: metaetiqueta de editor y `ads.txt` generados desde variables de entorno.
+- Activación de Auto Ads deshabilitada por defecto, con controles explícitos para aprobación y consentimiento; previews sin anuncios.
+- Páginas públicas de privacidad y acerca del proyecto, enlaces visibles en pie de página, robots.txt y sitemap.xml.
+- Tests automáticos para el formato del ID, los archivos generados y las condiciones de activación.
+
+---
+
 ## [Unreleased] — v3, Fase 7 (Plataforma financiera personal)
 
 > Fase 7 integrada en `master` mediante PR #59, commit `348659b7`. El frontend público sigue siendo anónimo; las cuentas se habilitarán en Fase 8.

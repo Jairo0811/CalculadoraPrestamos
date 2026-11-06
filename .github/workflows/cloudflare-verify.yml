@@ -56,6 +56,19 @@ jobs:
           test "$(stat -c%s /tmp/loancalc-preview.webp)" -lt 600000
           echo "HTML e imagen OG de Cloudflare accesibles."
 
+      - name: Verify AdSense publisher and ads.txt are public, but ad loading is disabled
+        run: |
+          set -euo pipefail
+          publisher="pub-1228497984086853"
+          grep -Fq "name=\"google-adsense-account\" content=\"ca-${publisher}\"" /tmp/loancalc-index.html
+          if grep -q 'pagead2.googlesyndication.com/pagead/js/adsbygoogle.js' /tmp/loancalc-index.html; then
+            echo "::error::Ads activated before the site is approved."
+            exit 1
+          fi
+          curl -fsSL --max-time 20 "${PRODUCTION_URL}/ads.txt" -o /tmp/loancalc-ads.txt
+          grep -Fxq "google.com, ${publisher}, DIRECT, f08c47fec0942fa0" /tmp/loancalc-ads.txt
+          echo "AdSense verified: publisher metadata and ads.txt public; ad script still disabled."
+
       - name: Summary
         if: always()
         run: |
