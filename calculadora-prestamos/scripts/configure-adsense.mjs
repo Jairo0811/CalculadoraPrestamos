@@ -3,7 +3,7 @@
  *
  * Verification (meta + ads.txt) requires only a real publisher ID.
  * Auto Ads require explicit site approval, certified CMP setup and an opt-in;
- * previews never load ads. No test publisher IDs or ads in source control.
+ * previews never load ads. Publisher IDs are public identifiers, not secrets.
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,6 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 export const PUBLISHER_PATTERN = /^pub-\d{16}$/;
 export const GOOGLE_SELLER_ID = 'f08c47fec0942fa0';
+// Real public publisher ID explicitly supplied by the project owner.
+export const PUBLISHER_ID = 'pub-1228497984086853';
 
 export function normalizePublisherId(raw = '') {
   const id = raw.trim().replace(/^ca-/, '');
@@ -62,7 +64,10 @@ function htmlFiles(root) {
 
 export function applyAdsenseBuild(output, env = process.env) {
   if (!existsSync(join(output, 'index.html'))) throw new Error('Primero compila Angular con ng build.');
-  const id = normalizePublisherId(env.ADSENSE_PUBLISHER_ID ?? '');
+  // Public AdSense publisher ID is versioned, so Cloudflare requires no manual secret setup.
+  // An optional dashboard variable must match the site's owner to prevent mixed accounts.
+  const id = normalizePublisherId(env.ADSENSE_PUBLISHER_ID ?? PUBLISHER_ID);
+  if (id !== PUBLISHER_ID) throw new Error('ADSENSE_PUBLISHER_ID no coincide con el editor autorizado para LoanCalc RD.');
   const autoAds = canEnableAutoAds(env);
   if (autoAds && !id) throw new Error('Falta ADSENSE_PUBLISHER_ID.');
   const pages = htmlFiles(output);
@@ -80,7 +85,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const target = join(process.cwd(), 'dist', 'calculadora-prestamos', 'browser');
   const state = applyAdsenseBuild(target);
   console.log('AdSense build:', state);
-  if (!state.verificationConfigured) {
-    console.log('AdSense sin configurar: establece ADSENSE_PUBLISHER_ID en Cloudflare Pages para generar etiqueta de verificación y ads.txt.');
-  }
+  console.log('La verificación está lista; los anuncios siguen desactivados mientras este sitio no tenga aprobación de AdSense.');
 }

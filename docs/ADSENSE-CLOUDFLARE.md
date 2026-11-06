@@ -2,7 +2,7 @@
 
 **Dominio público:** https://loancalcrd.pages.dev  
 **Plataforma:** Angular 21 estático, Cloudflare Pages con GitHub → `master`.  
-**Estado:** infraestructura preparada; la cuenta AdSense del propietario existe, pero la aprobación de este sitio se debe verificar en el panel AdSense.
+**Estado:** ID público de editor integrado para la verificación del sitio; la aprobación de LoanCalc RD todavía se debe confirmar en el panel AdSense.
 
 ## 1. Añadir el sitio en Google AdSense
 
@@ -13,20 +13,17 @@
 5. Selecciona verificación mediante **metaetiqueta** o **ads.txt**. Ambos se generan automáticamente durante el build cuando se configura tu ID.
 6. Solicita la revisión del sitio. La decisión y el calendario dependen exclusivamente de Google.
 
-## 2. Configurar ID de editor en Cloudflare Pages
+## 2. ID de editor configurado (sin cambios manuales necesarios en Cloudflare)
 
-En Cloudflare Dashboard → **Workers & Pages** → proyecto **loancalcrd** → **Settings** → **Variables and Secrets**, agrega a **Production**:
+El propietario confirmó la metaetiqueta de Google AdSense que identifica su cuenta:
 
-| Variable | Valor | Función |
-|---|---|---|
-| `ADSENSE_PUBLISHER_ID` | `pub-XXXXXXXXXXXXXXXX` | Tu ID real, 16 dígitos |
-| `ADSENSE_AUTO_ADS_ENABLED` | **sin definir** o `0` | Mantener anuncios desactivados mientras el sitio está en revisión |
-| `ADSENSE_SITE_APPROVED` | **sin definir** o `0` | Se habilita solo cuando el estado del sitio sea «Listo» |
-| `ADSENSE_CMP_READY` | **sin definir** o `0` | Se habilita tras configurar consentimiento adecuado, incl. CMP certificada donde aplique |
+```html
+<meta name="google-adsense-account" content="ca-pub-1228497984086853">
+```
 
-El ID de editor es **público**, no una contraseña. No agregues credenciales de AdSense, contraseñas bancarias o claves JWT al build de Angular.
+El editor público de este proyecto es **`pub-1228497984086853`**. Al ejecutar `npm run build` para Cloudflare Pages, el archivo `scripts/configure-adsense.mjs` genera automáticamente la metaetiqueta de verificación y el `ads.txt` oficial. **No hace falta agregar `ADSENSE_PUBLISHER_ID` en el panel de Cloudflare**, ni publicar claves privadas. Si se ha configurado esa variable, debe tener exactamente el mismo ID.
 
-Guarda las variables, realiza un nuevo despliegue de `master` y verifica el resultado en Cloudflare. El comando debe seguir siendo:
+Comando de build sin cambios:
 
 ```text
 Root directory: calculadora-prestamos
@@ -35,11 +32,11 @@ Build output: dist/calculadora-prestamos/browser
 Node.js: 22
 ```
 
-El build `npm run build` ejecuta Angular, `write-build-info.mjs` y `configure-adsense.mjs`.
+**Por ahora, no se muestran anuncios.** Las siguientes opciones deben continuar sin definir (o en `0`): `ADSENSE_AUTO_ADS_ENABLED`, `ADSENSE_SITE_APPROVED` y `ADSENSE_CMP_READY`.
 
 ## 3. Archivos que se generan automáticamente
 
-Con un ID válido:
+Con el ID real del proyecto:
 
 - El HTML de producción incluye `<meta name="google-adsense-account" content="ca-pub-...">` en el `<head>` para la comprobación de propiedad.
 - Se crea el archivo `/ads.txt` en el directorio de salida con la línea:
@@ -47,13 +44,13 @@ Con un ID válido:
   google.com, pub-TU_ID_REAL, DIRECT, f08c47fec0942fa0
   ```
 - El script recorre cada `index.html` prerenderizado para evitar páginas con metadata desactualizada.
-- Sin ID no se genera archivo `ads.txt` ni la metaetiqueta.
+- El ID es público, y el generador rechazará un override que pertenezca a otra cuenta de AdSense.
 - El código de anuncios **no se carga** de manera predeterminada.
 
 Verifica después del despliegue:
 
 - `https://loancalcrd.pages.dev/` → Ver código fuente → `google-adsense-account`.
-- `https://loancalcrd.pages.dev/ads.txt` → respuesta 200, texto de tu editor.
+- `https://loancalcrd.pages.dev/ads.txt` → respuesta 200, texto `google.com, pub-1228497984086853, DIRECT, f08c47fec0942fa0`.
 - `https://loancalcrd.pages.dev/privacy` y `/about` → accesibles.
 - `https://loancalcrd.pages.dev/robots.txt` y `/sitemap.xml` → accesibles.
 

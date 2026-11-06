@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
-  normalizePublisherId, adsTxtFor, canEnableAutoAds, configureHtml, applyAdsenseBuild
+  normalizePublisherId, adsTxtFor, canEnableAutoAds, configureHtml, applyAdsenseBuild, PUBLISHER_ID
 } from './configure-adsense.mjs';
 
 const id = 'pub-1234567890123456'; // ID sintético usado exclusivamente en pruebas.
@@ -45,24 +45,41 @@ test('generates the ads.txt and verifies every prerendered page', () => {
     mkdirSync(join(root, 'privacy'));
     writeFileSync(join(root, 'index.html'), html);
     writeFileSync(join(root, 'privacy', 'index.html'), html);
-    const config = applyAdsenseBuild(root, { ADSENSE_PUBLISHER_ID: id });
+    const config = applyAdsenseBuild(root, {});
     assert.deepEqual(config, { verificationConfigured: true, autoAdsEnabled: false, htmlPages: 2 });
-    assert.equal(readFileSync(join(root, 'ads.txt'), 'utf8'), adsTxtFor(id));
+    assert.equal(readFileSync(join(root, 'ads.txt'), 'utf8'), adsTxtFor(PUBLISHER_ID));
     assert.match(readFileSync(join(root, 'privacy', 'index.html'), 'utf8'), /google-adsense-account/);
+    assert.match(readFileSync(join(root, 'index.html'), 'utf8'), new RegExp('ca-' + PUBLISHER_ID));
     assert.doesNotMatch(readFileSync(join(root, 'index.html'), 'utf8'), /adsbygoogle\.js/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
 });
 
-test('without ID: build remains ad-free and never produces ads.txt', () => {
+test('the public publisher is embedded by default, but ad delivery remains off', () => {
   const root = mkdtempSync(join(tmpdir(), 'loancalc-no-ads-'));
   try {
     writeFileSync(join(root, 'index.html'), html);
     assert.deepEqual(applyAdsenseBuild(root, {}), {
-      verificationConfigured: false, autoAdsEnabled: false, htmlPages: 1
+      verificationConfigured: true, autoAdsEnabled: false, htmlPages: 1
     });
-    assert.equal(readFileSync(join(root, 'index.html'), 'utf8'), html);
+    const built = readFileSync(join(root, 'index.html'), 'utf8');
+    assert.match(built, new RegExp('ca-' + PUBLISHER_ID));
+    assert.doesNotMatch(built, /adsbygoogle\\.js/);
+    assert.equal(readFileSync(join(root, 'ads.txt'), 'utf8'), adsTxtFor(PUBLISHER_ID));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('rejects an override from another AdSense account', () => {
+  const root = mkdtempSync(join(tmpdir(), 'loancalc-mismatch-'));
+  try {
+    writeFileSync(join(root, 'index.html'), html);
+    assert.throws(
+      () => applyAdsenseBuild(root, { ADSENSE_PUBLISHER_ID: 'pub-0000000000000000' }),
+      /no coincide/
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
