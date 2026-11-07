@@ -1408,8 +1408,8 @@ html[data-theme='dark'] .timeline-icon {
 .cloud-results-feedback.error{background:#fff0f0;color:#9b2121}
 
 
-// Mejoras de experiencia móvil basadas en pruebas de uso: separar tarjetas
-// independientes y conservar el tamaño de las áreas táctiles.
+/* Mejoras de experiencia móvil basadas en pruebas de uso: separar tarjetas
+   independientes y conservar el tamaño de las áreas táctiles. */
 .extra-payment-frequency-help {
   grid-column: 1 / -1;
   margin: 0;
