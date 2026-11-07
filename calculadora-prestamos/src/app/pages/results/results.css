@@ -1406,3 +1406,46 @@ html[data-theme='dark'] .timeline-icon {
 .actions-bar .cloud-save-button:hover,.actions-bar .cloud-my-button:hover,.actions-bar .cloud-login-button:hover{background:#eaf4ff}
 .cloud-results-feedback{margin:0 0 18px;border-radius:13px;padding:12px 16px;font-weight:650;background:#e9f8f1;color:#11653d}
 .cloud-results-feedback.error{background:#fff0f0;color:#9b2121}
+
+
+/* Mejoras de experiencia móvil basadas en pruebas de uso: separar tarjetas
+   independientes y conservar el tamaño de las áreas táctiles. */
+.extra-payment-frequency-help {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.6;
+}
+
+.extra-payment-applied-note {
+  margin: 0;
+  padding: 12px 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+  color: var(--text);
+  font-size: .88rem;
+  line-height: 1.65;
+}
+
+.extra-payment-applied-note .bi {
+  margin-right: 6px;
+  color: #0b5ed7;
+}
+
+@media (max-width: 768px) {
+  .results-content > .container > .share-card,
+  .results-content > .container > .history-card {
+    margin-bottom: 24px;
+  }
+
+  .results-content > .container > .history-card .history-delete {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

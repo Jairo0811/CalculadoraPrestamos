@@ -4,6 +4,16 @@ Todos los cambios importantes de LoanCalc RD se documentarán en este archivo.
 
 El proyecto sigue un esquema de versionado semántico.
 
+## [Unreleased] — abonos anuales y experiencia móvil
+
+- Opción de **abono anual** desde un mes elegido, repetida cada 12 meses mientras exista saldo pendiente.
+- Motor de amortización, reducción de plazo/cuota y exportaciones PDF/Excel compatibles con frecuencia anual.
+- Visualización de meses en los que realmente se aplicaron abonos anuales.
+- Separación de 24 px entre las tarjetas de compartir, historial y amortización en pantallas móviles.
+- Cobertura de pruebas unitarias financieras y E2E para frecuencia anual y espaciado responsive.
+
+---
+
 ## [Unreleased] — páginas legales y contacto
 
 - Política de Privacidad ampliada para aclarar datos opcionales e historial almacenado en el navegador.

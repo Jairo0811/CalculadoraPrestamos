@@ -220,6 +220,10 @@
         <option value="monthly">
           Abono mensual
         </option>
+
+        <option value="annual">
+          Abono anual (cada 12 meses)
+        </option>
       </select>
     </label>
 
@@ -240,6 +244,14 @@
         </option>
       </select>
     </label>
+
+    @if (extraPaymentFrequency === 'annual') {
+      <p class="extra-payment-frequency-help" role="status">
+        El primer abono se aplicará en el mes {{ extraPaymentStartMonth }} y se repetirá
+        cada 12 meses, mientras exista saldo pendiente. Puedes simular el uso de tu
+        doble sueldo o bonificación anual.
+      </p>
+    }
 
     <div class="extra-payment-actions">
       <button
@@ -313,6 +325,19 @@
     Exportar escenario a Excel
   </button>
 </div>
+      @if (extraResult.request.frequency === 'annual') {
+        <p class="extra-payment-applied-note" role="status">
+          <i class="bi bi-calendar2-check" aria-hidden="true"></i>
+          @if (annualExtraPaymentMonths.length) {
+            Se aplicaron {{ annualExtraPaymentMonths.length }}
+            {{ annualExtraPaymentMonths.length === 1 ? 'abono anual' : 'abonos anuales' }}
+            en {{ annualExtraPaymentMonths.length === 1 ? 'el mes' : 'los meses' }}
+            <strong>{{ annualExtraPaymentMonths.join(', ') }}</strong>.
+          } @else {
+            El préstamo se liquidó antes de que pudiera aplicarse el primer abono anual.
+          }
+        </p>
+      }
       <div class="extra-payment-summary">
         <article>
           <span>Intereses ahorrados</span>

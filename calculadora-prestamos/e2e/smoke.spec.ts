@@ -159,6 +159,81 @@ test.describe('Smoke del build de producción', () => {
     expect(pdfContents).toContain('/Subtype /Image');
   });
 
+
+  test('aplica abonos anuales y muestra sus meses reales en resultados', async ({ page }) => {
+    await simulate(page);
+    await page.getByLabel('Monto del abono').fill('2000');
+    await page.getByLabel('Aplicar desde el mes').fill('12');
+    await page.getByLabel('Frecuencia').selectOption('annual');
+
+    await expect(page.getByText('El primer abono se aplicará en el mes', { exact: false })).toBeVisible();
+    await expect(page.getByText('doble sueldo o bonificación anual', { exact: false })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Calcular ahorro' }).click();
+    await expect(page.locator('.extra-payment-applied-note')).toContainText('12, 24');
+    const rowsWithExtra = await page.locator('.extra-payment-row td:first-child').allTextContents();
+    expect(rowsWithExtra.map(month => Number(month.trim()))).toEqual([12, 24]);
+    await expect(page.getByText('Intereses ahorrados')).toBeVisible();
+  });
+
+  test('exporta abonos anuales a PDF y Excel con frecuencia correcta', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Descargas verificadas en escritorio y tableta');
+    await simulate(page);
+    await page.getByLabel('Monto del abono').fill('2000');
+    await page.getByLabel('Frecuencia').selectOption('annual');
+    await page.getByRole('button', { name: 'Calcular ahorro' }).click();
+
+    const [excel] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Exportar escenario a Excel' }).click()
+    ]);
+    expect(excel.suggestedFilename()).toMatch(/\.xls$/);
+    const excelStream = await excel.createReadStream();
+    const excelChunks: Buffer[] = [];
+    for await (const chunk of excelStream) {
+      excelChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    expect(Buffer.concat(excelChunks).toString('utf8')).toContain('Abono anual (cada 12 meses)');
+
+    const [pdf] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Exportar escenario a PDF' }).click()
+    ]);
+    expect(pdf.suggestedFilename()).toMatch(/^LoanCalcRD-Abonos-.*\.pdf$/);
+    const pdfStream = await pdf.createReadStream();
+    const pdfChunks: Buffer[] = [];
+    for await (const chunk of pdfStream) {
+      pdfChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const pdfBody = Buffer.concat(pdfChunks).toString('latin1');
+    expect(pdfBody.slice(0, 5)).toBe('%PDF-');
+    expect(pdfBody).toContain('/Subtype /Image');
+  });
+
+  test('espaciado entre las tarjetas de compartir, historial y calendario en móvil', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await simulate(page);
+
+    for (const selector of ['.share-card', '.history-card', '.table-card']) {
+      await expect(page.locator(selector)).toBeVisible();
+    }
+
+    const gaps = await page.evaluate(() => {
+      const rect = (selector: string) =>
+        document.querySelector(selector)!.getBoundingClientRect();
+      return {
+        shareToHistory: rect('.history-card').top - rect('.share-card').bottom,
+        historyToTable: rect('.table-card').top - rect('.history-card').bottom,
+        overflow: document.documentElement.scrollWidth - window.innerWidth,
+        deleteHeight: rect('.history-delete').height
+      };
+    });
+    expect(gaps.shareToHistory).toBeGreaterThanOrEqual(20);
+    expect(gaps.historyToTable).toBeGreaterThanOrEqual(20);
+    expect(gaps.deleteHeight).toBeGreaterThanOrEqual(44);
+    expect(gaps.overflow).toBeLessThanOrEqual(0);
+  });
+
   test('responsive sin desplazamiento horizontal y sin violaciones WCAG graves', async ({ page }) => {
     for (const path of ['/', '/calculator']) {
       await page.goto(path);
