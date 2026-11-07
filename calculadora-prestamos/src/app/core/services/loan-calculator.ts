@@ -352,14 +352,19 @@ export class LoanCalculatorService {
     month: number
   ): number {
     if (request.frequency === 'single') {
-      return month === request.startMonth
+      return month === request.startMonth ? request.amount : 0;
+    }
+
+    if (request.frequency === 'annual') {
+      // El mes elegido marca el primer abono: 12, 24, 36... o 7, 19, 31...
+      return month >= request.startMonth &&
+        (month - request.startMonth) % 12 === 0
         ? request.amount
         : 0;
     }
 
-    return month >= request.startMonth
-      ? request.amount
-      : 0;
+    // Los abonos se limitan al capital pendiente en el motor de amortización.
+    return month >= request.startMonth ? request.amount : 0;
   }
 
   private getPaymentDate(month: number): string {
@@ -423,7 +428,8 @@ export class LoanCalculatorService {
 
     if (
       request.frequency !== 'single' &&
-      request.frequency !== 'monthly'
+      request.frequency !== 'monthly' &&
+      request.frequency !== 'annual'
     ) {
       throw new Error(
         'La frecuencia seleccionada no es válida.'

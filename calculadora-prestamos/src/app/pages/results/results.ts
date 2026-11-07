@@ -263,7 +263,9 @@ export class Results {
         detail:
           this.extraPaymentResult.request.frequency === 'monthly'
             ? 'Inicio de los abonos mensuales'
-            : 'Aplicación del abono extraordinario',
+            : this.extraPaymentResult.request.frequency === 'annual'
+              ? 'Inicio de los abonos anuales (cada 12 meses)'
+              : 'Aplicación del abono extraordinario',
         icon: 'bi-piggy-bank',
         accent: true,
       });
@@ -319,6 +321,16 @@ export class Results {
     }
 
     return Math.min((result.newTermMonths / result.originalTermMonths) * 100, 100);
+  }
+
+  get annualExtraPaymentMonths(): number[] {
+    const scenario = this.extraPaymentResult;
+    if (!scenario || scenario.request.frequency !== 'annual') {
+      return [];
+    }
+    return scenario.amortization
+      .filter((row) => row.extraPayment > 0)
+      .map((row) => row.number);
   }
 
   calculateExtraPayment(): void {
@@ -1098,7 +1110,14 @@ export class Results {
   }
 
   private extraPaymentFrequencyLabel(frequency: ExtraPaymentFrequency): string {
-    return frequency === 'monthly' ? 'Abono mensual' : 'Abono único';
+    switch (frequency) {
+      case 'monthly':
+        return 'Abono mensual';
+      case 'annual':
+        return 'Abono anual (cada 12 meses)';
+      default:
+        return 'Abono único';
+    }
   }
 
   private extraPaymentStrategyLabel(strategy: ExtraPaymentStrategy): string {

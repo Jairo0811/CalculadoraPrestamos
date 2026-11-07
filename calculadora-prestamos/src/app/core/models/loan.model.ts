@@ -27,7 +27,7 @@ export interface LoanResult {
   amortization: AmortizationRow[];
 }
 
-export type ExtraPaymentFrequency = 'single' | 'monthly';
+export type ExtraPaymentFrequency = 'single' | 'monthly' | 'annual';
 
 export type ExtraPaymentStrategy = 'reduce-term' | 'reduce-payment';
 
@@ -49,8 +49,9 @@ export interface ExtraPaymentRequest {
   startMonth: number;
 
   /**
-   * Define si el abono se realiza una sola vez
-   * o de manera recurrente.
+   * Define si el abono se realiza una sola vez, cada mes o cada 12 meses.
+   * Para 'annual', se aplica en startMonth, startMonth + 12, etc.,
+   * mientras exista saldo pendiente.
    */
   frequency: ExtraPaymentFrequency;
 
