@@ -188,6 +188,94 @@ describe('LoanCalculatorService', () => {
       expect(result.interestSaved).toBeGreaterThan(0);
     });
 
+
+    it('aplica un abono anual en los meses 12, 24, 36 y 48, nunca en meses intermedios', () => {
+      const result = service.calculateExtraPaymentScenario({
+        loan: createLoanRequest(),
+        amount: 2_000,
+        startMonth: 12,
+        frequency: 'annual',
+        strategy: 'reduce-term'
+      });
+      const extras = result.amortization.filter(row => row.extraPayment > 0);
+
+      expect(extras.map(row => row.number)).toEqual([12, 24, 36, 48]);
+      expect(extras.every(row => row.extraPayment <= 2_000)).toBe(true);
+      expect(result.totalExtraPayments).toBeCloseTo(
+        extras.reduce((sum, row) => sum + row.extraPayment, 0), 2
+      );
+      expect(result.interestSaved).toBeGreaterThan(0);
+      expect(result.monthsSaved).toBeGreaterThan(0);
+      expect(result.amortization.at(-1)?.balance).toBeCloseTo(0, 2);
+    });
+
+    it('respeta un mes de inicio anual diferente a diciembre (mes 7, 19, 31...)', () => {
+      const result = service.calculateExtraPaymentScenario({
+        loan: createLoanRequest(),
+        amount: 1_000,
+        startMonth: 7,
+        frequency: 'annual',
+        strategy: 'reduce-term'
+      });
+      const months = result.amortization.filter(row => row.extraPayment > 0).map(row => row.number);
+
+      expect(months.slice(0, 3)).toEqual([7, 19, 31]);
+      expect(months.every(month => (month - 7) % 12 === 0)).toBe(true);
+      expect(result.amortization.find(row => row.number === 8)?.extraPayment).toBe(0);
+    });
+
+    it('recalcula la cuota después de cada abono anual al reducir cuota', () => {
+      const result = service.calculateExtraPaymentScenario({
+        loan: createLoanRequest(),
+        amount: 10_000,
+        startMonth: 12,
+        frequency: 'annual',
+        strategy: 'reduce-payment'
+      });
+      const row = (month: number) => result.amortization.find(item => item.number === month);
+
+      expect(row(12)?.extraPayment).toBeCloseTo(10_000, 2);
+      expect(row(24)?.extraPayment).toBeCloseTo(10_000, 2);
+      expect(row(13)?.extraPayment).toBe(0);
+      expect(row(25)?.extraPayment).toBe(0);
+      expect(row(13)!.regularPayment).toBeLessThan(row(12)!.regularPayment);
+      expect(row(25)!.regularPayment).toBeLessThan(row(24)!.regularPayment);
+      expect(result.newTermMonths).toBe(60);
+      expect(result.monthsSaved).toBe(0);
+      expect(result.interestSaved).toBeGreaterThan(0);
+    });
+
+    it('limita un abono anual superior al capital pendiente y detiene la simulación', () => {
+      const result = service.calculateExtraPaymentScenario({
+        loan: createLoanRequest({ amount: 120_000, annualRate: 0, termMonths: 36 }),
+        amount: 200_000,
+        startMonth: 12,
+        frequency: 'annual',
+        strategy: 'reduce-term'
+      });
+      const extras = result.amortization.filter(row => row.extraPayment > 0);
+
+      expect(extras.map(row => row.number)).toEqual([12]);
+      expect(result.amortization).toHaveLength(12);
+      expect(result.totalExtraPayments).toBeCloseTo(80_000, 2);
+      expect(result.amortization.at(-1)?.balance).toBeCloseTo(0, 2);
+      expect(result.newTotalInterest).toBeCloseTo(0, 2);
+    });
+
+    it('no aplica un abono anual si el préstamo se liquida al pagar la última cuota', () => {
+      const result = service.calculateExtraPaymentScenario({
+        loan: createLoanRequest({ amount: 120_000, annualRate: 0, termMonths: 12 }),
+        amount: 50_000,
+        startMonth: 12,
+        frequency: 'annual',
+        strategy: 'reduce-term'
+      });
+
+      expect(result.totalExtraPayments).toBeCloseTo(0, 2);
+      expect(result.newTermMonths).toBe(12);
+      expect(result.amortization.at(-1)?.balance).toBeCloseTo(0, 2);
+    });
+
     it('debe reducir la cuota restante después del abono', () => {
       const originalLoan = createLoanRequest();
 
