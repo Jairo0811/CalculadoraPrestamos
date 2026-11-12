@@ -184,7 +184,7 @@ export class Results {
 
   get balanceChartLabel(): string {
     if (!this.result) return '';
-    const base = `Gráfico del balance pendiente: empieza en ${this.money(this.result.request.amount)} y llega a cero en el mes ${this.result.request.termMonths}`;
+    const base = `Gráfico del saldo pendiente: comienza en ${this.money(this.result.request.amount)} y llega a cero en el mes ${this.result.request.termMonths}`;
     return this.extraPaymentResult
       ? `${base}. Con abonos llega a cero en el mes ${this.extraPaymentResult.newTermMonths}.`
       : `${base}.`;
@@ -255,7 +255,7 @@ export class Results {
 
     if (interestPercentage > 60) {
       recommendations.push(
-        'El interés supera el 60% del capital. Conviene evaluar una tasa menor o reducir el plazo.',
+        'Los intereses superan el 60 % del capital. Conviene evaluar una tasa menor o reducir el plazo.',
       );
     } else if (interestPercentage > 40) {
       recommendations.push(
@@ -273,7 +273,7 @@ export class Results {
 
     if (termMonths >= 60) {
       recommendations.push(
-        'Los plazos largos reducen la cuota, pero aumentan el interés total. Considera un plazo menor si tu presupuesto lo permite.',
+        'Los plazos largos reducen la cuota, pero aumentan los intereses totales. Considera un plazo menor si tu presupuesto lo permite.',
       );
     }
 
@@ -890,12 +890,12 @@ export class Results {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.5);
       doc.setTextColor('#c9ddf3');
-      doc.text('Simulador profesional de préstamos', 196, 20, { align: 'right' });
+      doc.text('Simulador de préstamos', 196, 20, { align: 'right' });
       doc.setDrawColor('#dce6f2');
       doc.line(14, 284, 196, 284);
       doc.setTextColor('#64748b');
       doc.setFontSize(7);
-      doc.text('Documento informativo. No constituye oferta ni aprobación de crédito.', 14, 290);
+      doc.text('Simulación orientativa. No constituye una oferta ni una aprobación de crédito.', 14, 290);
       doc.setTextColor('#1761b9');
       doc.text(`Página ${page} de ${pages}`, 196, 290, { align: 'right' });
       doc.addImage(qr, 'PNG', 183, 266, 11, 11);
@@ -932,15 +932,15 @@ export class Results {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.2);
     doc.text(
-      `Total abonado: ${this.money(extraResult.totalExtraPayments)}`,
+      `Total de abonos extraordinarios: ${this.money(extraResult.totalExtraPayments)}`,
       196, 40, { align: 'right' },
     );
 
     doc.setFont('helvetica', 'normal');
     doc.setTextColor('#475569');
     doc.setFontSize(8);
-    doc.text(`Reporte: ${reportNumber}`, 14, 29);
-    doc.text(`Generado: ${new Date().toLocaleString('es-DO')}`, 196, 29, { align: 'right' });
+    doc.text(`Informe n.º: ${reportNumber}`, 14, 34);
+    doc.text(`Emitido el: ${new Date().toLocaleString('es-DO')}`, 196, 34, { align: 'right' });
 
     autoTable(doc, {
       startY: 49,
@@ -948,13 +948,13 @@ export class Results {
       body: [
         ['Cliente', this.clientName(loanResult), 'Tipo', loanResult.request.loanType],
         [
-          'Monto original',
+          'Capital inicial',
           this.money(loanResult.request.amount),
           'Tasa anual',
-          `${loanResult.request.annualRate.toFixed(2)}%`,
+          `${loanResult.request.annualRate.toFixed(2)} %`,
         ],
         [
-          'Abono configurado',
+          'Abono programado',
           this.money(extraResult.request.amount),
           'Mes de inicio',
           extraResult.request.startMonth.toString(),
@@ -990,7 +990,7 @@ export class Results {
           `${extraResult.monthsSaved} meses`,
         ],
         [
-          'Interés total',
+          'Intereses totales',
           this.money(extraResult.originalTotalInterest),
           this.money(extraResult.newTotalInterest),
           this.money(extraResult.interestSaved),
@@ -1036,7 +1036,7 @@ export class Results {
 
     autoTable(doc, {
       startY: amortizationStartY,
-      head: [['No.', 'Fecha', 'Cuota regular', 'Abono extra', 'Interés', 'Capital', 'Balance']],
+      head: [['N.º', 'Fecha', 'Cuota regular', 'Abono adicional', 'Interés', 'Capital', 'Saldo']],
       body: extraResult.amortization.map((row) => [
         row.number,
         this.pdfPaymentDate(row.paymentDate),
@@ -1091,7 +1091,7 @@ export class Results {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.text('SOLICITANTE', 14, 39);
-    doc.text('MODALIDAD', 153, 39);
+    doc.text('TIPO DE PRÉSTAMO', 153, 39);
     doc.setTextColor('#172b49');
     doc.setFontSize(10);
     doc.text(this.clientName(result), 14, 46, { maxWidth: 127 });
@@ -1100,7 +1100,7 @@ export class Results {
     const metrics = [
       { title: 'CUOTA MENSUAL', value: this.money(result.monthlyPayment), dark: true },
       { title: 'CAPITAL INICIAL', value: this.money(result.request.amount), dark: false },
-      { title: 'TOTAL ESTIMADO', value: this.money(result.totalPayment), dark: false },
+      { title: 'TOTAL A PAGAR', value: this.money(result.totalPayment), dark: false },
     ];
     for (const [index, metric] of metrics.entries()) {
       const x = 14 + index * 62;
@@ -1123,10 +1123,10 @@ export class Results {
     doc.setTextColor('#596c84');
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text(`Tasa nominal anual: ${result.request.annualRate.toFixed(2)}%`, 14, 81);
+    doc.text(`Tasa nominal anual: ${result.request.annualRate.toFixed(2)} %`, 14, 81);
     doc.text(`Plazo: ${result.amortization.length} cuotas`, 196, 81, { align: 'right' });
     doc.setFontSize(7.3);
-    doc.text('Capital e intereses estimados según la simulación; pueden existir diferencias por redondeo.', 14, 87);
+    doc.text('Importes estimados: pueden variar por redondeo y condiciones contractuales.', 14, 87);
 
     autoTable(doc, {
       startY: 94,
@@ -1195,7 +1195,7 @@ export class Results {
       `Tipo: ${this.result.request.loanType}`,
       `Monto: ${this.money(this.result.request.amount)}`,
       `Cuota mensual: ${this.money(this.result.monthlyPayment)}`,
-      `Interés total: ${this.money(this.result.totalInterest)}`,
+      `Intereses totales: ${this.money(this.result.totalInterest)}`,
       `Total a pagar: ${this.money(this.result.totalPayment)}`,
     ].join('\n');
   }

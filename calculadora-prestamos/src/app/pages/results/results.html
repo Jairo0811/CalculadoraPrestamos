@@ -194,8 +194,8 @@
           </article>
 
           <article class="lc-card chart-card" aria-labelledby="balance-title">
-            <h3 id="balance-title">Evolución del balance</h3>
-            <p class="chart-help">Al inicio el balance baja más despacio porque las primeras cuotas pagan más interés.</p>
+            <h3 id="balance-title">Evolución del saldo pendiente</h3>
+            <p class="chart-help">Al principio, el saldo disminuye más lentamente porque una mayor parte de cada cuota se destina a intereses.</p>
             <figure class="balance-figure">
               <div class="balance-plot">
                 <div class="y-axis" aria-hidden="true">
@@ -241,8 +241,8 @@
             <p class="advice-disclaimer">
               <i class="bi bi-info-circle" aria-hidden="true"></i>
               <span>
-                Estas sugerencias son cálculos automáticos sobre los datos introducidos, no asesoría financiera personalizada.
-                Confirma tasas, comisiones, seguros y condiciones finales con tu entidad financiera antes de firmar.
+                Estas sugerencias se generan automáticamente a partir de los datos introducidos y no constituyen asesoría financiera personalizada.
+                Antes de firmar, confirma las tasas, las comisiones, los seguros y las demás condiciones con tu entidad financiera.
               </span>
             </p>
           </article>
@@ -265,7 +265,7 @@
       <section id="abonos" class="results-section extra-payment-card no-print" aria-labelledby="extra-payment-title">
         <header class="section-head">
           <h2 id="extra-payment-title">Abonos extraordinarios</h2>
-          <p>Simula pagos adicionales al capital y compara el préstamo original con el escenario con abonos.</p>
+          <p>Simula pagos adicionales al capital y compara el préstamo original con un escenario que incluye abonos.</p>
         </header>
 
         <div class="lc-card extra-form-card">
@@ -305,7 +305,7 @@
                   aria-describedby="extra-start-help"
                   required
                 />
-                <p class="field-help" id="extra-start-help">Entre el mes 1 y el {{ result.request.termMonths }}.</p>
+                <p class="field-help" id="extra-start-help">Selecciona un mes entre el 1 y el {{ result.request.termMonths }}.</p>
               </div>
             </div>
 
@@ -372,7 +372,7 @@
                   @case ('annual') {
                     <p class="plan-text extra-payment-frequency-help">
                       El primer abono se aplicará en el mes {{ extraPaymentStartMonth }} y se repetirá
-                      cada 12 meses, mientras exista saldo pendiente. Puedes simular el uso de tu
+                      cada 12 meses mientras exista saldo pendiente. Puedes simular el uso de tu
                       doble sueldo o bonificación anual.
                       <span class="plan-months">Meses previstos: <strong>{{ plannedExtraPaymentMonths.join(', ') }}</strong>.</span>
                     </p>

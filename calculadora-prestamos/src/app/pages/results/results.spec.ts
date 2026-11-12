@@ -149,6 +149,14 @@ describe('Results', () => {
     expect(text('.compare-note')).toContain('no está garantizado');
   });
 
+  it('utiliza un lenguaje financiero claro en los resultados y las advertencias', () => {
+    setup();
+    expect(text('#balance-title')).toBe('Evolución del saldo pendiente');
+    expect(text('.chart-help')).toContain('una mayor parte de cada cuota se destina a intereses');
+    expect(text('.advice-disclaimer')).toContain('no constituyen asesoría financiera personalizada');
+    expect(text('.extra-payment-card .section-head p')).toContain('un escenario que incluye abonos');
+  });
+
   it('describe los abonos mensuales aplicados y la cuota recalculada al reducir la cuota', async () => {
     setup();
     await submitExtraPayment('1000', '30', /Abono mensual/, /Reducir la cuota/);
