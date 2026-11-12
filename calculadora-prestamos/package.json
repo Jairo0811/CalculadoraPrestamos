@@ -30,6 +30,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "rxjs": "~7.8.0",
+    "sweetalert2": "^11.26.25",
     "tslib": "^2.3.0",
     "uqr": "^0.1.3"
   },

@@ -41,6 +41,25 @@ describe('Calculator', () => {
     expect(saved?.request.firstName).toBe('');
   });
 
+  it('permits zero interest, matching the financial engine', () => {
+    fillFinancialData();
+    component.annualRate = 0;
+    component.calculate();
+    expect(component.rateError).toBeNull();
+    expect(navigate).toHaveBeenCalledWith(['/results']);
+    const saved = TestBed.inject(LoanCalculatorService).getResult();
+    expect(saved?.monthlyPayment).toBeCloseTo(500000 / 36, 2);
+    expect(saved?.totalInterest).toBeCloseTo(0, 2);
+  });
+
+  it('rejects a negative annual rate', () => {
+    fillFinancialData();
+    component.annualRate = -1;
+    component.calculate();
+    expect(component.rateError).toContain('negativa');
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
   it('shows contextual errors for each missing financial field', () => {
     component.calculate();
     expect(component.amountError).toContain('monto');

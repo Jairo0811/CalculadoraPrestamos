@@ -12,6 +12,7 @@ import {
   LoanResult,
 } from '../../core/models/loan.model';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
+import { ConfirmationService } from '../../core/services/confirmation';
 import { RdCurrencyPipe, formatRd } from '../../core/formatting/rd-currency';
 import { AuthService } from '../../core/services/auth';
 import { LoanApiService } from '../../core/services/loan-api';
@@ -47,6 +48,7 @@ interface ComparisonOption {
 export class Results {
   private readonly router = inject(Router);
   private readonly loanCalculator = inject(LoanCalculatorService);
+  private readonly confirmation = inject(ConfirmationService);
   private readonly api = inject(LoanApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
@@ -776,16 +778,26 @@ export class Results {
     afterNextRender(() => focusPageStart(this.document), { injector: this.injector });
   }
 
-  removeHistoryItem(index: number): void {
+  async removeHistoryItem(index: number): Promise<void> {
+    if (!this.history[index]) return;
+    const accepted = await this.confirmation.ask(
+      '¿Eliminar esta simulación?',
+      'Se eliminará del historial local de este dispositivo.',
+      'Eliminar'
+    );
+    if (!accepted) return;
     this.loanCalculator.removeHistoryItem(index);
     this.history = this.loanCalculator.getHistory();
   }
 
-  clearHistory(): void {
-    if (typeof confirm !== 'undefined' && !confirm('¿Eliminar todo el historial?')) {
-      return;
-    }
-
+  async clearHistory(): Promise<void> {
+    if (!this.history.length) return;
+    const accepted = await this.confirmation.ask(
+      '¿Eliminar todo el historial?',
+      'Se borrarán las simulaciones guardadas en este dispositivo.',
+      'Eliminar todo'
+    );
+    if (!accepted) return;
     this.loanCalculator.clearHistory();
     this.history = [];
   }

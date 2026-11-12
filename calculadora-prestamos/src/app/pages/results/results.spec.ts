@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { APP_CONFIG } from '../../core/config/app-config';
 import { LoanRequest } from '../../core/models/loan.model';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
+import { ConfirmationService } from '../../core/services/confirmation';
 import { Results } from './results';
 
 const REQUEST: LoanRequest = {
@@ -64,6 +65,17 @@ describe('Results', () => {
   }
 
   const text = (selector: string) => element.querySelector(selector)?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+
+  it('requiere confirmación para borrar historial local', async () => {
+    setup();
+    const ask = vi.spyOn(TestBed.inject(ConfirmationService), 'ask')
+      .mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    await component.clearHistory();
+    expect(component.history).toHaveLength(1);
+    await component.clearHistory();
+    expect(component.history).toHaveLength(0);
+    expect(ask).toHaveBeenCalledTimes(2);
+  });
 
   it('presenta la cuota mensual estimada como cifra protagonista', () => {
     setup();

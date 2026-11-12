@@ -57,6 +57,23 @@ describe('LoanCalculatorService', () => {
       expect(finalRow?.balance).toBeCloseTo(0, 2);
     });
 
+    it('no salta meses al calcular desde un día 31', () => {
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date(2026, 0, 31, 12));
+        const result = service.calculate(createLoanRequest({
+          amount: 120000, annualRate: 0, termMonths: 3
+        }));
+        expect(result.amortization.map(row => row.paymentDate)).toEqual([
+          new Date(2026, 1, 28).toLocaleDateString('es-DO'),
+          new Date(2026, 2, 31).toLocaleDateString('es-DO'),
+          new Date(2026, 3, 30).toLocaleDateString('es-DO')
+        ]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('debe generar exactamente una fila por cada mes del plazo', () => {
       const result = service.calculate(
         createLoanRequest({
