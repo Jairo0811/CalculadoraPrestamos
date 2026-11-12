@@ -135,7 +135,7 @@ test.describe('Smoke del build de producción', () => {
     // El PDF debe incluir la imagen PNG del QR, no solo las tablas del préstamo.
     expect(pdfContents).toContain('/Subtype /Image');
     // QR y logotipo oficial deben quedar embebidos; no basta un PDF solo con tablas.
-    expect((pdfContents.match(/\\/Subtype\\s*\\/Image/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect((pdfContents.match(/\/Subtype\s*\/Image/g) ?? []).length).toBeGreaterThanOrEqual(2);
 
     const [excel] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Excel', exact: true }).click()]);
     expect(excel.suggestedFilename()).toMatch(/\.xls$/);
@@ -160,7 +160,7 @@ test.describe('Smoke del build de producción', () => {
     expect(pdfContents.slice(0, 5)).toBe('%PDF-');
     expect(pdfContents).toContain('/Subtype /Image');
     // QR y logotipo oficial deben quedar embebidos; no basta un PDF solo con tablas.
-    expect((pdfContents.match(/\\/Subtype\\s*\\/Image/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect((pdfContents.match(/\/Subtype\s*\/Image/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
 
