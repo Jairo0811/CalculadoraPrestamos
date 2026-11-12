@@ -109,7 +109,7 @@ test.describe('Smoke del build de producción', () => {
     await expect(page.getByRole('heading', { name: 'Tabla de amortización' })).toBeVisible();
     await expect(page.getByText('Las tasas precargadas son', { exact: false })).toBeVisible();
     await expect(page.locator('table tbody tr')).not.toHaveCount(0);
-    await expect(page.getByText('no asesoría financiera personalizada')).toBeVisible();
+    await expect(page.getByText(/no constituyen asesoría financiera personalizada/)).toBeVisible();
 
     // Recarga en /results: la simulación persiste en el dispositivo.
     await page.reload();
