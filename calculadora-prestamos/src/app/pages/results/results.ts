@@ -1,5 +1,5 @@
 import { DOCUMENT, DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, Injector, afterNextRender, inject, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, Injector, afterNextRender, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -49,6 +49,7 @@ export class Results {
   private readonly router = inject(Router);
   private readonly loanCalculator = inject(LoanCalculatorService);
   private readonly confirmation = inject(ConfirmationService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly api = inject(LoanApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
@@ -788,6 +789,8 @@ export class Results {
     if (!accepted) return;
     this.loanCalculator.removeHistoryItem(index);
     this.history = this.loanCalculator.getHistory();
+    // Angular sin Zone.js: la resolución del modal ocurre después del evento DOM.
+    this.changeDetector.markForCheck();
   }
 
   async clearHistory(): Promise<void> {
@@ -800,6 +803,7 @@ export class Results {
     if (!accepted) return;
     this.loanCalculator.clearHistory();
     this.history = [];
+    this.changeDetector.markForCheck();
   }
 
   clearAndGoBack(): void {
