@@ -123,7 +123,6 @@
   /* Bootstrap: alinear sus variables con la marca */
   --bs-body-font-family: var(--lc-font);
   --bs-body-color: var(--lc-text);
-  --bs-body-bg: var(--lc-page-bg);
   --bs-border-color: var(--lc-border);
   --bs-link-color: var(--lc-blue-700);
   --bs-link-color-rgb: 10, 79, 181;

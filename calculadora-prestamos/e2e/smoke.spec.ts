@@ -164,7 +164,7 @@ test.describe('Smoke del build de producción', () => {
     await simulate(page);
     await page.getByLabel('Monto del abono').fill('2000');
     await page.getByLabel('Aplicar desde el mes').fill('12');
-    await page.getByLabel('Frecuencia').selectOption('annual');
+    await page.getByRole('radio', { name: /Abono anual/ }).check();
 
     await expect(page.getByText('El primer abono se aplicará en el mes', { exact: false })).toBeVisible();
     await expect(page.getByText('doble sueldo o bonificación anual', { exact: false })).toBeVisible();
@@ -180,7 +180,7 @@ test.describe('Smoke del build de producción', () => {
     test.skip(isMobile, 'Descargas verificadas en escritorio y tableta');
     await simulate(page);
     await page.getByLabel('Monto del abono').fill('2000');
-    await page.getByLabel('Frecuencia').selectOption('annual');
+    await page.getByRole('radio', { name: /Abono anual/ }).check();
     await page.getByRole('button', { name: 'Calcular ahorro' }).click();
 
     const [excel] = await Promise.all([
@@ -210,28 +210,40 @@ test.describe('Smoke del build de producción', () => {
     expect(pdfBody).toContain('/Subtype /Image');
   });
 
-  test('espaciado entre las tarjetas de compartir, historial y calendario en móvil', async ({ page }) => {
+  test('espaciado entre todas las tarjetas de resultados en móvil', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await simulate(page);
+    await page.getByLabel('Monto del abono').fill('25000');
+    await page.getByRole('button', { name: 'Calcular ahorro' }).click();
+    await expect(page.getByText('Intereses ahorrados')).toBeVisible();
 
     for (const selector of ['.share-card', '.history-card', '.table-card']) {
       await expect(page.locator(selector)).toBeVisible();
     }
 
-    const gaps = await page.evaluate(() => {
-      const rect = (selector: string) =>
-        document.querySelector(selector)!.getBoundingClientRect();
+    const layout = await page.evaluate(() => {
+      // Cada contenedor apila tarjetas independientes en una columna en móvil.
+      const stacks = ['.analysis-top', '.analysis-charts', '.insights-grid', '.extra-payment-results', '.savings-grid', '.save-grid'];
+      const gaps: Record<string, number> = {};
+      for (const selector of stacks) {
+        const children = [...document.querySelector(selector)!.children];
+        children.slice(1).forEach((child, index) => {
+          const gap = child.getBoundingClientRect().top - children[index].getBoundingClientRect().bottom;
+          gaps[`${selector} #${index + 1}`] = Math.round(gap);
+        });
+      }
       return {
-        shareToHistory: rect('.history-card').top - rect('.share-card').bottom,
-        historyToTable: rect('.table-card').top - rect('.history-card').bottom,
+        gaps,
         overflow: document.documentElement.scrollWidth - window.innerWidth,
-        deleteHeight: rect('.history-delete').height
+        deleteHeight: document.querySelector('.history-delete')!.getBoundingClientRect().height
       };
     });
-    expect(gaps.shareToHistory).toBeGreaterThanOrEqual(20);
-    expect(gaps.historyToTable).toBeGreaterThanOrEqual(20);
-    expect(gaps.deleteHeight).toBeGreaterThanOrEqual(44);
-    expect(gaps.overflow).toBeLessThanOrEqual(0);
+    expect(Object.keys(layout.gaps).length).toBeGreaterThan(5);
+    for (const [pair, gap] of Object.entries(layout.gaps)) {
+      expect(gap, pair).toBeGreaterThanOrEqual(20);
+    }
+    expect(layout.deleteHeight).toBeGreaterThanOrEqual(44);
+    expect(layout.overflow).toBeLessThanOrEqual(0);
   });
 
   test('responsive sin desplazamiento horizontal y sin violaciones WCAG graves', async ({ page }) => {
