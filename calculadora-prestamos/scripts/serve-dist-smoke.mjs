@@ -32,7 +32,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, () => {
-  const child = spawn('npx', ['playwright', 'test', ...process.argv.slice(2)], {
+  const child = spawn(process.execPath, [join(process.cwd(), 'node_modules', 'playwright', 'cli.js'), 'test', ...process.argv.slice(2)], {
     stdio: 'inherit',
     env: { ...process.env, E2E_BASE_URL: `http://localhost:${port}` }
   });
