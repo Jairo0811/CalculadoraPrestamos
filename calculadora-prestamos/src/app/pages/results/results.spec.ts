@@ -73,7 +73,9 @@ describe('Results', () => {
     await component.clearHistory();
     expect(component.history).toHaveLength(1);
     await component.clearHistory();
+    await fixture.whenStable();
     expect(component.history).toHaveLength(0);
+    expect(element.querySelectorAll('.history-item')).toHaveLength(0);
     expect(ask).toHaveBeenCalledTimes(2);
   });
 
