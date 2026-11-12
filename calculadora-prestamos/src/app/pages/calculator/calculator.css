@@ -264,7 +264,7 @@
   .personal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-[hidden] { display: none !important; }
+.personal-grid[hidden] { display: none; }
 
 /* Acciones ------------------------------------------------------------------ */
 .actions {

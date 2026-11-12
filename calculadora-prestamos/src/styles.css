@@ -18,7 +18,6 @@
   /* Marca */
   --lc-navy-950: #041330;
   --lc-navy-900: #061a3a;
-  --lc-navy-800: #0c2a5b;
   --lc-blue-800: #0b3d91;
   --lc-blue-700: #0a4fb5;
   --lc-blue-600: #0b5ed7;
@@ -27,12 +26,11 @@
   --lc-blue-100: #dbe8fb;
   --lc-blue-50: #eef4ff;
   --lc-teal-600: #0d9488;
-  --lc-teal-500: #14b8a6;
 
   /* Texto y superficies */
   --lc-text: #0f172a;
   --lc-text-muted: #475569;
-  --lc-text-subtle: #64748b;
+  --lc-text-subtle: #5b6b82;
   --lc-text-on-dark: #ffffff;
   --lc-text-on-dark-muted: #c7d4e8;
   --lc-page-bg: #f5f7fb;
@@ -73,8 +71,6 @@
   --lc-text-display: clamp(2.125rem, 1.55rem + 2.6vw, 3.5rem);
   --lc-leading-tight: 1.15;
   --lc-leading: 1.55;
-  --lc-weight-medium: 600;
-  --lc-weight-bold: 750;
 
   /* Espaciado (múltiplos de 4 px) */
   --lc-space-1: 4px;
@@ -128,15 +124,6 @@
   --bs-link-color-rgb: 10, 79, 181;
   --bs-link-hover-color: var(--lc-blue-800);
   --bs-link-hover-color-rgb: 11, 61, 145;
-
-  /* Alias heredados: aún usados por páginas no migradas. No usar en código nuevo. */
-  --page-bg: var(--lc-page-bg);
-  --page-bg-alt: var(--lc-blue-50);
-  --surface: var(--lc-surface);
-  --soft: var(--lc-surface-muted);
-  --text: var(--lc-text);
-  --muted: var(--lc-text-muted);
-  --border: var(--lc-border);
 }
 
 @media (min-width: 768px) {

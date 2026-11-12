@@ -667,7 +667,7 @@
               <button type="button" (click)="shareLinkedIn()" class="share-button linkedin"><i class="bi bi-linkedin" aria-hidden="true"></i> LinkedIn</button>
               <button type="button" (click)="copySummary()" class="share-button copy"><i class="bi bi-clipboard" aria-hidden="true"></i> Copiar resumen</button>
             </div>
-            <p class="share-feedback" aria-live="polite">{{ shareFeedback }}</p>
+            <p class="share-feedback" aria-live="polite">{{ shareFeedback() }}</p>
           </article>
 
           @if (history.length > 0) {

@@ -255,6 +255,8 @@ test.describe('Smoke del build de producción', () => {
     }
     await simulate(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(results.violations.filter(v => v.impact === 'serious' || v.impact === 'critical').map(v => v.id), '/results').toEqual([]);
   });
 
   test('cabeceras de seguridad y caché del despliegue', async ({ request }) => {

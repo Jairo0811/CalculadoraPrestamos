@@ -70,7 +70,8 @@ export class Results {
   result: LoanResult | null = this.loanCalculator.getResult();
   history: LoanResult[] = this.loanCalculator.getHistory();
 
-  shareFeedback = '';
+  /** Señal: el mensaje llega tras una promesa y debe pintarse sin Zone.js. */
+  readonly shareFeedback = signal('');
 
   extraPaymentAmount: number | null = null;
   extraPaymentStartMonth = 1;
@@ -817,10 +818,10 @@ export class Results {
 
     await navigator.clipboard.writeText(this.shareText());
 
-    this.shareFeedback = 'Resumen copiado al portapapeles.';
+    this.shareFeedback.set('Resumen copiado al portapapeles.');
 
     setTimeout(() => {
-      this.shareFeedback = '';
+      this.shareFeedback.set('');
     }, 2500);
   }
 

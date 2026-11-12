@@ -16,10 +16,10 @@ Convenciones visuales del frontend Angular. Fuente única: `calculadora-prestamo
 
 | Token | Valor | Uso |
 |---|---|---|
-| `--lc-navy-950` / `--lc-navy-900` / `--lc-navy-800` | `#041330` / `#061a3a` / `#0c2a5b` | Cabecera, héroes, pie |
+| `--lc-navy-950` / `--lc-navy-900` | `#041330` / `#061a3a` | Cabecera, héroes, pie |
 | `--lc-blue-800` → `--lc-blue-50` | `#0b3d91` … `#eef4ff` | Acento de marca, estados activos, fondos informativos |
-| `--lc-teal-600` / `--lc-teal-500` | `#0d9488` / `#14b8a6` | Escenarios con abonos |
-| `--lc-text` / `--lc-text-muted` / `--lc-text-subtle` | `#0f172a` / `#475569` / `#64748b` | Texto principal, secundario y auxiliar (todos ≥ 4.5:1 sobre blanco) |
+| `--lc-teal-600` | `#0d9488` | Escenarios con abonos |
+| `--lc-text` / `--lc-text-muted` / `--lc-text-subtle` | `#0f172a` / `#475569` / `#5b6b82` | Texto principal, secundario y auxiliar (todos ≥ 4.5:1 sobre blanco y sobre las superficies tintadas) |
 | `--lc-page-bg` / `--lc-surface` / `--lc-surface-muted` / `--lc-surface-sunken` | `#f5f7fb` / `#fff` / `#f4f7fb` / `#eef2f7` | Fondo, tarjetas, zonas secundarias |
 | `--lc-border` / `--lc-border-strong` | `#d7e0ec` / `#b6c4d6` | Separadores y bordes de controles |
 | `--lc-success|danger|warning|info` (+ `-bg`, `-border`) | — | Estados. Siempre acompañados de icono o texto, nunca solo color |

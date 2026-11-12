@@ -231,9 +231,9 @@
   gap: 8px;
   align-items: center;
 }
-.confirm-text {
+.session-action .confirm-text {
   width: 100%;
-  color: var(--lc-danger) !important;
+  color: var(--lc-danger);
   font-weight: 700;
 }
 

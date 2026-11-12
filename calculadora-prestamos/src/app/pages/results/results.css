@@ -1201,7 +1201,7 @@ h3 { color: var(--lc-navy-900); }
 
   .analysis-charts,
   .insights-grid,
-  .comparator-card { display: none !important; }
+  .comparator-card { display: none; }
 
   .results-section { padding-top: 16px; break-inside: auto; }
 
