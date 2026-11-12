@@ -927,7 +927,14 @@ export class Results {
     doc.setTextColor('#071b3d');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text('Comparación financiera de abonos extraordinarios', 14, 40);
+    doc.text('Comparación de abonos extraordinarios', 14, 40);
+    doc.setTextColor('#596c84');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.2);
+    doc.text(
+      `Total abonado: ${this.money(extraResult.totalExtraPayments)}`,
+      196, 40, { align: 'right' },
+    );
 
     doc.setFont('helvetica', 'normal');
     doc.setTextColor('#475569');
@@ -965,13 +972,15 @@ export class Results {
         cellPadding: 2.5,
       },
       headStyles: {
-        fillColor: '#0d6efd',
+        fillColor: '#0b2f68',
         textColor: '#ffffff',
       },
     });
 
     autoTable(doc, {
-      startY: 83,
+      startY: (
+        (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? 80
+      ) + 7,
       head: [['Indicador', 'Escenario original', 'Nuevo escenario', 'Ahorro']],
       body: [
         [
@@ -1010,7 +1019,7 @@ export class Results {
         cellPadding: 2.5,
       },
       headStyles: {
-        fillColor: '#198754',
+        fillColor: '#0d9488',
         textColor: '#ffffff',
       },
     });
@@ -1045,7 +1054,7 @@ export class Results {
         cellPadding: 1.8,
       },
       headStyles: {
-        fillColor: '#0d47a1',
+        fillColor: '#0b2f68',
         textColor: '#ffffff',
       },
       didParseCell: (hookData) => {
