@@ -835,29 +835,99 @@ export class Results {
     return `${result.request.firstName} ${result.request.lastName}`.trim() || 'Solicitante';
   }
 
+
+  /** El logo oficial se solicita solo al exportar; no incrementa el bundle inicial. */
+  private async pdfOfficialLogo(): Promise<string | null> {
+    let objectUrl: string | null = null;
+    try {
+      const response = await fetch('/assets/img/logo-loancalc-rd-480.webp');
+      if (!response.ok) return null;
+      objectUrl = URL.createObjectURL(await response.blob());
+      const image = new Image();
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('Logo no disponible'));
+        image.src = objectUrl!;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext('2d');
+      if (!context) return null;
+      context.drawImage(image, 0, 0);
+      return canvas.toDataURL('image/png');
+    } catch {
+      return null;
+    } finally {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  /** Cabecera corporativa y pie de página sobre cada hoja, sin invadir las tablas. */
+  private decoratePdfPages(
+    doc: jsPDF,
+    logo: string | null,
+    title: string,
+    qr: string,
+  ): void {
+    const pages = doc.getNumberOfPages();
+    for (let page = 1; page <= pages; page++) {
+      doc.setPage(page);
+      doc.setFillColor('#071b3d');
+      doc.rect(0, 0, 210, 28, 'F');
+      if (logo) {
+        doc.addImage(logo, 'PNG', 14, 3, 67, 22);
+      } else {
+        doc.setTextColor('#ffffff');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(17);
+        doc.text('LoanCalc RD', 14, 17);
+      }
+      doc.setTextColor('#ffffff');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.text(title, 196, 13, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor('#c9ddf3');
+      doc.text('Simulador profesional de préstamos', 196, 20, { align: 'right' });
+      doc.setDrawColor('#dce6f2');
+      doc.line(14, 284, 196, 284);
+      doc.setTextColor('#64748b');
+      doc.setFontSize(7);
+      doc.text('Documento informativo. No constituye oferta ni aprobación de crédito.', 14, 290);
+      doc.setTextColor('#1761b9');
+      doc.text(`Página ${page} de ${pages}`, 196, 290, { align: 'right' });
+      doc.addImage(qr, 'PNG', 183, 266, 11, 11);
+    }
+  }
+
+  /** Normaliza fechas dd/m/aaaa del cronograma exclusivamente para el PDF. */
+  private pdfPaymentDate(value: string): string {
+    const match = /^(\\d{1,2})\/(\\d{1,2})\/(\\d{4})$/.exec(value);
+    return match
+      ? `${match[1].padStart(2, '0')}/${match[2].padStart(2, '0')}/${match[3]}`
+      : value;
+  }
+
   private async generateExtraPaymentPdf(
     loanResult: LoanResult,
     extraResult: ExtraPaymentResult,
   ): Promise<void> {
     // Los módulos PDF no se descargan hasta solicitar una exportación.
-    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+    const [{ jsPDF }, { default: autoTable }, logo] = await Promise.all([
       import('jspdf'),
       import('jspdf-autotable'),
+      this.pdfOfficialLogo(),
     ]);
     const doc = new jsPDF('p', 'mm', 'a4');
 
     const reportNumber = `AB-${this.dateKey()}-${Date.now().toString().slice(-6)}`;
 
-    doc.setTextColor('#0d47a1');
+    doc.setTextColor('#071b3d');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text('LoanCalc RD', 14, 18);
-
-    doc.setFontSize(13);
-    doc.text('Simulación de abonos extraordinarios', 196, 18, { align: 'right' });
-
-    doc.setDrawColor('#0d47a1');
-    doc.line(14, 24, 196, 24);
+    doc.setFontSize(11);
+    doc.text('Comparación financiera de abonos extraordinarios', 14, 40);
 
     doc.setFont('helvetica', 'normal');
     doc.setTextColor('#475569');
@@ -866,7 +936,7 @@ export class Results {
     doc.text(`Generado: ${new Date().toLocaleString('es-DO')}`, 196, 29, { align: 'right' });
 
     autoTable(doc, {
-      startY: 34,
+      startY: 49,
       head: [['Datos del préstamo', 'Valor', 'Configuración', 'Valor']],
       body: [
         ['Cliente', this.clientName(loanResult), 'Tipo', loanResult.request.loanType],
@@ -901,7 +971,7 @@ export class Results {
     });
 
     autoTable(doc, {
-      startY: 72,
+      startY: 83,
       head: [['Indicador', 'Escenario original', 'Nuevo escenario', 'Ahorro']],
       body: [
         [
@@ -953,14 +1023,14 @@ export class Results {
       }
     ).lastAutoTable;
 
-    const amortizationStartY = (summaryTable?.finalY ?? 106) + 8;
+    const amortizationStartY = (summaryTable?.finalY ?? 122) + 8;
 
     autoTable(doc, {
       startY: amortizationStartY,
       head: [['No.', 'Fecha', 'Cuota regular', 'Abono extra', 'Interés', 'Capital', 'Balance']],
       body: extraResult.amortization.map((row) => [
         row.number,
-        row.paymentDate,
+        this.pdfPaymentDate(row.paymentDate),
         this.money(row.regularPayment),
         row.extraPayment > 0 ? this.money(row.extraPayment) : '—',
         this.money(row.interest),
@@ -968,6 +1038,8 @@ export class Results {
         this.money(row.balance),
       ]),
       theme: 'striped',
+      showHead: 'everyPage',
+      margin: { top: 36, bottom: 36, left: 14, right: 14 },
       styles: {
         fontSize: 6.5,
         cellPadding: 1.8,
@@ -989,114 +1061,85 @@ export class Results {
           hookData.cell.styles.fontStyle = 'bold';
         }
       },
-      didDrawPage: (hookData) => {
-        const pageNumber = doc.getCurrentPageInfo().pageNumber;
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7);
-        doc.setTextColor('#64748b');
-
-        doc.text(`LoanCalc RD · ${reportNumber}`, 14, 289);
-
-        doc.text(`Página ${pageNumber}`, 196, 289, { align: 'right' });
-
-        if (hookData.pageNumber > 1) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(9);
-          doc.setTextColor('#0d47a1');
-          doc.text('Tabla de amortización con abonos extraordinarios', 14, 12);
-        }
-      },
     });
 
     const qr = await this.pdfQrDataUrl();
 
-    const lastPage = doc.getNumberOfPages();
-
-    doc.setPage(lastPage);
-    doc.addImage(qr, 'PNG', 174, 260, 20, 20);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor('#64748b');
-    doc.setFontSize(7);
-
-    doc.text(
-      'Este documento es una simulación financiera y no constituye una oferta de crédito.',
-      14,
-      275,
-    );
-
-    doc.text(
-      `Total abonado extraordinariamente: ${this.money(extraResult.totalExtraPayments)}`,
-      14,
-      280,
-    );
+    this.decoratePdfPages(doc, logo, 'Abonos extraordinarios', qr);
 
     doc.save(`LoanCalcRD-Abonos-${this.dateKey()}.pdf`);
   }
 
   private async generatePdf(result: LoanResult): Promise<void> {
-    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+    const [{ jsPDF }, { default: autoTable }, logo] = await Promise.all([
       import('jspdf'),
       import('jspdf-autotable'),
+      this.pdfOfficialLogo(),
     ]);
     const doc = new jsPDF('p', 'mm', 'a4');
 
-    doc.setTextColor('#0d47a1');
+    doc.setTextColor('#596c84');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text('LoanCalc RD', 14, 18);
+    doc.setFontSize(8);
+    doc.text('SOLICITANTE', 14, 39);
+    doc.text('MODALIDAD', 153, 39);
+    doc.setTextColor('#172b49');
+    doc.setFontSize(10);
+    doc.text(this.clientName(result), 14, 46, { maxWidth: 127 });
+    doc.text(result.request.loanType, 153, 46, { maxWidth: 43 });
 
-    doc.setFontSize(14);
-    doc.text('Resultado de simulación', 196, 18, {
-      align: 'right',
-    });
+    const metrics = [
+      { title: 'CUOTA MENSUAL', value: this.money(result.monthlyPayment), dark: true },
+      { title: 'CAPITAL INICIAL', value: this.money(result.request.amount), dark: false },
+      { title: 'TOTAL ESTIMADO', value: this.money(result.totalPayment), dark: false },
+    ];
+    for (const [index, metric] of metrics.entries()) {
+      const x = 14 + index * 62;
+      doc.setFillColor(metric.dark ? '#0b2f68' : '#f2f6fc');
+      doc.roundedRect(x, 52, 58, 22, 2.5, 2.5, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(metric.dark ? '#d5e6f7' : '#596c84');
+      doc.text(metric.title, x + 3, 59);
+      doc.setTextColor(metric.dark ? '#ffffff' : '#172b49');
+      let size = metric.dark ? 12 : 10.5;
+      doc.setFontSize(size);
+      while (doc.getTextWidth(metric.value) > 52 && size > 7.5) {
+        size -= 0.5;
+        doc.setFontSize(size);
+      }
+      doc.text(metric.value, x + 3, 68);
+    }
 
-    doc.setDrawColor('#0d47a1');
-    doc.line(14, 24, 196, 24);
+    doc.setTextColor('#596c84');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text(`Tasa nominal anual: ${result.request.annualRate.toFixed(2)}%`, 14, 81);
+    doc.text(`Plazo: ${result.amortization.length} cuotas`, 196, 81, { align: 'right' });
+    doc.setFontSize(7.3);
+    doc.text('Capital e intereses estimados según la simulación; pueden existir diferencias por redondeo.', 14, 87);
 
     autoTable(doc, {
-      startY: 30,
-      body: [
-        ['Cliente', this.clientName(result), 'Tipo', result.request.loanType],
-        [
-          'Monto',
-          this.money(result.request.amount),
-          'Tasa',
-          `${result.request.annualRate.toFixed(2)}%`,
-        ],
-        [
-          'Cuota mensual',
-          this.money(result.monthlyPayment),
-          'Total',
-          this.money(result.totalPayment),
-        ],
-      ],
-      theme: 'grid',
-      styles: { fontSize: 9 },
-    });
-
-    autoTable(doc, {
-      startY: 58,
-      head: [['No.', 'Fecha', 'Cuota', 'Interés', 'Capital', 'Balance']],
+      startY: 94,
+      head: [['N.º', 'Fecha', 'Cuota', 'Interés', 'Capital', 'Saldo pendiente']],
       body: result.amortization.map((row) => [
         row.number,
-        row.paymentDate,
+        this.pdfPaymentDate(row.paymentDate),
         this.money(row.payment),
         this.money(row.interest),
         this.money(row.principal),
         this.money(row.balance),
       ]),
-      styles: { fontSize: 7 },
-      headStyles: { fillColor: '#0d47a1' },
+      theme: 'striped',
+      showHead: 'everyPage',
+      margin: { top: 36, bottom: 36, left: 14, right: 14 },
+      styles: { fontSize: 7, cellPadding: 2.2, textColor: '#172b49' },
+      headStyles: { fillColor: '#0b2f68', textColor: '#ffffff', fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: '#f5f8fc' },
+      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 25 } },
     });
-
     const qr = await this.pdfQrDataUrl();
-
-    const lastPage = doc.getNumberOfPages();
-
-    doc.setPage(lastPage);
-    doc.addImage(qr, 'PNG', 174, 265, 20, 20);
+    this.decoratePdfPages(doc, logo, 'Informe de simulación', qr);
     doc.save(`LoanCalcRD-${this.dateKey()}.pdf`);
   }
 
