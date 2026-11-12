@@ -152,7 +152,7 @@ describe('Results', () => {
   it('utiliza un lenguaje financiero claro en los resultados y las advertencias', () => {
     setup();
     expect(text('#balance-title')).toBe('Evolución del saldo pendiente');
-    expect(text('.chart-help')).toContain('una mayor parte de cada cuota se destina a intereses');
+    expect(text('.chart-card[aria-labelledby="balance-title"] .chart-help')).toContain('una mayor parte de cada cuota se destina a intereses');
     expect(text('.advice-disclaimer')).toContain('no constituyen asesoría financiera personalizada');
     expect(text('.extra-payment-card .section-head p')).toContain('un escenario que incluye abonos');
   });
