@@ -904,7 +904,7 @@ export class Results {
 
   /** Normaliza fechas dd/m/aaaa del cronograma exclusivamente para el PDF. */
   private pdfPaymentDate(value: string): string {
-    const match = /^(\\d{1,2})\/(\\d{1,2})\/(\\d{4})$/.exec(value);
+    const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
     return match
       ? `${match[1].padStart(2, '0')}/${match[2].padStart(2, '0')}/${match[3]}`
       : value;
