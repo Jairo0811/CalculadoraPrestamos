@@ -1,60 +1,497 @@
-html,body{min-height:100%}html{scroll-behavior:smooth;--page-bg:#f8fafc;--page-bg-alt:#eef4ff;--surface:#ffffff;--soft:#f8fafc;--text:#0f172a;--muted:#475569;--border:#cbd5e1;color-scheme:light}body{margin:0;background:var(--page-bg);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.5;text-rendering:optimizeLegibility;transition:background-color .2s ease,color .2s ease}*{box-sizing:border-box}img,svg{max-width:100%}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed}::selection{background:#0d6efd;color:#fff}:focus-visible{outline:4px solid #facc15;outline-offset:4px;border-radius:8px}.form-control:focus-visible,.form-select:focus-visible,.btn:focus-visible{outline:4px solid #facc15;outline-offset:3px}.container{width:min(1180px,94%)}.visually-hidden-focusable:not(:focus):not(:focus-within){position:absolute!important;width:1px!important;height:1px!important;padding:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--soft)}::-webkit-scrollbar-thumb{background:#64748b;border-radius:999px}::-webkit-scrollbar-thumb:hover{background:#475569}@media(max-width:576px){.container{width:min(100% - 24px,1180px)}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
-
 /* ==========================================================================
-   LoanCalc RD — tokens de diseño (interfaz exclusivamente clara)
-   Usados por las pantallas nuevas y refactorizadas; las páginas existentes
-   conservan sus estilos para evitar regresiones visuales.
+   LoanCalc RD — estilos globales y sistema de diseño
+   --------------------------------------------------------------------------
+   Interfaz exclusivamente clara. Este archivo contiene SOLO:
+     1. Tokens de diseño (--lc-*).
+     2. Base del documento.
+     3. Tema de Bootstrap (botones y formularios) sobre los tokens.
+     4. Primitivas compartidas por varias pantallas (.lc-*).
+     5. Accesibilidad, movimiento reducido e impresión.
+   Los estilos de cada pantalla viven en el CSS de su componente.
+   Documentación: docs/DESIGN_SYSTEM.md
    ========================================================================== */
+
+/* 1. Tokens ---------------------------------------------------------------- */
 :root {
+  color-scheme: light;
+
+  /* Marca */
   --lc-navy-950: #041330;
   --lc-navy-900: #061a3a;
   --lc-blue-800: #0b3d91;
   --lc-blue-700: #0a4fb5;
   --lc-blue-600: #0b5ed7;
   --lc-blue-500: #0d6efd;
+  --lc-blue-200: #bcd3f5;
+  --lc-blue-100: #dbe8fb;
   --lc-blue-50: #eef4ff;
-  --lc-teal-500: #14b8a6;
+  --lc-teal-600: #0d9488;
+
+  /* Texto y superficies */
   --lc-text: #0f172a;
   --lc-text-muted: #475569;
-  --lc-text-subtle: #64748b;
-  --lc-border: #d7e0ec;
-  --lc-border-strong: #b6c4d6;
+  --lc-text-subtle: #5b6b82;
+  --lc-text-on-dark: #ffffff;
+  --lc-text-on-dark-muted: #c7d4e8;
+  --lc-page-bg: #f5f7fb;
   --lc-surface: #ffffff;
   --lc-surface-muted: #f4f7fb;
+  --lc-surface-sunken: #eef2f7;
+  --lc-border: #d7e0ec;
+  --lc-border-strong: #b6c4d6;
+
+  /* Semánticos (texto ≥ 4.5:1 sobre su fondo) */
   --lc-success: #047857;
   --lc-success-bg: #ecfdf5;
+  --lc-success-border: #a7f3d0;
   --lc-danger: #b42318;
   --lc-danger-bg: #fef3f2;
+  --lc-danger-border: #fecdca;
   --lc-warning: #92400e;
   --lc-warning-bg: #fffbeb;
+  --lc-warning-border: #fde68a;
   --lc-info: #0b4a99;
   --lc-info-bg: #eff6ff;
+  --lc-info-border: #bfdbfe;
+
+  /* Datos financieros: capital e interés (también se distinguen con texto y patrón) */
+  --lc-data-principal: #0b5ed7;
+  --lc-data-interest: #f59e0b;
+  --lc-data-extra: #0d9488;
+
+  /* Tipografía: pila del sistema, sin fuentes externas */
+  --lc-font: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --lc-text-xs: .8125rem;
+  --lc-text-sm: .875rem;
+  --lc-text-base: 1rem;
+  --lc-text-lg: 1.125rem;
+  --lc-text-xl: clamp(1.25rem, 1.15rem + .45vw, 1.5rem);
+  --lc-text-2xl: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --lc-text-3xl: clamp(1.875rem, 1.45rem + 1.8vw, 2.75rem);
+  --lc-text-display: clamp(2.125rem, 1.55rem + 2.6vw, 3.5rem);
+  --lc-leading-tight: 1.15;
+  --lc-leading: 1.55;
+
+  /* Espaciado (múltiplos de 4 px) */
+  --lc-space-1: 4px;
+  --lc-space-2: 8px;
+  --lc-space-3: 12px;
+  --lc-space-4: 16px;
+  --lc-space-5: 20px;
+  --lc-space-6: 24px;
+  --lc-space-8: 32px;
+  --lc-space-10: 40px;
+  --lc-space-12: 48px;
+  --lc-space-16: 64px;
+  --lc-section-gap: clamp(48px, 36px + 4vw, 96px);
+  --lc-card-gap: 24px; /* separación entre tarjetas independientes (móvil incluido) */
+  --lc-card-pad: clamp(18px, 14px + 1.2vw, 28px);
+
+  /* Radios */
+  --lc-radius-xs: 6px;
   --lc-radius-sm: 10px;
+  --lc-radius-md: 12px;
   --lc-radius: 14px;
-  --lc-radius-lg: 22px;
+  --lc-radius-lg: 18px;
+  --lc-radius-xl: 24px;
+  --lc-radius-pill: 999px;
+
+  /* Elevación sutil */
+  --lc-shadow-xs: 0 1px 2px rgba(15, 23, 42, .05);
   --lc-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06), 0 1px 3px rgba(15, 23, 42, .08);
+  --lc-shadow-md: 0 8px 24px rgba(15, 45, 87, .08);
   --lc-shadow: 0 18px 44px rgba(15, 45, 87, .10);
+
+  /* Foco: azul sobre claro, amarillo sobre superficies oscuras (.lc-on-dark) */
+  --lc-focus: #0b5ed7;
+  --lc-focus-on-dark: #facc15;
+
+  /* Movimiento */
+  --lc-duration: 160ms;
+  --lc-ease: cubic-bezier(.2, .7, .2, 1);
+
+  /* Diseño */
+  --lc-container: 1180px;
+  --lc-gutter: 16px;
   --lc-header-height: 64px;
+  --lc-touch: 44px;
+
+  /* Bootstrap: alinear sus variables con la marca */
+  --bs-body-font-family: var(--lc-font);
+  --bs-body-color: var(--lc-text);
+  --bs-border-color: var(--lc-border);
+  --bs-link-color: var(--lc-blue-700);
+  --bs-link-color-rgb: 10, 79, 181;
+  --bs-link-hover-color: var(--lc-blue-800);
+  --bs-link-hover-color-rgb: 11, 61, 145;
 }
 
-.skip-link {
-  position: absolute;
-  left: 12px;
-  top: -64px;
-  z-index: 2000;
-  padding: 10px 16px;
-  border-radius: var(--lc-radius-sm);
-  background: var(--lc-navy-900);
+@media (min-width: 768px) {
+  :root { --lc-gutter: 24px; }
+}
+
+/* 2. Base ------------------------------------------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body { min-height: 100%; }
+
+/* Sin desplazamiento suave global: interrumpía el "volver arriba" del router (H1).
+   Bootstrap lo activa en :root; se anula aquí. La navegación interna de resultados
+   lo pide de forma explícita y respeta prefers-reduced-motion. */
+:root { scroll-behavior: auto; }
+
+body {
+  margin: 0;
+  background: var(--lc-page-bg);
+  color: var(--lc-text);
+  font-family: var(--lc-font);
+  line-height: var(--lc-leading);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg { max-width: 100%; }
+
+button,
+input,
+select,
+textarea { font: inherit; }
+
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+h1,
+h2,
+h3 { text-wrap: balance; }
+
+p { text-wrap: pretty; }
+
+::selection {
+  background: var(--lc-blue-600);
   color: #fff;
-  font-weight: 700;
-  text-decoration: none;
-  transition: top .15s ease;
 }
-.skip-link:focus { top: 12px; color: #fff; }
 
-main[tabindex="-1"]:focus { outline: none; }
+.container {
+  width: 100%;
+  max-width: calc(var(--lc-container) + 2 * var(--lc-gutter));
+  margin-inline: auto;
+  padding-inline: var(--lc-gutter);
+}
 
-/* Alertas accesibles compartidas (cuenta, estados de error y vacíos). */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--lc-surface-muted); }
+::-webkit-scrollbar-thumb { background: var(--lc-text-subtle); border-radius: var(--lc-radius-pill); }
+::-webkit-scrollbar-thumb:hover { background: var(--lc-text-muted); }
+
+/* 3. Tema de Bootstrap ------------------------------------------------------ */
+.btn {
+  --bs-btn-padding-x: 1.125rem;
+  --bs-btn-padding-y: .625rem;
+  --bs-btn-font-weight: 650;
+  --bs-btn-border-radius: var(--lc-radius-md);
+  --bs-btn-focus-box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: var(--lc-touch);
+  line-height: 1.25;
+  transition: color var(--lc-duration) var(--lc-ease), background-color var(--lc-duration) var(--lc-ease),
+    border-color var(--lc-duration) var(--lc-ease), box-shadow var(--lc-duration) var(--lc-ease);
+}
+
+.btn-lg {
+  --bs-btn-padding-x: 1.5rem;
+  --bs-btn-padding-y: .75rem;
+  --bs-btn-font-size: 1.0625rem;
+  --bs-btn-border-radius: var(--lc-radius);
+  min-height: 52px;
+}
+
+.btn-sm {
+  --bs-btn-padding-x: .875rem;
+  --bs-btn-padding-y: .4375rem;
+  --bs-btn-font-size: var(--lc-text-sm);
+  --bs-btn-border-radius: var(--lc-radius-sm);
+  min-height: 40px;
+}
+
+@media (pointer: coarse) {
+  .btn-sm { min-height: var(--lc-touch); }
+}
+
+/* Acción principal */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--lc-blue-600);
+  --bs-btn-border-color: var(--lc-blue-600);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--lc-blue-700);
+  --bs-btn-hover-border-color: var(--lc-blue-700);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--lc-blue-800);
+  --bs-btn-active-border-color: var(--lc-blue-800);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #7d9fd6;
+  --bs-btn-disabled-border-color: #7d9fd6;
+  box-shadow: 0 1px 2px rgba(11, 61, 145, .18);
+}
+
+/* Acción secundaria con acento de marca */
+.btn-outline-primary {
+  --bs-btn-color: var(--lc-blue-700);
+  --bs-btn-bg: var(--lc-surface);
+  --bs-btn-border-color: var(--lc-blue-200);
+  --bs-btn-hover-color: var(--lc-blue-800);
+  --bs-btn-hover-bg: var(--lc-blue-50);
+  --bs-btn-hover-border-color: var(--lc-blue-600);
+  --bs-btn-active-color: var(--lc-blue-800);
+  --bs-btn-active-bg: var(--lc-blue-100);
+  --bs-btn-active-border-color: var(--lc-blue-700);
+  --bs-btn-disabled-color: var(--lc-text-subtle);
+  --bs-btn-disabled-bg: var(--lc-surface-muted);
+  --bs-btn-disabled-border-color: var(--lc-border);
+}
+
+/* Acción secundaria neutra */
+.btn-outline-secondary {
+  --bs-btn-color: var(--lc-text);
+  --bs-btn-bg: var(--lc-surface);
+  --bs-btn-border-color: var(--lc-border-strong);
+  --bs-btn-hover-color: var(--lc-text);
+  --bs-btn-hover-bg: var(--lc-surface-sunken);
+  --bs-btn-hover-border-color: #94a3b8;
+  --bs-btn-active-color: var(--lc-text);
+  --bs-btn-active-bg: #e2e8f0;
+  --bs-btn-active-border-color: #94a3b8;
+  --bs-btn-disabled-color: var(--lc-text-subtle);
+  --bs-btn-disabled-bg: var(--lc-surface-muted);
+  --bs-btn-disabled-border-color: var(--lc-border);
+}
+
+/* Acción destructiva: solo para borrar o cerrar sesiones */
+.btn-danger {
+  --bs-btn-bg: var(--lc-danger);
+  --bs-btn-border-color: var(--lc-danger);
+  --bs-btn-hover-bg: #912018;
+  --bs-btn-hover-border-color: #912018;
+  --bs-btn-active-bg: #7a271a;
+  --bs-btn-active-border-color: #7a271a;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--lc-danger);
+  --bs-btn-bg: var(--lc-surface);
+  --bs-btn-border-color: var(--lc-danger-border);
+  --bs-btn-hover-color: #912018;
+  --bs-btn-hover-bg: var(--lc-danger-bg);
+  --bs-btn-hover-border-color: var(--lc-danger);
+  --bs-btn-active-color: #7a271a;
+  --bs-btn-active-bg: #fee4e2;
+  --bs-btn-active-border-color: var(--lc-danger);
+}
+
+.btn-success {
+  --bs-btn-bg: var(--lc-success);
+  --bs-btn-border-color: var(--lc-success);
+  --bs-btn-hover-bg: #065f46;
+  --bs-btn-hover-border-color: #065f46;
+  --bs-btn-active-bg: #064e3b;
+  --bs-btn-active-border-color: #064e3b;
+}
+
+/* Botones sobre superficies oscuras */
+.btn-light {
+  --bs-btn-color: var(--lc-navy-900);
+  --bs-btn-bg: #fff;
+  --bs-btn-border-color: #fff;
+  --bs-btn-hover-color: var(--lc-navy-900);
+  --bs-btn-hover-bg: var(--lc-blue-50);
+  --bs-btn-hover-border-color: var(--lc-blue-50);
+}
+
+.btn-outline-light {
+  --bs-btn-color: #fff;
+  --bs-btn-border-color: rgba(255, 255, 255, .45);
+  --bs-btn-hover-color: var(--lc-navy-900);
+  --bs-btn-hover-bg: #fff;
+  --bs-btn-hover-border-color: #fff;
+}
+
+/* Formularios */
+.form-label {
+  margin-bottom: var(--lc-space-2);
+  color: var(--lc-text);
+  font-weight: 650;
+}
+
+.form-control,
+.form-select {
+  min-height: 48px;
+  border-color: var(--lc-border-strong);
+  border-radius: var(--lc-radius-md);
+  color: var(--lc-text);
+  transition: border-color var(--lc-duration) var(--lc-ease), box-shadow var(--lc-duration) var(--lc-ease);
+}
+
+.form-control::placeholder { color: var(--lc-text-subtle); opacity: 1; }
+
+.form-control:hover:not(:disabled):not(:focus),
+.form-select:hover:not(:disabled):not(:focus) { border-color: #94a3b8; }
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--lc-blue-600);
+  box-shadow: 0 0 0 4px rgba(11, 94, 215, .16);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid { border-color: var(--lc-danger); }
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus { box-shadow: 0 0 0 4px rgba(180, 35, 24, .14); }
+
+.invalid-feedback { color: var(--lc-danger); font-weight: 600; }
+
+.form-check-input { border-color: #94a3b8; }
+.form-check-input:checked { background-color: var(--lc-blue-600); border-color: var(--lc-blue-600); }
+
+/* 4. Primitivas compartidas -------------------------------------------------- */
+
+/* Etiqueta superior de sección */
+.lc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--lc-blue-700);
+  font-size: var(--lc-text-xs);
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* Tarjeta base */
+.lc-card {
+  background: var(--lc-surface);
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius-lg);
+  box-shadow: var(--lc-shadow-xs);
+  padding: var(--lc-card-pad);
+}
+
+/* Cifras comparables */
+.lc-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Superficies oscuras: cambia el color del indicador de foco */
+.lc-on-dark { --lc-focus: var(--lc-focus-on-dark); }
+
+/* Páginas de contenido (guía, acerca, contacto, privacidad, términos) ------ */
+.lc-doc {
+  min-height: 100vh;
+  padding-bottom: var(--lc-section-gap);
+  background: var(--lc-page-bg);
+  color: var(--lc-text);
+}
+
+.lc-doc-hero {
+  padding: clamp(40px, 28px + 3vw, 72px) 0;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(20, 184, 166, .16), transparent 40%),
+    linear-gradient(130deg, var(--lc-navy-950), var(--lc-navy-900) 50%, var(--lc-blue-800));
+  color: #fff;
+}
+
+.lc-doc-hero .container { max-width: calc(880px + 2 * var(--lc-gutter)); }
+
+.lc-doc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lc-space-2);
+  color: #bfdbfe;
+  font-size: var(--lc-text-sm);
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.lc-doc-hero h1 {
+  margin: var(--lc-space-3) 0;
+  color: #fff;
+  font-size: var(--lc-text-3xl);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: var(--lc-leading-tight);
+}
+
+.lc-doc-hero p {
+  max-width: 64ch;
+  margin: 0 0 var(--lc-space-4);
+  color: var(--lc-text-on-dark-muted);
+  font-size: var(--lc-text-lg);
+}
+
+.lc-doc-hero p:last-child { margin-bottom: 0; }
+.lc-doc-hero small { color: var(--lc-text-on-dark-muted); }
+
+.lc-doc-body {
+  max-width: calc(880px + 2 * var(--lc-gutter));
+  padding-top: var(--lc-space-8);
+}
+
+.lc-doc-body section {
+  margin-bottom: var(--lc-card-gap);
+  padding: var(--lc-card-pad);
+  border: 1px solid var(--lc-border);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-surface);
+  box-shadow: var(--lc-shadow-xs);
+  scroll-margin-top: calc(var(--lc-header-height) + var(--lc-space-4));
+}
+
+.lc-doc-body section h2 {
+  margin: 0 0 var(--lc-space-3);
+  color: var(--lc-navy-900);
+  font-size: var(--lc-text-xl);
+  font-weight: 750;
+  letter-spacing: -.01em;
+}
+
+.lc-doc-body p,
+.lc-doc-body li {
+  color: var(--lc-text-muted);
+  line-height: 1.75;
+}
+
+.lc-doc-body section p { margin: 0 0 var(--lc-space-3); }
+.lc-doc-body section p:last-child { margin-bottom: 0; }
+
+.lc-doc-body a:not(.btn) {
+  color: var(--lc-blue-700);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lc-doc-body a:not(.btn):hover { color: var(--lc-blue-800); }
+
+.lc-doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lc-space-3);
+  margin-top: var(--lc-space-8);
+}
+
+@media (max-width: 575.98px) {
+  .lc-doc-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+}
+
+/* Alertas accesibles (cuenta, estados de error y vacíos) */
 .lc-alert {
   display: flex;
   gap: 12px;
@@ -65,13 +502,13 @@ main[tabindex="-1"]:focus { outline: none; }
   font-size: .95rem;
   line-height: 1.5;
 }
-.lc-alert > i { font-size: 1.1rem; line-height: 1.35; flex: none; }
+.lc-alert > i { flex: none; font-size: 1.1rem; line-height: 1.35; }
 .lc-alert strong { display: block; }
 .lc-alert ul { margin: 6px 0 0; padding-left: 18px; }
-.lc-alert--danger { background: var(--lc-danger-bg); border-color: #fecdca; color: var(--lc-danger); }
-.lc-alert--success { background: var(--lc-success-bg); border-color: #a7f3d0; color: var(--lc-success); }
-.lc-alert--info { background: var(--lc-info-bg); border-color: #bfdbfe; color: var(--lc-info); }
-.lc-alert--warning { background: var(--lc-warning-bg); border-color: #fde68a; color: var(--lc-warning); }
+.lc-alert--danger { background: var(--lc-danger-bg); border-color: var(--lc-danger-border); color: var(--lc-danger); }
+.lc-alert--success { background: var(--lc-success-bg); border-color: var(--lc-success-border); color: var(--lc-success); }
+.lc-alert--info { background: var(--lc-info-bg); border-color: var(--lc-info-border); color: var(--lc-info); }
+.lc-alert--warning { background: var(--lc-warning-bg); border-color: var(--lc-warning-border); color: var(--lc-warning); }
 .lc-alert .lc-alert-action {
   margin-top: 8px;
   padding: 0;
@@ -83,7 +520,7 @@ main[tabindex="-1"]:focus { outline: none; }
   text-underline-offset: 3px;
 }
 
-/* Indicador de carga dentro de botones. */
+/* Indicador de carga dentro de botones */
 .lc-spinner {
   display: inline-block;
   width: 1em;
@@ -92,9 +529,66 @@ main[tabindex="-1"]:focus { outline: none; }
   border-right-color: transparent;
   border-radius: 50%;
   animation: lc-spin .7s linear infinite;
-  vertical-align: -0.125em;
+  vertical-align: -.125em;
 }
 @keyframes lc-spin { to { transform: rotate(360deg); } }
 
-/* Marca de campo obligatorio, accesible (el texto oculto lo lee el lector de pantalla). */
-.lc-required { color: var(--lc-danger); margin-left: 2px; }
+/* Marca de campo obligatorio (el texto oculto lo lee el lector de pantalla) */
+.lc-required { margin-left: 2px; color: var(--lc-danger); }
+
+/* 5. Accesibilidad ----------------------------------------------------------- */
+:focus-visible {
+  outline: 3px solid var(--lc-focus);
+  outline-offset: 3px;
+  border-radius: var(--lc-radius-xs);
+}
+
+/* Bootstrap anula el contorno en estos controles con mayor especificidad. */
+.btn:focus-visible,
+.form-check-input:focus-visible {
+  outline: 3px solid var(--lc-focus);
+  outline-offset: 3px;
+}
+
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 2px solid var(--lc-focus);
+  outline-offset: 1px;
+}
+
+/* Destinos de foco programático (título de página tras navegar, contenido principal) */
+:where(main, h1, h2, h3, section)[tabindex="-1"]:focus { outline: none; }
+
+.skip-link {
+  position: absolute;
+  top: -64px;
+  left: 12px;
+  z-index: 2000;
+  padding: 10px 16px;
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-navy-900);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top .15s ease;
+  --lc-focus: var(--lc-focus-on-dark);
+}
+.skip-link:focus { top: 12px; color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* 6. Impresión ---------------------------------------------------------------- */
+@media print {
+  body { background: #fff; }
+  .skip-link,
+  .no-print { display: none !important; }
+}

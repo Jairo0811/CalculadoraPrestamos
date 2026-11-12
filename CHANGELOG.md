@@ -4,6 +4,35 @@ Todos los cambios importantes de LoanCalc RD se documentarán en este archivo.
 
 El proyecto sigue un esquema de versionado semántico.
 
+## [Unreleased] — UI refresh «Fintech Premium»
+
+Rediseño visual del frontend. El motor financiero (método francés, redondeo, límites y periodicidad de abonos), las exportaciones, la autenticación, AdSense y el SEO no cambian.
+
+### Añadido
+- Sistema de diseño documentado en `docs/DESIGN_SYSTEM.md`: tokens de color, tipografía fluida, espaciado de 4 px, radios, elevación, foco y movimiento; botones y formularios de Bootstrap tematizados.
+- Resultados: **cuota mensual estimada** como cifra protagonista, navegación interna accesible (Resumen, Análisis financiero, Abonos extraordinarios, Comparador, Amortización), gráfico de balance con escalas y línea «con abonos», escala del LoanCalc Score y fila de totales en la amortización.
+- Abonos: frecuencia y objetivo con botones de opción nativos, calendario previsto antes de calcular, meses aplicados para cualquier frecuencia y tabla «Préstamo original frente a préstamo con abonos» con aviso de que el ahorro no está garantizado.
+- Gestión de foco al cambiar de ruta (`RouteFocus`): la vista empieza arriba y el foco pasa al `h1`.
+- Pruebas: especificación de resultados, `loan-score`, `route-focus`, utilidades de vista y `e2e/ui-refresh.spec.ts` (54 casos en tres dispositivos).
+
+### Cambiado
+- Portada sin bloques repetidos: héroe de producto con vista previa ilustrativa rotulada, herramientas en mosaico, tres pasos, educación financiera y un único panel de privacidad.
+- Calculadora con `h1` visible, cabecera compacta, monto destacado y selector de plazos de 44 px.
+- Cabecera móvil con icono y etiqueta visibles; páginas de contenido unificadas en la primitiva `.lc-doc`.
+- «Nueva simulación» deja de usar el rojo de acción destructiva; PDF es la acción principal.
+- `--lc-text-subtle` pasa a `#5b6b82` para cumplir 4.5:1 sobre superficies tintadas.
+
+### Corregido
+- Tras «Calcular préstamo», resultados se abría desplazado (1,191 px en móvil) por el `scroll-behavior: smooth` global.
+- El mensaje «Resumen copiado al portapapeles» no siempre se pintaba sin Zone.js (ahora es una señal).
+- La comparación de cuota del escenario usaba la estrategia del formulario en lugar de la del escenario calculado.
+
+### Eliminado
+- `src/styles/results-refresh.css` (hoja global) y las 39 reglas de modo oscuro que nada activaba.
+- CSS minificado en líneas de hasta 8,665 caracteres; 45 declaraciones `!important` y estilos de botón duplicados en cinco páginas.
+
+---
+
 ## [Unreleased] — abonos anuales y experiencia móvil
 
 - Opción de **abono anual** desde un mes elegido, repetida cada 12 meses mientras exista saldo pendiente.

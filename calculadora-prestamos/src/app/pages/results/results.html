@@ -1,30 +1,69 @@
 @if (result) {
 <main class="results-page" id="main-content">
-  <section class="results-hero" aria-labelledby="results-title">
+  <!-- 1. Resumen ----------------------------------------------------------- -->
+  <section id="resumen" class="results-intro" aria-labelledby="results-title">
     <div class="container">
-      <span class="badge rounded-pill text-bg-light hero-badge">
-        <i class="bi bi-clipboard-data" aria-hidden="true"></i>
-        Resultado de simulación
-      </span>
-      <h1 id="results-title">Resumen del préstamo</h1>
-      <p>Analiza, compara, exporta y comparte tu simulación financiera.</p>
-    </div>
-  </section>
+      <a class="back-link no-print" routerLink="/calculator">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a la calculadora
+      </a>
 
-  <section class="results-content">
-    <div class="container">
-      <div class="actions-bar no-print">
-        <button class="btn btn-light" routerLink="/calculator" type="button">
-          <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver
-        </button>
-        <div class="actions-group">
+      <div class="intro-heading">
+        <p class="lc-eyebrow"><i class="bi bi-clipboard-data" aria-hidden="true"></i> Resultado de simulación</p>
+        <h1 id="results-title">Resumen del préstamo</h1>
+        <p class="intro-lede">{{ result.request.loanType }} · cuota fija calculada con el método francés.</p>
+      </div>
+
+      <div class="summary-panel">
+        <div class="payment-hero lc-on-dark">
+          <p class="payment-label" id="payment-label">Cuota mensual estimada</p>
+          <p class="payment-value lc-num">{{ result.monthlyPayment | rd }}</p>
+          <p class="payment-meta">
+            <i class="bi bi-calendar3" aria-hidden="true"></i>
+            {{ result.request.termMonths }} cuotas mensuales fijas
+          </p>
+        </div>
+
+        <dl class="summary-facts">
+          <div>
+            <dt>Monto solicitado</dt>
+            <dd class="lc-num">{{ result.request.amount | rd }}</dd>
+          </div>
+          <div>
+            <dt>Tasa anual</dt>
+            <dd class="lc-num">{{ result.request.annualRate | number:'1.2-2' }}%</dd>
+          </div>
+          <div>
+            <dt>Plazo</dt>
+            <dd class="lc-num">{{ result.request.termMonths }} meses</dd>
+          </div>
+          <div class="fact-interest">
+            <dt>Intereses totales</dt>
+            <dd class="lc-num">{{ result.totalInterest | rd }}</dd>
+          </div>
+          <div class="fact-total">
+            <dt>Total a pagar</dt>
+            <dd class="lc-num">{{ result.totalPayment | rd }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="actions-bar no-print" role="group" aria-label="Acciones de la simulación">
+        <div class="actions-export">
+          <button class="btn btn-primary" type="button" (click)="print()">
+            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> PDF
+          </button>
+          <button class="btn btn-outline-primary" type="button" (click)="exportExcel()">
+            <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i> Excel
+          </button>
+        </div>
+        <div class="actions-secondary">
           @if (auth.enabled) {
             @if (auth.isAuthenticated()) {
               <button class="btn btn-outline-primary cloud-save-button" type="button" (click)="saveToCloud()" [disabled]="cloudSaving() || !!cloudSavedId()">
                 <i class="bi" [class.bi-cloud-upload]="!cloudSavedId()" [class.bi-cloud-check]="!!cloudSavedId()" aria-hidden="true"></i>
                 {{ cloudSaving() ? 'Guardando…' : cloudSavedId() ? 'Guardada en mi cuenta' : 'Guardar en mi cuenta' }}
               </button>
-              <a class="btn btn-outline-primary cloud-my-button" routerLink="/account/simulations">
+              <a class="btn btn-outline-secondary cloud-my-button" routerLink="/account/simulations">
                 <i class="bi bi-collection" aria-hidden="true"></i> Mis guardadas
               </a>
             } @else {
@@ -33,684 +72,642 @@
               </a>
             }
           }
-          <button class="btn btn-primary" type="button" (click)="print()">
-            <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> PDF
-          </button>
-          <button class="btn btn-success" type="button" (click)="exportExcel()">
-            <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i> Excel
-          </button>
-          <button class="btn btn-danger" type="button" (click)="clearAndGoBack()">
+          <button class="btn btn-outline-secondary" type="button" (click)="clearAndGoBack()">
             <i class="bi bi-plus-circle" aria-hidden="true"></i> Nueva simulación
           </button>
         </div>
       </div>
+
       @if (cloudSaveNotice()) {
-        <p class="cloud-results-feedback success" role="status">{{ cloudSaveNotice() }}</p>
-      }
-      @if (cloudSaveError()) {
-        <p class="cloud-results-feedback error" role="alert">{{ cloudSaveError() }}</p>
-      }
-
-      <div class="summary-grid" role="list" aria-label="Resumen financiero">
-        <article class="summary-card"><span>Monto solicitado</span><strong>{{ result.request.amount | rd }}</strong><i class="bi bi-cash-stack" aria-hidden="true"></i></article>
-        <article class="summary-card highlight"><span>Cuota mensual</span><strong>{{ result.monthlyPayment | rd }}</strong><i class="bi bi-credit-card" aria-hidden="true"></i></article>
-        <article class="summary-card"><span>Interés total</span><strong>{{ result.totalInterest | rd }}</strong><i class="bi bi-percent" aria-hidden="true"></i></article>
-        <article class="summary-card"><span>Total a pagar</span><strong>{{ result.totalPayment | rd }}</strong><i class="bi bi-wallet2" aria-hidden="true"></i></article>
-      </div>
-
-      <section class="financial-dashboard" aria-labelledby="financial-dashboard-title">
-        <div class="dashboard-heading">
-          <div>
-            <span>Indicadores ejecutivos</span>
-            <h2 id="financial-dashboard-title">Dashboard financiero</h2>
-            <p>Lectura rápida del costo y la eficiencia del préstamo.</p>
-          </div>
-
-        <div class="loan-score {{ loanScoreClass }}">
-            <span>LoanCalc Score</span>
-            <strong>{{ loanScore }}</strong>
-            <small>{{ loanScoreDescription }}</small>
-          </div>
-        </div>
-
-        <div class="dashboard-kpi-grid">
-          <article class="dashboard-kpi">
-            <i class="bi bi-cash-coin" aria-hidden="true"></i>
-            <span>Costo financiero</span>
-            <strong>{{ result.totalInterest | rd }}</strong>
-            <small>Intereses totales</small>
-          </article>
-
-          <article class="dashboard-kpi">
-            <i class="bi bi-percent" aria-hidden="true"></i>
-            <span>Interés sobre capital</span>
-            <strong>{{ interestOverCapitalPercentage | number:'1.0-1' }}%</strong>
-            <small>Relación interés/capital</small>
-          </article>
-
-          <article class="dashboard-kpi">
-            <i class="bi bi-calendar-month" aria-hidden="true"></i>
-            <span>Costo mensual promedio</span>
-            <strong>{{ averageMonthlyInterest | rd }}</strong>
-            <small>Interés promedio por mes</small>
-          </article>
-
-          <article class="dashboard-kpi">
-            <i class="bi bi-calendar2-check" aria-hidden="true"></i>
-            <span>Costo anual promedio</span>
-            <strong>{{ averageAnnualInterest | rd }}</strong>
-            <small>Referencia anual</small>
-          </article>
-        </div>
-      </section>
-
-      <div class="analytics-grid">
-        <section class="feature-card" aria-labelledby="composition-title">
-          <div class="feature-header"><div><span>Análisis</span><h2 id="composition-title">Capital vs. interés</h2></div><i class="bi bi-pie-chart" aria-hidden="true"></i></div>
-          <div class="donut" [style.--principal]="principalPercentage + '%'">
-            <div><strong>{{ principalPercentage | number:'1.0-1' }}%</strong><small>Capital</small></div>
-          </div>
-          <div class="legend"><span><b class="capital-dot"></b> Capital {{ principalPercentage | number:'1.0-1' }}%</span><span><b class="interest-dot"></b> Interés {{ interestPercentage | number:'1.0-1' }}%</span></div>
-        </section>
-
-        <section class="feature-card" aria-labelledby="balance-title">
-          <div class="feature-header"><div><span>Evolución</span><h2 id="balance-title">Balance restante</h2></div><i class="bi bi-graph-down-arrow" aria-hidden="true"></i></div>
-          <svg class="balance-chart" viewBox="0 0 100 100" role="img" aria-label="Evolución descendente del balance del préstamo" preserveAspectRatio="none">
-            <line x1="0" y1="100" x2="100" y2="100" class="chart-axis" />
-            <line x1="0" y1="0" x2="0" y2="100" class="chart-axis" />
-            <polyline [attr.points]="chartPoints" class="chart-line" />
-          </svg>
-        </section>
-      </div>
-
-      <section class="feature-card comparator-card" aria-labelledby="comparator-title">
-        <div class="feature-header"><div><span>Comparador</span><h2 id="comparator-title">Escenarios por entidad</h2><p>Introduce las tasas de las ofertas que deseas comparar.</p></div><i class="bi bi-bank" aria-hidden="true"></i></div>
-        <p class="small text-muted">Las tasas precargadas son <strong>ejemplos ilustrativos</strong>, no cotizaciones oficiales ni tasas bancarias en tiempo real. La comparación no incluye comisiones, seguros ni impuestos. Consulta las condiciones vigentes con cada entidad.</p>
-        <div class="rate-editor no-print">
-          @for (bank of bankRates; track bank.name) {
-            <label>{{ bank.name }}<span><input type="number" min="0" step="0.01" [(ngModel)]="bank.annualRate" /> %</span></label>
-          }
-        </div>
-        <div class="table-responsive" tabindex="0">
-          <table class="table comparison-table">
-            <thead><tr><th>Entidad</th><th>Tasa</th><th>Cuota</th><th>Interés</th><th>Total</th></tr></thead>
-            <tbody>
-              @for (option of comparisons; track option.name; let first = $first) {
-                <tr [class.best-option]="first"><td><strong>{{ option.name }}</strong>@if (first) { <span class="best-badge">Menor total simulado</span> }</td><td>{{ option.annualRate | number:'1.2-2' }}%</td><td>{{ option.monthlyPayment | rd }}</td><td>{{ option.totalInterest | rd }}</td><td>{{ option.totalPayment | rd }}</td></tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section
-  class="feature-card extra-payment-card no-print"
-  aria-labelledby="extra-payment-title"
->
-  <div class="feature-header">
-    <div>
-      <span>Planificación financiera</span>
-
-      <h2 id="extra-payment-title">
-        Abonos extraordinarios al capital
-      </h2>
-
-      <p>
-        Descubre cuánto puedes ahorrar realizando un abono
-        adicional al préstamo.
-      </p>
-    </div>
-
-    <i
-      class="bi bi-piggy-bank"
-      aria-hidden="true"
-    ></i>
-  </div>
-
-  <form
-    class="extra-payment-form"
-    (ngSubmit)="calculateExtraPayment()"
-  >
-    <label>
-      <span>Monto del abono</span>
-
-      <div class="input-group">
-        <span class="input-group-text">RD$</span>
-
-        <input
-          class="form-control"
-          type="number"
-          name="extraPaymentAmount"
-          min="0.01"
-          step="0.01"
-          placeholder="Ej.: 50000"
-          [(ngModel)]="extraPaymentAmount"
-          required
-        />
-      </div>
-    </label>
-
-    <label>
-      <span>Aplicar desde el mes</span>
-
-      <input
-        class="form-control"
-        type="number"
-        name="extraPaymentStartMonth"
-        min="1"
-        [max]="result.request.termMonths"
-        step="1"
-        [(ngModel)]="extraPaymentStartMonth"
-        required
-      />
-    </label>
-
-    <label>
-      <span>Frecuencia</span>
-
-      <select
-        class="form-select"
-        name="extraPaymentFrequency"
-        [(ngModel)]="extraPaymentFrequency"
-      >
-        <option value="single">
-          Abono único
-        </option>
-
-        <option value="monthly">
-          Abono mensual
-        </option>
-
-        <option value="annual">
-          Abono anual (cada 12 meses)
-        </option>
-      </select>
-    </label>
-
-    <label>
-      <span>Objetivo del abono</span>
-
-      <select
-        class="form-select"
-        name="extraPaymentStrategy"
-        [(ngModel)]="extraPaymentStrategy"
-      >
-        <option value="reduce-term">
-          Reducir el plazo
-        </option>
-
-        <option value="reduce-payment">
-          Reducir la cuota
-        </option>
-      </select>
-    </label>
-
-    @if (extraPaymentFrequency === 'annual') {
-      <p class="extra-payment-frequency-help" role="status">
-        El primer abono se aplicará en el mes {{ extraPaymentStartMonth }} y se repetirá
-        cada 12 meses, mientras exista saldo pendiente. Puedes simular el uso de tu
-        doble sueldo o bonificación anual.
-      </p>
-    }
-
-    <div class="extra-payment-actions">
-      <button
-        type="submit"
-        class="btn btn-primary"
-      >
-        <i
-          class="bi bi-calculator"
-          aria-hidden="true"
-        ></i>
-
-        Calcular ahorro
-      </button>
-
-      @if (extraPaymentResult) {
-        <button
-          type="button"
-          class="btn btn-outline-secondary"
-          (click)="clearExtraPaymentScenario()"
-        >
-          Limpiar escenario
-        </button>
-      }
-    </div>
-  </form>
-
-  @if (extraPaymentError) {
-    <div
-      class="alert alert-danger mt-3 mb-0"
-      role="alert"
-    >
-      <i
-        class="bi bi-exclamation-triangle"
-        aria-hidden="true"
-      ></i>
-
-      {{ extraPaymentError }}
-    </div>
-  }
-
-  @if (extraPaymentResult; as extraResult) {
-    <div
-      class="extra-payment-results"
-      aria-live="polite"
-    >
-
-    <div class="extra-payment-export-actions">
-  <button
-    type="button"
-    class="btn btn-danger"
-    (click)="exportExtraPaymentPdf()"
-  >
-    <i
-      class="bi bi-file-earmark-pdf"
-      aria-hidden="true"
-    ></i>
-
-    Exportar escenario a PDF
-  </button>
-
-  <button
-    type="button"
-    class="btn btn-success"
-    (click)="exportExtraPaymentExcel()"
-  >
-    <i
-      class="bi bi-file-earmark-spreadsheet"
-      aria-hidden="true"
-    ></i>
-
-    Exportar escenario a Excel
-  </button>
-</div>
-      @if (extraResult.request.frequency === 'annual') {
-        <p class="extra-payment-applied-note" role="status">
-          <i class="bi bi-calendar2-check" aria-hidden="true"></i>
-          @if (annualExtraPaymentMonths.length) {
-            Se aplicaron {{ annualExtraPaymentMonths.length }}
-            {{ annualExtraPaymentMonths.length === 1 ? 'abono anual' : 'abonos anuales' }}
-            en {{ annualExtraPaymentMonths.length === 1 ? 'el mes' : 'los meses' }}
-            <strong>{{ annualExtraPaymentMonths.join(', ') }}</strong>.
-          } @else {
-            El préstamo se liquidó antes de que pudiera aplicarse el primer abono anual.
-          }
+        <p class="lc-alert lc-alert--success cloud-results-feedback" role="status">
+          <i class="bi bi-cloud-check" aria-hidden="true"></i><span>{{ cloudSaveNotice() }}</span>
         </p>
       }
-      <div class="extra-payment-summary">
-        <article>
-          <span>Intereses ahorrados</span>
-
-          <strong>
-            {{
-              extraResult.interestSaved
-                | rd
-            }}
-          </strong>
-
-          <i
-            class="bi bi-graph-down"
-            aria-hidden="true"
-          ></i>
-        </article>
-
-        <article>
-          <span>Meses ahorrados</span>
-
-          <strong>
-            {{ extraResult.monthsSaved }}
-          </strong>
-
-          <i
-            class="bi bi-calendar-check"
-            aria-hidden="true"
-          ></i>
-        </article>
-
-        <article>
-          <span>Nuevo interés total</span>
-
-          <strong>
-            {{
-              extraResult.newTotalInterest
-                | rd
-            }}
-          </strong>
-
-          <i
-            class="bi bi-percent"
-            aria-hidden="true"
-          ></i>
-        </article>
-
-        <article>
-          <span>Nuevo plazo</span>
-
-          <strong>
-            {{ extraResult.newTermMonths }} meses
-          </strong>
-
-          <i
-            class="bi bi-hourglass-split"
-            aria-hidden="true"
-          ></i>
-        </article>
-      </div>
-
-      <section class="extra-payment-impact" aria-labelledby="extra-payment-impact-title">
-        <div class="impact-heading">
-          <div>
-            <span>Antes vs. después</span>
-            <h3 id="extra-payment-impact-title">Impacto financiero del abono</h3>
-          </div>
-
-          <div class="impact-score">
-            <strong>{{ extraPaymentInterestReductionPercentage | number:'1.0-1' }}%</strong>
-            <span>menos intereses</span>
-          </div>
-        </div>
-
-        <div class="impact-grid">
-          <article class="impact-card">
-            <div class="impact-card-header">
-              <span>Interés total</span>
-              <i class="bi bi-percent" aria-hidden="true"></i>
-            </div>
-
-            <div class="impact-values">
-              <div>
-                <small>Original</small>
-                <strong>{{ extraResult.originalTotalInterest | rd }}</strong>
-              </div>
-
-              <div class="impact-new-value">
-                <small>Con abonos</small>
-                <strong>{{ extraResult.newTotalInterest | rd }}</strong>
-              </div>
-            </div>
-
-            <div class="comparison-bars" aria-label="Comparación visual de intereses">
-              <div class="comparison-bar-row">
-                <span>Original</span>
-                <div class="comparison-track">
-                  <div class="comparison-fill original" style="width: 100%"></div>
-                </div>
-              </div>
-
-              <div class="comparison-bar-row">
-                <span>Nuevo</span>
-                <div class="comparison-track">
-                  <div
-                    class="comparison-fill improved"
-                    [style.width.%]="extraPaymentNewInterestPercentage"
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            <p class="impact-saving">
-              Ahorras
-              <strong>{{ extraResult.interestSaved | rd }}</strong>
-            </p>
-          </article>
-
-          <article class="impact-card">
-            <div class="impact-card-header">
-              <span>Duración del préstamo</span>
-              <i class="bi bi-calendar-range" aria-hidden="true"></i>
-            </div>
-
-            <div class="impact-values">
-              <div>
-                <small>Original</small>
-                <strong>{{ extraResult.originalTermMonths }} meses</strong>
-              </div>
-
-              <div class="impact-new-value">
-                <small>Con abonos</small>
-                <strong>{{ extraResult.newTermMonths }} meses</strong>
-              </div>
-            </div>
-
-            <div class="comparison-bars" aria-label="Comparación visual del plazo">
-              <div class="comparison-bar-row">
-                <span>Original</span>
-                <div class="comparison-track">
-                  <div class="comparison-fill original" style="width: 100%"></div>
-                </div>
-              </div>
-
-              <div class="comparison-bar-row">
-                <span>Nuevo</span>
-                <div class="comparison-track">
-                  <div
-                    class="comparison-fill improved"
-                    [style.width.%]="extraPaymentNewTermPercentage"
-                  ></div>
-                </div>
-              </div>
-            </div>
-
-            <p class="impact-saving">
-              Reduces
-              <strong>{{ extraResult.monthsSaved }} meses</strong>
-              ({{ extraPaymentTermReductionPercentage | number:'1.0-1' }}%)
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <div class="extra-payment-comparison">
-        <div>
-          <span>Plazo original</span>
-          <strong>
-            {{ extraResult.originalTermMonths }} meses
-          </strong>
-        </div>
-
-        <i
-          class="bi bi-arrow-right"
-          aria-hidden="true"
-        ></i>
-
-        <div>
-          <span>Nuevo plazo</span>
-          <strong>
-            {{ extraResult.newTermMonths }} meses
-          </strong>
-        </div>
-      </div>
-
-      @if (extraPaymentStrategy === 'reduce-payment') {
-        <div class="extra-payment-comparison">
-          <div>
-            <span>Cuota original</span>
-
-            <strong>
-              {{
-                extraResult.originalResult.monthlyPayment
-                  | rd
-              }}
-            </strong>
-          </div>
-
-          <i
-            class="bi bi-arrow-right"
-            aria-hidden="true"
-          ></i>
-
-          <div>
-            <span>Cuota recalculada</span>
-
-            <strong>
-              {{
-                extraResult.finalMonthlyPayment
-                  | rd
-              }}
-            </strong>
-          </div>
-        </div>
+      @if (cloudSaveError()) {
+        <p class="lc-alert lc-alert--danger cloud-results-feedback" role="alert">
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{{ cloudSaveError() }}</span>
+        </p>
       }
 
-      <div class="table-responsive extra-payment-table">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th>No.</th>
-              <th>Fecha</th>
-              <th>Cuota regular</th>
-              <th>Abono extra</th>
-              <th>Interés</th>
-              <th>Capital total</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            @for (
-              row of extraResult.amortization;
-              track row.number
-            ) {
-              <tr
-                [class.extra-payment-row]="row.extraPayment > 0"
-              >
-                <td>{{ row.number }}</td>
-
-                <td>{{ row.paymentDate }}</td>
-
-                <td>
-                  {{
-                    row.regularPayment
-                      | rd
-                  }}
-                </td>
-
-                <td>
-                  @if (row.extraPayment > 0) {
-                    <div class="extra-payment-badge">
-                      <span>Abono extra</span>
-                      <strong>
-                        {{
-                          row.extraPayment
-                            | rd
-                        }}
-                      </strong>
-                    </div>
-                  } @else {
-                    <span class="text-muted">—</span>
-                  }
-                </td>
-
-                <td>
-                  {{
-                    row.interest
-                      | rd
-                  }}
-                </td>
-
-                <td>
-                  {{
-                    row.principal
-                      | rd
-                  }}
-                </td>
-
-                <td>
-                  {{
-                    row.balance
-                      | rd
-                  }}
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
-</section>
-
-      <div class="details-grid">
-        
-        <section class="panel-card"><div class="panel-title"><h2>Datos del solicitante</h2><i class="bi bi-person-lines-fill" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Nombre</dt><dd>{{ clientName(result) }}</dd></div><div><dt>Cédula</dt><dd>{{ result.request.documentId || 'No especificada' }}</dd></div><div><dt>Edad</dt><dd>{{ result.age ?? 'No especificada' }}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{{ result.request.birthDate ? formatInputDate(result.request.birthDate) : 'No especificada' }}</dd></div></dl></section>
-        <section class="panel-card"><div class="panel-title"><h2>Condiciones del préstamo</h2><i class="bi bi-bank2" aria-hidden="true"></i></div><dl class="info-list"><div><dt>Tipo</dt><dd>{{ result.request.loanType }}</dd></div><div><dt>Tasa anual</dt><dd>{{ result.request.annualRate | number:'1.2-2' }}%</dd></div><div><dt>Duración</dt><dd>{{ result.request.termMonths }} meses</dd></div><div><dt>Cuotas</dt><dd>{{ result.amortization.length }}</dd></div></dl></section>
-      </div>
-
-      <div class="insights-grid no-print">
-        <section class="feature-card recommendations-card" aria-labelledby="recommendations-title">
-          <div class="feature-header">
-            <div>
-              <span>Análisis automático</span>
-              <h2 id="recommendations-title">Recomendaciones financieras</h2>
-              <p>Sugerencias generadas a partir de la simulación actual.</p>
-            </div>
-            <i class="bi bi-lightbulb" aria-hidden="true"></i>
-          </div>
-
-          <ul class="recommendations-list">
-            @for (recommendation of financialRecommendations; track recommendation) {
-              <li>
-                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-                <span>{{ recommendation }}</span>
-              </li>
-            }
-          </ul>
-          <p class="advice-disclaimer">
-            <i class="bi bi-info-circle" aria-hidden="true"></i>
-            Estas sugerencias son cálculos automáticos sobre los datos introducidos, no asesoría financiera personalizada.
-            Confirma tasas, comisiones, seguros y condiciones finales con tu entidad financiera antes de firmar.
-          </p>
-        </section>
-
-        <section class="feature-card timeline-card" aria-labelledby="timeline-title">
-          <div class="feature-header">
-            <div>
-              <span>Proyección</span>
-              <h2 id="timeline-title">Línea de tiempo</h2>
-              <p>Hitos principales del préstamo simulado.</p>
-            </div>
-            <i class="bi bi-signpost-split" aria-hidden="true"></i>
-          </div>
-
-          <ol class="loan-timeline">
-            @for (item of loanTimelineItems; track item.title) {
-              <li [class.timeline-accent]="item.accent">
-                <span class="timeline-icon">
-                  <i class="bi {{ item.icon }}" aria-hidden="true"></i>
-                </span>
-                <div>
-                  <strong>{{ item.title }}</strong>
-                  <span>{{ item.detail }}</span>
-                </div>
-              </li>
-            }
-          </ol>
-        </section>
-      </div>
-
-      <section class="feature-card share-card no-print" aria-labelledby="share-title">
-        <div class="feature-header"><div><span>Compartir</span><h2 id="share-title">Comparte tu simulación</h2></div><i class="bi bi-share" aria-hidden="true"></i></div>
-        <div class="share-actions"><button type="button" (click)="shareWhatsApp()" class="share-button whatsapp"><i class="bi bi-whatsapp"></i> WhatsApp</button><button type="button" (click)="shareFacebook()" class="share-button facebook"><i class="bi bi-facebook"></i> Facebook</button><button type="button" (click)="shareLinkedIn()" class="share-button linkedin"><i class="bi bi-linkedin"></i> LinkedIn</button><button type="button" (click)="copySummary()" class="share-button copy"><i class="bi bi-clipboard"></i> Copiar resumen</button></div>
-        <p class="share-feedback" aria-live="polite">{{ shareFeedback }}</p>
-      </section>
-
-      @if (history.length > 0) {
-        <section class="feature-card history-card no-print" aria-labelledby="history-title">
-          <div class="feature-header"><div><span>Historial local</span><h2 id="history-title">Mis simulaciones</h2></div><button type="button" class="btn btn-outline-danger btn-sm" (click)="clearHistory()">Limpiar todo</button></div>
-          <div class="history-list">
-            @for (item of history; track $index) {
-              <article class="history-item"><button type="button" class="history-load" (click)="loadSimulation($index)"><strong>{{ item.request.loanType }}</strong><span>{{ clientName(item) }}</span><b>{{ item.request.amount | rd }}</b></button><button type="button" class="history-delete" (click)="removeHistoryItem($index)" aria-label="Eliminar simulación"><i class="bi bi-trash3"></i></button></article>
-            }
-          </div>
-        </section>
-      }
-
-      <section class="table-card" aria-labelledby="amortization-title">
-        <div class="table-header"><div><span>Calendario de pagos</span><h2 id="amortization-title">Tabla de amortización</h2></div><i class="bi bi-table" aria-hidden="true"></i></div>
-        <div class="table-responsive" tabindex="0"><table class="table align-middle"><thead><tr><th>No.</th><th>Fecha</th><th>Cuota</th><th>Interés</th><th>Capital</th><th>Balance</th></tr></thead><tbody>@for (row of result.amortization; track row.number) {<tr><td>{{ row.number }}</td><td>{{ row.paymentDate }}</td><td>{{ row.payment | rd }}</td><td>{{ row.interest | rd }}</td><td>{{ row.principal | rd }}</td><td>{{ row.balance | rd }}</td></tr>}</tbody></table></div>
-      </section>
+      <p class="summary-note">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Simulación con tasa fija. No incluye comisiones, seguros ni impuestos; confirma las condiciones finales con tu entidad.
+      </p>
     </div>
   </section>
+
+  <!-- Navegación interna --------------------------------------------------- -->
+  <nav class="section-nav no-print" aria-label="Secciones de resultados">
+    <div class="container">
+      <ul>
+        @for (section of sections; track section.id) {
+          <li>
+            <a
+              [href]="'/results#' + section.id"
+              [class.active]="activeSection() === section.id"
+              [attr.aria-current]="activeSection() === section.id ? 'location' : null"
+              (click)="goToSection($event, section.id)"
+            >{{ section.label }}</a>
+          </li>
+        }
+      </ul>
+    </div>
+  </nav>
+
+  <div class="results-body">
+    <div class="container">
+      <!-- 2. Análisis financiero ------------------------------------------ -->
+      <section id="analisis" class="results-section" aria-labelledby="analysis-title">
+        <header class="section-head">
+          <h2 id="analysis-title">Análisis financiero</h2>
+          <p>Cuánto cuesta el dinero prestado y cómo se distribuye cada pago.</p>
+        </header>
+
+        <div class="analysis-top">
+          <article class="lc-card score-card {{ loanScoreClass }}" aria-labelledby="score-title">
+            <div class="score-main">
+              <p class="score-grade" aria-hidden="true">{{ loanScore }}</p>
+              <div>
+                <h3 id="score-title">LoanCalc Score</h3>
+                <p class="score-result"><span class="visually-hidden">Calificación {{ loanScore }}: </span>{{ loanScoreDescription }}</p>
+              </div>
+            </div>
+            <p class="score-note">
+              Indicador matemático interno de LoanCalc RD calculado con la proporción de intereses sobre el capital
+              (<span class="lc-num">{{ interestOverCapitalPercentage | number:'1.0-1' }}%</span>).
+              <strong>No es un puntaje de crédito</strong> ni predice la aprobación de una entidad financiera.
+            </p>
+            <ol class="score-scale" aria-label="Escala del LoanCalc Score según interés sobre capital">
+              @for (band of scoreBands; track band.grade) {
+                <li class="tone-{{ band.tone }}" [class.is-current]="band.grade === loanScore" [attr.aria-current]="band.grade === loanScore ? 'true' : null">
+                  <strong>{{ band.grade }}</strong>
+                  <span>{{ scoreRangeLabel(band) }}</span>
+                  @if (band.grade === loanScore) { <span class="visually-hidden">(tu resultado)</span> }
+                </li>
+              }
+            </ol>
+          </article>
+
+          <dl class="lc-card kpi-list">
+            <div class="kpi">
+              <dt>Interés sobre capital</dt>
+              <dd class="lc-num">{{ interestOverCapitalPercentage | number:'1.0-1' }}%</dd>
+              <dd class="kpi-help">Por cada RD$ 100 prestados pagas RD$ {{ interestOverCapitalPercentage | number:'1.2-2' }} de interés.</dd>
+            </div>
+            <div class="kpi">
+              <dt>Interés promedio mensual</dt>
+              <dd class="lc-num">{{ averageMonthlyInterest | rd }}</dd>
+              <dd class="kpi-help">Parte media de cada cuota que corresponde a interés.</dd>
+            </div>
+            <div class="kpi">
+              <dt>Interés promedio anual</dt>
+              <dd class="lc-num">{{ averageAnnualInterest | rd }}</dd>
+              <dd class="kpi-help">Referencia para compararlo con tu presupuesto de un año.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="analysis-charts">
+          <article class="lc-card chart-card" aria-labelledby="composition-title">
+            <h3 id="composition-title">Capital frente a interés</h3>
+            <p class="chart-help">Composición del total que pagarás al terminar el préstamo.</p>
+            <div class="composition">
+              <div
+                class="donut"
+                role="img"
+                [attr.aria-label]="'Capital ' + (principalPercentage | number:'1.0-1') + ' %, interés ' + (interestPercentage | number:'1.0-1') + ' % del total a pagar'"
+                [style.--principal]="principalPercentage + '%'"
+              >
+                <div><strong class="lc-num">{{ principalPercentage | number:'1.0-1' }}%</strong><small>capital</small></div>
+              </div>
+              <dl class="chart-legend">
+                <div>
+                  <dt><span class="swatch swatch-principal" aria-hidden="true"></span>Capital</dt>
+                  <dd><span class="lc-num">{{ result.request.amount | rd }}</span> <small>{{ principalPercentage | number:'1.0-1' }}%</small></dd>
+                </div>
+                <div>
+                  <dt><span class="swatch swatch-interest" aria-hidden="true"></span>Interés</dt>
+                  <dd><span class="lc-num">{{ result.totalInterest | rd }}</span> <small>{{ interestPercentage | number:'1.0-1' }}%</small></dd>
+                </div>
+              </dl>
+            </div>
+          </article>
+
+          <article class="lc-card chart-card" aria-labelledby="balance-title">
+            <h3 id="balance-title">Evolución del balance</h3>
+            <p class="chart-help">Al inicio el balance baja más despacio porque las primeras cuotas pagan más interés.</p>
+            <figure class="balance-figure">
+              <div class="balance-plot">
+                <div class="y-axis" aria-hidden="true">
+                  <span>RD$ {{ result.request.amount | number:'1.0-0' }}</span>
+                  <span>RD$ {{ result.request.amount / 2 | number:'1.0-0' }}</span>
+                  <span>RD$ 0</span>
+                </div>
+                <div class="plot-area">
+                  <svg class="balance-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" [attr.aria-label]="balanceChartLabel">
+                    <line class="grid-line" x1="0" y1="0" x2="100" y2="0" />
+                    <line class="grid-line" x1="0" y1="50" x2="100" y2="50" />
+                    <line class="grid-line axis" x1="0" y1="100" x2="100" y2="100" />
+                    <polyline class="line-original" [attr.points]="balancePoints" />
+                    @if (extraBalancePoints) {
+                      <polyline class="line-extra" [attr.points]="extraBalancePoints" />
+                    }
+                  </svg>
+                  <div class="x-axis" aria-hidden="true">
+                    <span>Mes 0</span>
+                    <span>Mes {{ result.request.termMonths / 2 | number:'1.0-0' }}</span>
+                    <span>Mes {{ result.request.termMonths }}</span>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="chart-legend-inline">
+                <span><span class="key key-original" aria-hidden="true"></span>Préstamo original</span>
+                @if (extraPaymentResult) {
+                  <span><span class="key key-extra" aria-hidden="true"></span>Con abonos (termina en el mes {{ extraPaymentResult.newTermMonths }})</span>
+                }
+              </figcaption>
+            </figure>
+          </article>
+        </div>
+
+        <div class="insights-grid no-print">
+          <article class="lc-card recommendations-card" aria-labelledby="recommendations-title">
+            <h3 id="recommendations-title"><i class="bi bi-lightbulb" aria-hidden="true"></i> Recomendaciones</h3>
+            <ul class="recommendations-list">
+              @for (recommendation of financialRecommendations; track recommendation) {
+                <li><i class="bi bi-check2-circle" aria-hidden="true"></i><span>{{ recommendation }}</span></li>
+              }
+            </ul>
+            <p class="advice-disclaimer">
+              <i class="bi bi-info-circle" aria-hidden="true"></i>
+              <span>
+                Estas sugerencias son cálculos automáticos sobre los datos introducidos, no asesoría financiera personalizada.
+                Confirma tasas, comisiones, seguros y condiciones finales con tu entidad financiera antes de firmar.
+              </span>
+            </p>
+          </article>
+
+          <article class="lc-card timeline-card" aria-labelledby="timeline-title">
+            <h3 id="timeline-title"><i class="bi bi-signpost-split" aria-hidden="true"></i> Línea de tiempo</h3>
+            <ol class="loan-timeline">
+              @for (item of loanTimelineItems; track item.title) {
+                <li [class.timeline-accent]="item.accent">
+                  <span class="timeline-icon"><i class="bi {{ item.icon }}" aria-hidden="true"></i></span>
+                  <div><strong>{{ item.title }}</strong><span>{{ item.detail }}</span></div>
+                </li>
+              }
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <!-- 3. Abonos extraordinarios --------------------------------------- -->
+      <section id="abonos" class="results-section extra-payment-card no-print" aria-labelledby="extra-payment-title">
+        <header class="section-head">
+          <h2 id="extra-payment-title">Abonos extraordinarios</h2>
+          <p>Simula pagos adicionales al capital y compara el préstamo original con el escenario con abonos.</p>
+        </header>
+
+        <div class="lc-card extra-form-card">
+          <form class="extra-payment-form" (ngSubmit)="calculateExtraPayment()">
+            <div class="extra-fields">
+              <div class="field">
+                <label class="form-label" for="extra-amount">Monto del abono</label>
+                <div class="input-group">
+                  <span class="input-group-text">RD$</span>
+                  <input
+                    id="extra-amount"
+                    class="form-control"
+                    type="number"
+                    inputmode="decimal"
+                    name="extraPaymentAmount"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Ej.: 50000"
+                    [(ngModel)]="extraPaymentAmount"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="form-label" for="extra-start">Aplicar desde el mes</label>
+                <input
+                  id="extra-start"
+                  class="form-control"
+                  type="number"
+                  inputmode="numeric"
+                  name="extraPaymentStartMonth"
+                  min="1"
+                  [max]="result.request.termMonths"
+                  step="1"
+                  [(ngModel)]="extraPaymentStartMonth"
+                  aria-describedby="extra-start-help"
+                  required
+                />
+                <p class="field-help" id="extra-start-help">Entre el mes 1 y el {{ result.request.termMonths }}.</p>
+              </div>
+            </div>
+
+            <fieldset class="choice-group">
+              <legend>Frecuencia</legend>
+              <div class="choice-grid choice-grid-3">
+                <label class="choice">
+                  <input type="radio" name="extraPaymentFrequency" value="single" [(ngModel)]="extraPaymentFrequency" />
+                  <span class="choice-body"><strong>Abono único</strong><small>Un solo pago en el mes indicado.</small></span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="extraPaymentFrequency" value="monthly" [(ngModel)]="extraPaymentFrequency" />
+                  <span class="choice-body"><strong>Abono mensual</strong><small>Cada mes, desde el mes indicado.</small></span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="extraPaymentFrequency" value="annual" [(ngModel)]="extraPaymentFrequency" />
+                  <span class="choice-body"><strong>Abono anual (cada 12 meses)</strong><small>Ideal para el doble sueldo o una bonificación.</small></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="choice-group">
+              <legend>Objetivo del abono</legend>
+              <div class="choice-grid">
+                <label class="choice">
+                  <input type="radio" name="extraPaymentStrategy" value="reduce-term" [(ngModel)]="extraPaymentStrategy" />
+                  <span class="choice-body"><strong>Reducir el plazo</strong><small>Mantienes la cuota y terminas antes.</small></span>
+                </label>
+                <label class="choice">
+                  <input type="radio" name="extraPaymentStrategy" value="reduce-payment" [(ngModel)]="extraPaymentStrategy" />
+                  <span class="choice-body"><strong>Reducir la cuota</strong><small>Mantienes el plazo y pagas menos cada mes.</small></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="plan-preview" aria-live="polite">
+              <p class="plan-title"><i class="bi bi-calendar2-week" aria-hidden="true"></i> Calendario previsto</p>
+              @if (plannedExtraPaymentMonths.length) {
+                <div class="plan-track" aria-hidden="true">
+                  @if (extraPaymentFrequency === 'monthly') {
+                    <span
+                      class="plan-range"
+                      [style.left.%]="monthPosition(plannedExtraPaymentMonths[0], result.request.termMonths) - 50 / result.request.termMonths"
+                      [style.right.%]="0"
+                    ></span>
+                  } @else {
+                    @for (month of plannedExtraPaymentMonths; track month) {
+                      <span class="plan-mark" [style.left.%]="monthPosition(month, result.request.termMonths)"></span>
+                    }
+                  }
+                </div>
+                <div class="plan-scale" aria-hidden="true"><span>Mes 1</span><span>Mes {{ result.request.termMonths }}</span></div>
+
+                @switch (extraPaymentFrequency) {
+                  @case ('single') {
+                    <p class="plan-text">Un abono en el mes <strong>{{ plannedExtraPaymentMonths[0] }}</strong>.</p>
+                  }
+                  @case ('monthly') {
+                    <p class="plan-text">
+                      Un abono cada mes desde el mes <strong>{{ plannedExtraPaymentMonths[0] }}</strong>
+                      hasta liquidar el préstamo (como máximo {{ plannedExtraPaymentMonths.length }} abonos).
+                    </p>
+                  }
+                  @case ('annual') {
+                    <p class="plan-text extra-payment-frequency-help">
+                      El primer abono se aplicará en el mes {{ extraPaymentStartMonth }} y se repetirá
+                      cada 12 meses, mientras exista saldo pendiente. Puedes simular el uso de tu
+                      doble sueldo o bonificación anual.
+                      <span class="plan-months">Meses previstos: <strong>{{ plannedExtraPaymentMonths.join(', ') }}</strong>.</span>
+                    </p>
+                  }
+                }
+              } @else {
+                <p class="plan-text">Indica un mes entre 1 y {{ result.request.termMonths }} para ver el calendario.</p>
+              }
+            </div>
+
+            <div class="extra-payment-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-calculator" aria-hidden="true"></i> Calcular ahorro
+              </button>
+              @if (extraPaymentResult) {
+                <button type="button" class="btn btn-outline-secondary" (click)="clearExtraPaymentScenario()">
+                  Limpiar escenario
+                </button>
+              }
+            </div>
+          </form>
+
+          @if (extraPaymentError) {
+            <p class="lc-alert lc-alert--danger extra-error" role="alert">
+              <i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{{ extraPaymentError }}</span>
+            </p>
+          }
+        </div>
+
+        @if (extraPaymentResult; as extraResult) {
+          <div class="extra-payment-results" aria-live="polite">
+            <p class="extra-payment-applied-note" role="status">
+              <i class="bi bi-calendar2-check" aria-hidden="true"></i>
+              <span>
+                @switch (extraResult.request.frequency) {
+                  @case ('annual') {
+                    @if (annualExtraPaymentMonths.length) {
+                      Se aplicaron {{ annualExtraPaymentMonths.length }}
+                      {{ annualExtraPaymentMonths.length === 1 ? 'abono anual' : 'abonos anuales' }}
+                      en {{ annualExtraPaymentMonths.length === 1 ? 'el mes' : 'los meses' }}
+                      <strong>{{ annualExtraPaymentMonths.join(', ') }}</strong>.
+                    } @else {
+                      El préstamo se liquidó antes de que pudiera aplicarse el primer abono anual.
+                    }
+                  }
+                  @case ('monthly') {
+                    @if (appliedExtraPaymentMonths.length) {
+                      Se aplicaron {{ appliedExtraPaymentMonths.length }}
+                      {{ appliedExtraPaymentMonths.length === 1 ? 'abono mensual' : 'abonos mensuales' }},
+                      del mes <strong>{{ appliedExtraPaymentMonths[0] }}</strong> al mes <strong>{{ appliedExtraPaymentMonths[appliedExtraPaymentMonths.length - 1] }}</strong>.
+                    } @else {
+                      El préstamo se liquidó antes de que pudiera aplicarse el primer abono.
+                    }
+                  }
+                  @default {
+                    @if (appliedExtraPaymentMonths.length) {
+                      El abono se aplicó en el mes <strong>{{ appliedExtraPaymentMonths[0] }}</strong>.
+                    } @else {
+                      El préstamo se liquidó antes de que pudiera aplicarse el abono.
+                    }
+                  }
+                }
+                Las cuotas con abono aparecen resaltadas en la tabla del escenario.
+              </span>
+            </p>
+
+            <div class="savings-grid">
+              <div class="saving-stat">
+                <p class="saving-label">Intereses ahorrados</p>
+                <p class="saving-value lc-num">{{ extraResult.interestSaved | rd }}</p>
+                <p class="saving-help">{{ extraPaymentInterestReductionPercentage | number:'1.0-1' }}% menos intereses que el préstamo original.</p>
+              </div>
+              <div class="saving-stat">
+                <p class="saving-label">{{ extraResult.request.strategy === 'reduce-payment' ? 'Cuota recalculada' : 'Meses ahorrados' }}</p>
+                @if (extraResult.request.strategy === 'reduce-payment') {
+                  <p class="saving-value lc-num">{{ extraResult.finalMonthlyPayment | rd }}</p>
+                  <p class="saving-help">Antes: <span class="lc-num">{{ extraResult.originalResult.monthlyPayment | rd }}</span> al mes.</p>
+                } @else {
+                  <p class="saving-value lc-num">{{ extraResult.monthsSaved }} {{ extraResult.monthsSaved === 1 ? 'mes' : 'meses' }}</p>
+                  <p class="saving-help">Terminas en el mes {{ extraResult.newTermMonths }} en lugar del {{ extraResult.originalTermMonths }}.</p>
+                }
+              </div>
+            </div>
+
+            <div class="lc-card compare-card">
+              <h3 id="compare-title">Préstamo original frente a préstamo con abonos</h3>
+              <div class="table-scroll compare-scroll" role="region" aria-labelledby="compare-title" tabindex="0">
+                <table class="data-table compare-table">
+                  <thead>
+                    <tr><th scope="col">Concepto</th><th scope="col">Original</th><th scope="col">Con abonos</th><th scope="col">Diferencia</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">Cuota mensual</th>
+                      <td class="lc-num">{{ extraResult.originalResult.monthlyPayment | rd }}</td>
+                      @if (extraResult.request.strategy === 'reduce-payment') {
+                        <td class="lc-num">{{ extraResult.finalMonthlyPayment | rd }}</td>
+                        <td class="lc-num is-better">{{ extraResult.finalMonthlyPayment - extraResult.originalResult.monthlyPayment | rd }}</td>
+                      } @else {
+                        <td class="lc-num">{{ extraResult.originalResult.monthlyPayment | rd }}</td>
+                        <td>Se mantiene</td>
+                      }
+                    </tr>
+                    <tr>
+                      <th scope="row">Plazo</th>
+                      <td class="lc-num">{{ extraResult.originalTermMonths }} meses</td>
+                      <td class="lc-num">{{ extraResult.newTermMonths }} meses</td>
+                      <td class="lc-num" [class.is-better]="extraResult.monthsSaved > 0">{{ extraResult.monthsSaved > 0 ? '-' + extraResult.monthsSaved + ' meses' : 'Sin cambio' }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Intereses totales</th>
+                      <td class="lc-num">{{ extraResult.originalTotalInterest | rd }}</td>
+                      <td class="lc-num">{{ extraResult.newTotalInterest | rd }}</td>
+                      <td class="lc-num is-better">{{ -extraResult.interestSaved | rd }}</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Abonos extraordinarios</th>
+                      <td>—</td>
+                      <td class="lc-num">{{ extraResult.totalExtraPayments | rd }}</td>
+                      <td>—</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Total pagado</th>
+                      <td class="lc-num">{{ extraResult.originalTotalPayment | rd }}</td>
+                      <td class="lc-num">{{ extraResult.newTotalPayment | rd }}</td>
+                      <td class="lc-num" [class.is-better]="extraResult.newTotalPayment < extraResult.originalTotalPayment">{{ extraResult.newTotalPayment - extraResult.originalTotalPayment | rd }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="compare-note">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                Resultado de una simulación matemática: el ahorro no está garantizado. Pregunta a tu entidad si cobra penalidad por pago anticipado y cómo aplica los abonos al capital.
+              </p>
+              <div class="extra-payment-export-actions">
+                <button type="button" class="btn btn-outline-primary" (click)="exportExtraPaymentPdf()">
+                  <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Exportar escenario a PDF
+                </button>
+                <button type="button" class="btn btn-outline-primary" (click)="exportExtraPaymentExcel()">
+                  <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i> Exportar escenario a Excel
+                </button>
+              </div>
+            </div>
+
+            <div class="lc-card table-panel">
+              <div class="table-panel-head">
+                <h3 id="extra-table-title">Calendario con abonos</h3>
+                <p>{{ extraResult.amortization.length }} cuotas · <span class="legend-extra">las filas resaltadas incluyen un abono</span></p>
+              </div>
+              <div class="table-scroll" role="region" aria-labelledby="extra-table-title" tabindex="0">
+                <table class="data-table amortization-table extra-payment-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">No.</th>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Cuota regular</th>
+                      <th scope="col">Abono extra</th>
+                      <th scope="col">Interés</th>
+                      <th scope="col">Capital total</th>
+                      <th scope="col">Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of extraResult.amortization; track row.number) {
+                      <tr [class.extra-payment-row]="row.extraPayment > 0">
+                        <td>{{ row.number }}</td>
+                        <td>{{ row.paymentDate }}</td>
+                        <td>{{ row.regularPayment | rd }}</td>
+                        <td>
+                          @if (row.extraPayment > 0) {
+                            <span class="extra-payment-badge"><i class="bi bi-plus-circle-fill" aria-hidden="true"></i> {{ row.extraPayment | rd }}</span>
+                          } @else {
+                            <span class="muted-dash" aria-hidden="true">—</span><span class="visually-hidden">Sin abono</span>
+                          }
+                        </td>
+                        <td>{{ row.interest | rd }}</td>
+                        <td>{{ row.principal | rd }}</td>
+                        <td>{{ row.balance | rd }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- 4. Comparador ------------------------------------------------------ -->
+      <section id="comparador" class="results-section comparator-card" aria-labelledby="comparator-title">
+        <header class="section-head">
+          <h2 id="comparator-title">Comparador de escenarios</h2>
+          <p>Cambia las tasas para ver cómo varían la cuota y el costo total con el mismo monto y plazo.</p>
+        </header>
+
+        <div class="lc-card">
+          <p class="comparator-note">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <span>
+              Las tasas precargadas son <strong>ejemplos ilustrativos</strong>, no cotizaciones oficiales ni tasas bancarias en tiempo real.
+              La comparación no incluye comisiones, seguros ni impuestos. Consulta las condiciones vigentes con cada entidad.
+            </span>
+          </p>
+          <div class="rate-editor no-print">
+            @for (bank of bankRates; track bank.name; let i = $index) {
+              <div class="rate-field">
+                <label class="form-label" [for]="'bank-rate-' + i">{{ bank.name }}</label>
+                <div class="input-group">
+                  <input class="form-control" [id]="'bank-rate-' + i" type="number" inputmode="decimal" min="0" step="0.01" [name]="'bankRate' + i" [(ngModel)]="bank.annualRate" />
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="table-scroll" role="region" aria-labelledby="comparator-title" tabindex="0">
+            <table class="data-table comparison-table">
+              <thead>
+                <tr><th scope="col">Entidad</th><th scope="col">Tasa anual</th><th scope="col">Cuota</th><th scope="col">Intereses</th><th scope="col">Total a pagar</th></tr>
+              </thead>
+              <tbody>
+                @for (option of comparisons; track option.name; let first = $first) {
+                  <tr [class.best-option]="first">
+                    <th scope="row">
+                      {{ option.name }}
+                      @if (first) { <span class="best-badge"><i class="bi bi-award" aria-hidden="true"></i> Menor total simulado</span> }
+                    </th>
+                    <td>{{ option.annualRate | number:'1.2-2' }}%</td>
+                    <td>{{ option.monthlyPayment | rd }}</td>
+                    <td>{{ option.totalInterest | rd }}</td>
+                    <td>{{ option.totalPayment | rd }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Amortización ---------------------------------------------------- -->
+      <section id="amortizacion" class="results-section table-card" aria-labelledby="amortization-title">
+        <header class="section-head">
+          <h2 id="amortization-title">Tabla de amortización</h2>
+          <p>{{ result.amortization.length }} cuotas mensuales. Cada fila muestra cuánto de la cuota va a interés y cuánto a capital.</p>
+        </header>
+
+        <div class="lc-card table-panel">
+          <p class="scroll-hint" aria-hidden="true"><i class="bi bi-arrow-left-right"></i> Desliza la tabla para ver todas las columnas</p>
+          <div class="table-scroll" role="region" aria-labelledby="amortization-title" tabindex="0">
+            <table class="data-table amortization-table">
+              <thead>
+                <tr><th scope="col">No.</th><th scope="col">Fecha</th><th scope="col">Cuota</th><th scope="col">Interés</th><th scope="col">Capital</th><th scope="col">Balance</th></tr>
+              </thead>
+              <tbody>
+                @for (row of result.amortization; track row.number) {
+                  <tr>
+                    <td>{{ row.number }}</td>
+                    <td>{{ row.paymentDate }}</td>
+                    <td>{{ row.payment | rd }}</td>
+                    <td>{{ row.interest | rd }}</td>
+                    <td>{{ row.principal | rd }}</td>
+                    <td>{{ row.balance | rd }}</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row" colspan="2">Totales</th>
+                  <td>{{ result.totalPayment | rd }}</td>
+                  <td>{{ result.totalInterest | rd }}</td>
+                  <td>{{ result.request.amount | rd }}</td>
+                  <td>—</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Guardar y compartir --------------------------------------------- -->
+      <section class="results-section save-section no-print" aria-labelledby="save-title">
+        <header class="section-head">
+          <h2 id="save-title">Guardar y compartir</h2>
+          <p>Tu historial se guarda solo en este dispositivo.</p>
+        </header>
+
+        <div class="save-grid">
+          <article class="lc-card share-card" aria-labelledby="share-title">
+            <h3 id="share-title"><i class="bi bi-share" aria-hidden="true"></i> Comparte tu simulación</h3>
+            <div class="share-actions">
+              <button type="button" (click)="shareWhatsApp()" class="share-button whatsapp"><i class="bi bi-whatsapp" aria-hidden="true"></i> WhatsApp</button>
+              <button type="button" (click)="shareFacebook()" class="share-button facebook"><i class="bi bi-facebook" aria-hidden="true"></i> Facebook</button>
+              <button type="button" (click)="shareLinkedIn()" class="share-button linkedin"><i class="bi bi-linkedin" aria-hidden="true"></i> LinkedIn</button>
+              <button type="button" (click)="copySummary()" class="share-button copy"><i class="bi bi-clipboard" aria-hidden="true"></i> Copiar resumen</button>
+            </div>
+            <p class="share-feedback" aria-live="polite">{{ shareFeedback() }}</p>
+          </article>
+
+          @if (history.length > 0) {
+            <article class="lc-card history-card" aria-labelledby="history-title">
+              <div class="history-head">
+                <h3 id="history-title"><i class="bi bi-clock-history" aria-hidden="true"></i> Mis simulaciones</h3>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="clearHistory()">Limpiar todo</button>
+              </div>
+              <ul class="history-list">
+                @for (item of history; track $index) {
+                  <li class="history-item">
+                    <button type="button" class="history-load" (click)="loadSimulation($index)">
+                      <span class="history-type">{{ item.request.loanType }}</span>
+                      <span class="history-name">{{ clientName(item) }}</span>
+                      <span class="history-amount lc-num">{{ item.request.amount | rd }}</span>
+                    </button>
+                    <button type="button" class="history-delete" (click)="removeHistoryItem($index)" aria-label="Eliminar simulación">
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </button>
+                  </li>
+                }
+              </ul>
+            </article>
+          }
+
+          @if (hasApplicantData) {
+            <article class="lc-card applicant-card" aria-labelledby="applicant-title">
+              <h3 id="applicant-title"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Datos del solicitante</h3>
+              <dl class="info-list">
+                <div><dt>Nombre</dt><dd>{{ clientName(result) }}</dd></div>
+                <div><dt>Cédula</dt><dd>{{ result.request.documentId || 'No especificada' }}</dd></div>
+                <div><dt>Edad</dt><dd>{{ result.age ?? 'No especificada' }}</dd></div>
+                <div><dt>Fecha de nacimiento</dt><dd>{{ result.request.birthDate ? formatInputDate(result.request.birthDate) : 'No especificada' }}</dd></div>
+              </dl>
+              <p class="applicant-note">Datos opcionales guardados solo en tu dispositivo para personalizar los reportes.</p>
+            </article>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
 </main>
 }

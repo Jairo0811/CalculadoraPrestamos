@@ -1,22 +1,32 @@
-.contact-page{min-height:100vh;background:#f6f9ff;color:#172e4e}
-.contact-hero{padding:60px 0 68px;background:linear-gradient(120deg,#081d43,#105ba9);color:#fff}
-.contact-eyebrow{display:inline-flex;gap:9px;align-items:center;color:#c9e5ff;font-weight:750}
-.contact-hero h1{font-size:clamp(2.1rem,5vw,3.6rem);font-weight:850;letter-spacing:-.03em;margin:14px 0}
-.contact-hero p{max-width:740px;color:#e0efff;font-size:1.05rem}
-.contact-hero small{color:#d0e0f5}
-.contact-content{max-width:930px;padding:28px 16px 70px}
-.contact-card{display:grid;grid-template-columns:54px minmax(0,1fr);gap:22px;padding:clamp(22px,4vw,32px);margin-bottom:17px;background:#fff;border:1px solid #dce7f5;border-radius:17px;box-shadow:0 8px 22px #1439630d}
-.contact-symbol{width:50px;height:50px;background:#e9f2ff;color:#14559a;border-radius:14px;display:grid;place-items:center;font-size:1.45rem}
-.contact-card h2{font-size:1.3rem;color:#16457c;font-weight:800;margin:0 0 12px}
-.contact-card p{line-height:1.78;color:#415671;margin:0 0 14px}
-.contact-note{margin-top:15px!important;padding:13px 16px;background:#f1f6ff;border-left:4px solid #0b57b0;border-radius:8px;font-size:.91rem}
-.contact-text-link{color:#0a438a;text-decoration:underline;text-underline-offset:3px;font-weight:750}
-.contact-text-link:hover{color:#073367}
-.contact-card .btn{min-height:44px;display:inline-flex;gap:9px;align-items:center;border-radius:11px}
-.contact-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:25px}
-.contact-actions a{min-height:44px;border-radius:11px}
-.contact-actions .btn-outline-primary{color:#0a438a;border-color:#0a438a}
-.contact-actions .btn-outline-primary:hover{background:#0a438a;color:#fff}
-.contact-actions .btn-outline-secondary{color:#334155;border-color:#475569}
-.contact-actions .btn-outline-secondary:hover{background:#475569;color:#fff}
-@media(max-width:600px){.contact-hero{padding:42px 0 49px}.contact-content{padding:17px 4px 50px}.contact-card{grid-template-columns:1fr;gap:15px}}
+/* Contacto: base en .lc-doc (src/styles.css); aquí solo las tarjetas de canal. */
+.contact-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: var(--lc-space-5);
+}
+
+.contact-symbol {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--lc-radius-md);
+  background: var(--lc-blue-50);
+  color: var(--lc-blue-700);
+  font-size: 1.35rem;
+}
+
+.lc-doc-body .contact-note {
+  margin-top: var(--lc-space-4);
+  padding: var(--lc-space-3) var(--lc-space-4);
+  border-left: 4px solid var(--lc-blue-600);
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-info-bg);
+  font-size: var(--lc-text-sm);
+}
+
+.contact-text-link { font-weight: 700; }
+
+@media (max-width: 600px) {
+  .contact-card { grid-template-columns: minmax(0, 1fr); gap: var(--lc-space-4); }
+}

@@ -1,32 +1,46 @@
-.guide-page{min-height:100vh;background:#f6f9ff;color:#172e4e}
-.guide-hero{background:linear-gradient(120deg,#071b3c,#0f60b4);padding:64px 0 68px;color:#fff}
-.guide-hero .container{max-width:940px}
-.guide-kicker{display:inline-flex;align-items:center;gap:9px;color:#d1e8ff;font-weight:750}
-.guide-hero h1{font-size:clamp(2.1rem,5vw,3.5rem);letter-spacing:-.03em;font-weight:850;margin:16px 0}
-.guide-hero p{font-size:1.08rem;line-height:1.7;max-width:760px;color:#e2efff;margin-bottom:23px}
-.guide-hero .btn{min-height:44px;font-weight:700}
-.guide-content{max-width:940px;padding:32px 16px 76px}
-.guide-intro{font-size:1.08rem;color:#415875;line-height:1.85;margin-bottom:24px}
-.guide-index{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:19px 22px;margin-bottom:24px;background:#eaf3ff;border:1px solid #cbdff6;border-radius:14px}
-.guide-index strong{margin-right:8px;color:#163c71}
-.guide-index a{color:#0a438a;text-decoration:underline;text-underline-offset:3px}
-.guide-article section{padding:clamp(22px,4vw,32px);background:#fff;border:1px solid #dce7f5;border-radius:16px;margin-bottom:17px;box-shadow:0 8px 20px #193b6408;scroll-margin-top:92px}
-.guide-article h2{font-size:clamp(1.23rem,2.5vw,1.55rem);font-weight:800;color:#16457c;margin:0 0 14px}
-.guide-article p,.guide-article li{line-height:1.83;color:#405673}
-.guide-article p{margin:0 0 13px}
-.guide-article p:last-child{margin-bottom:0}
-.guide-article ul,.guide-article ol{padding-left:1.6rem;margin-bottom:16px}
-.guide-article li{padding-left:4px;margin-bottom:7px}
-.guide-formula{padding:18px;border-left:5px solid #1260b5;border-radius:8px;background:#f0f6ff;color:#173e76!important;font-size:1.18rem;font-weight:750;overflow-wrap:anywhere}
-.guide-table{margin:12px 0 17px}
-.guide-table caption{caption-side:top;color:#405673;font-size:.9rem}
-.guide-table th{width:57%;font-weight:700;color:#18395f}
-.guide-table td{color:#263e59}
-.guide-article a:not(.btn){color:#0a438a;text-decoration:underline;text-underline-offset:3px}
-.guide-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:25px}
-.guide-actions .btn{min-height:44px;border-radius:10px}
-.guide-actions .btn-outline-primary{color:#0a438a;border-color:#0a438a}
-.guide-actions .btn-outline-secondary{color:#334155;border-color:#475569}
-.guide-actions .btn-outline-primary:hover{background:#0a438a;color:#fff}
-.guide-actions .btn-outline-secondary:hover{background:#475569;color:#fff}
-@media(max-width:600px){.guide-hero{padding:44px 0 51px}.guide-content{padding:20px 4px 54px}.guide-index{align-items:flex-start;flex-direction:column;gap:9px}}
+/* Guía financiera: base en .lc-doc (src/styles.css); aquí solo lo propio. */
+.guide-intro {
+  margin-bottom: var(--lc-space-6);
+  font-size: var(--lc-text-lg);
+}
+
+.guide-index {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lc-space-2) var(--lc-space-4);
+  margin-bottom: var(--lc-card-gap);
+  padding: var(--lc-space-4) var(--lc-space-5);
+  border: 1px solid var(--lc-info-border);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-info-bg);
+}
+
+.guide-index strong { color: var(--lc-navy-900); }
+
+.guide-index a { display: inline-flex; align-items: center; min-height: var(--lc-touch); }
+
+.guide-article ul,
+.guide-article ol { margin-bottom: var(--lc-space-4); padding-left: 1.5rem; }
+
+.guide-article li { margin-bottom: var(--lc-space-2); padding-left: var(--lc-space-1); }
+
+.guide-article .guide-formula {
+  overflow-wrap: anywhere;
+  padding: var(--lc-space-4);
+  border-left: 4px solid var(--lc-blue-600);
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-blue-50);
+  color: var(--lc-navy-900);
+  font-size: var(--lc-text-lg);
+  font-weight: 700;
+}
+
+.guide-table { margin: var(--lc-space-3) 0 var(--lc-space-4); }
+.guide-table caption { caption-side: top; color: var(--lc-text-muted); font-size: var(--lc-text-sm); }
+.guide-table th { width: 57%; color: var(--lc-navy-900); font-weight: 700; }
+.guide-table td { color: var(--lc-text); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 600px) {
+  .guide-index { flex-direction: column; align-items: flex-start; gap: 0; }
+}

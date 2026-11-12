@@ -1,5 +1,6 @@
 import { Component, afterNextRender, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { RouteFocus } from './core/a11y/route-focus';
 import { AuthService } from './core/services/auth';
 import { Footer } from './shared/footer/footer';
 import { Header } from './shared/header/header';
@@ -13,6 +14,8 @@ import { Header } from './shared/header/header';
 export class App {
   constructor() {
     const auth = inject(AuthService);
+    // Al cambiar de página: arriba de inmediato y foco en el título (WCAG 2.4.3).
+    inject(RouteFocus).start();
     // Recupera la sesión (cookie HttpOnly) sin bloquear el render ni afectar a la calculadora pública.
     afterNextRender(() => {
       if (auth.enabled) auth.restoreSession().subscribe();

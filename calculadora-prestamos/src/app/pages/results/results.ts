@@ -1,5 +1,5 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { DOCUMENT, DecimalPipe } from '@angular/common';
+import { Component, DestroyRef, Injector, afterNextRender, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -15,6 +15,20 @@ import { LoanCalculatorService } from '../../core/services/loan-calculator';
 import { RdCurrencyPipe, formatRd } from '../../core/formatting/rd-currency';
 import { AuthService } from '../../core/services/auth';
 import { LoanApiService } from '../../core/services/loan-api';
+import { focusPageStart } from '../../core/a11y/route-focus';
+import {
+  LOAN_SCORE_BANDS,
+  LoanScoreBand,
+  loanScoreBand,
+  loanScoreRangeLabel,
+} from '../../core/finance/loan-score';
+import {
+  RESULTS_SECTIONS,
+  ResultsSectionId,
+  balancePolylinePoints,
+  monthPosition,
+  plannedExtraPaymentMonths,
+} from './results-view';
 
 interface ComparisonOption {
   name: string;
@@ -35,7 +49,16 @@ export class Results {
   private readonly loanCalculator = inject(LoanCalculatorService);
   private readonly api = inject(LoanApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
   readonly auth = inject(AuthService);
+
+  /** Navegación interna accesible entre las secciones de resultados. */
+  readonly sections = RESULTS_SECTIONS;
+  readonly activeSection = signal<ResultsSectionId>('resumen');
+  readonly scoreBands = LOAN_SCORE_BANDS;
+  readonly scoreRangeLabel = loanScoreRangeLabel;
+  readonly monthPosition = monthPosition;
 
   // Signals: la respuesta asíncrona de HttpClient actualiza Angular sin depender de Zone.js.
   readonly cloudSaving = signal(false);
@@ -47,7 +70,8 @@ export class Results {
   result: LoanResult | null = this.loanCalculator.getResult();
   history: LoanResult[] = this.loanCalculator.getHistory();
 
-  shareFeedback = '';
+  /** Señal: el mensaje llega tras una promesa y debe pintarse sin Zone.js. */
+  readonly shareFeedback = signal('');
 
   extraPaymentAmount: number | null = null;
   extraPaymentStartMonth = 1;
@@ -70,6 +94,49 @@ export class Results {
     }
 
     this.extraPaymentStartMonth = Math.min(12, this.result.request.termMonths);
+
+    afterNextRender(() => this.observeSections());
+  }
+
+  /** Lleva a una sección y mueve el foco a su título sin cambiar la URL. */
+  goToSection(event: Event, id: ResultsSectionId): void {
+    event.preventDefault();
+    const section = this.document.getElementById(id);
+    if (!section) return;
+
+    const reduceMotion = this.document.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true;
+    section.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+
+    const heading = section.querySelector<HTMLElement>('h1, h2') ?? section;
+    if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
+    this.activeSection.set(id);
+  }
+
+  /** Marca como actual la sección visible bajo la cabecera fija. */
+  private observeSections(): void {
+    const view = this.document.defaultView;
+    if (!view || typeof view.IntersectionObserver === 'undefined') return;
+
+    const visible = new Set<ResultsSectionId>();
+    const observer = new view.IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          const id = entry.target.id as ResultsSectionId;
+          if (entry.isIntersecting) visible.add(id);
+          else visible.delete(id);
+        }
+        const current = this.sections.find(section => visible.has(section.id));
+        if (current) this.activeSection.set(current.id);
+      },
+      { rootMargin: '-140px 0px -55% 0px' },
+    );
+
+    for (const section of this.sections) {
+      const element = this.document.getElementById(section.id);
+      if (element) observer.observe(element);
+    }
+    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 
   get comparisons(): ComparisonOption[] {
@@ -95,23 +162,32 @@ export class Results {
       .sort((a, b) => a.totalPayment - b.totalPayment);
   }
 
-  get chartPoints(): string {
-    if (!this.result?.amortization.length) {
-      return '';
-    }
+  /** Balance pendiente del préstamo original (SVG 0–100). */
+  get balancePoints(): string {
+    if (!this.result) return '';
+    return balancePolylinePoints(
+      this.result.request.amount,
+      this.result.amortization.map((row) => row.balance),
+      this.result.request.termMonths,
+    );
+  }
 
-    const rows = this.result.amortization;
-    const maximumBalance = Math.max(...rows.map((row) => row.balance), 1);
+  /** Balance pendiente con abonos, en la misma escala que el original. */
+  get extraBalancePoints(): string {
+    if (!this.result || !this.extraPaymentResult) return '';
+    return balancePolylinePoints(
+      this.result.request.amount,
+      this.extraPaymentResult.amortization.map((row) => row.balance),
+      this.result.request.termMonths,
+    );
+  }
 
-    return rows
-      .map((row, index) => {
-        const x = (index / Math.max(rows.length - 1, 1)) * 100;
-
-        const y = 100 - (row.balance / maximumBalance) * 100;
-
-        return `${x},${y}`;
-      })
-      .join(' ');
+  get balanceChartLabel(): string {
+    if (!this.result) return '';
+    const base = `Gráfico del balance pendiente: empieza en ${this.money(this.result.request.amount)} y llega a cero en el mes ${this.result.request.termMonths}`;
+    return this.extraPaymentResult
+      ? `${base}. Con abonos llega a cero en el mes ${this.extraPaymentResult.newTermMonths}.`
+      : `${base}.`;
   }
 
   get principalPercentage(): number {
@@ -146,41 +222,25 @@ export class Results {
     return this.averageMonthlyInterest * 12;
   }
 
-  get loanScore(): string {
-    const percentage = this.interestOverCapitalPercentage;
+  get loanScoreBand(): LoanScoreBand {
+    return loanScoreBand(this.interestOverCapitalPercentage);
+  }
 
-    if (percentage <= 15) return 'A+';
-    if (percentage <= 25) return 'A';
-    if (percentage <= 40) return 'B';
-    if (percentage <= 60) return 'C';
-    return 'D';
+  get loanScore(): string {
+    return this.loanScoreBand.grade;
   }
 
   get loanScoreDescription(): string {
-    switch (this.loanScore) {
-      case 'A+':
-        return 'Costo financiero excelente';
-      case 'A':
-        return 'Costo financiero favorable';
-      case 'B':
-        return 'Costo financiero moderado';
-      case 'C':
-        return 'Costo financiero elevado';
-      default:
-        return 'Costo financiero muy elevado';
-    }
+    return this.loanScoreBand.description;
   }
 
   get loanScoreClass(): string {
-    switch (this.loanScore) {
-      case 'A+':
-      case 'A':
-        return 'score-good';
-      case 'B':
-        return 'score-medium';
-      default:
-        return 'score-high';
-    }
+    return `score-${this.loanScoreBand.tone}`;
+  }
+
+  get hasApplicantData(): boolean {
+    const request = this.result?.request;
+    return !!request && !!(request.firstName || request.lastName || request.documentId || request.birthDate);
   }
 
   get financialRecommendations(): string[] {
@@ -331,6 +391,23 @@ export class Results {
     return scenario.amortization
       .filter((row) => row.extraPayment > 0)
       .map((row) => row.number);
+  }
+
+  /** Cuotas en las que el escenario calculado aplicó un abono (cualquier frecuencia). */
+  get appliedExtraPaymentMonths(): number[] {
+    return this.extraPaymentResult?.amortization
+      .filter((row) => row.extraPayment > 0)
+      .map((row) => row.number) ?? [];
+  }
+
+  /** Calendario previsto según el formulario, antes de calcular. */
+  get plannedExtraPaymentMonths(): number[] {
+    if (!this.result) return [];
+    return plannedExtraPaymentMonths(
+      Number(this.extraPaymentStartMonth),
+      this.extraPaymentFrequency,
+      this.result.request.termMonths,
+    );
   }
 
   calculateExtraPayment(): void {
@@ -694,6 +771,9 @@ export class Results {
     this.cloudSaveNotice.set('');
     this.cloudSaveError.set('');
     this.clearExtraPaymentScenario();
+    this.activeSection.set('resumen');
+    // La simulación cargada reemplaza el resumen: se lleva al usuario a su inicio.
+    afterNextRender(() => focusPageStart(this.document), { injector: this.injector });
   }
 
   removeHistoryItem(index: number): void {
@@ -738,10 +818,10 @@ export class Results {
 
     await navigator.clipboard.writeText(this.shareText());
 
-    this.shareFeedback = 'Resumen copiado al portapapeles.';
+    this.shareFeedback.set('Resumen copiado al portapapeles.');
 
     setTimeout(() => {
-      this.shareFeedback = '';
+      this.shareFeedback.set('');
     }, 2500);
   }
 
