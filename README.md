@@ -15,7 +15,7 @@
   <img alt="Versión estable" src="https://img.shields.io/badge/versión%20estable-2.1.0-0d6efd" />
   <img alt="v3 en desarrollo" src="https://img.shields.io/badge/v3-en%20desarrollo%20(Fase%208%20pendiente)-f59e0b" />
   <img alt="Licencia" src="https://img.shields.io/badge/licencia-MIT-success" />
-  <img alt="Pruebas frontend" src="https://img.shields.io/badge/pruebas%20frontend-85-success" />
+  <img alt="Pruebas frontend" src="https://img.shields.io/badge/pruebas%20frontend-134-success" />
   <img alt="Pruebas backend" src="https://img.shields.io/badge/pruebas%20backend-48-success" />
 </p>
 
@@ -67,7 +67,7 @@ La versión publicada en producción sigue siendo la **2.1.x** (calculadora púb
 ### Frontend — `calculadora-prestamos/`
 
 - **Angular 22** (componentes standalone, signals, control flow, rutas lazy) y **TypeScript 6.0**.
-- **Bootstrap 5** + **Bootstrap Icons**; sistema de tokens CSS propio. Interfaz **exclusivamente clara**.
+- **Bootstrap 5** + **Bootstrap Icons** tematizados con el sistema de diseño propio (tokens `--lc-*`, ver [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md)). Interfaz **exclusivamente clara**.
 - **jsPDF / jsPDF AutoTable / QRCode** para reportes; **SpreadsheetML** para Excel.
 - **Vitest** (pruebas unitarias y de componentes) y **Playwright + axe-core** (E2E y accesibilidad).
 
@@ -143,14 +143,16 @@ Consulta [docs/ADSENSE-CLOUDFLARE.md](docs/ADSENSE-CLOUDFLARE.md) para la config
 
 ### 💸 Abonos extraordinarios
 
-- ✅ Abono único o mensual recurrente.
+- ✅ Abono único, mensual o anual (cada 12 meses, por ejemplo con el doble sueldo).
 - ✅ Estrategias para reducir el plazo o recalcular la cuota.
+- ✅ Calendario previsto antes de calcular, meses realmente aplicados y comparación «original frente a con abonos».
 - ✅ Intereses y meses ahorrados, total abonado y tabla especializada.
 
 ### 📊 Análisis financiero
 
-- ✅ Dashboard financiero, distribución capital/interés y evolución del balance.
-- ✅ **LoanCalc Score** (A+ a D según la proporción de intereses sobre el capital).
+- ✅ **Cuota mensual estimada** como cifra principal del resumen, con navegación interna por secciones.
+- ✅ Análisis financiero: distribución capital/interés y evolución del balance con escalas en RD$ y meses.
+- ✅ **LoanCalc Score** (A+ a D según la proporción de intereses sobre el capital): indicador matemático interno, no un puntaje de crédito.
 - ✅ Comparador de escenarios por entidad (tasas introducidas por el usuario).
 - ✅ Recomendaciones automáticas con aviso explícito de que no son asesoría personalizada.
 - ✅ Montos en formato único **RD$ 1,234.56** en pantalla, PDF y Excel.
@@ -175,6 +177,7 @@ Consulta [docs/ADSENSE-CLOUDFLARE.md](docs/ADSENSE-CLOUDFLARE.md) para la config
 ### ♿ Accesibilidad y responsive
 
 - ✅ Enlace "Saltar al contenido", navegación por teclado y foco visible.
+- ✅ Al cambiar de página, la vista empieza arriba y el foco pasa al título.
 - ✅ Etiquetas, `aria-invalid`, `aria-describedby` y regiones `aria-live` en formularios.
 - ✅ Objetivos táctiles ≥ 44 px, sin desplazamiento horizontal en móvil.
 - ✅ Respeto de `prefers-reduced-motion`.
@@ -273,7 +276,7 @@ Configuración, rollback y diagnóstico: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.
 | Suite | Herramienta | Alcance |
 |---|---|---|
 | Frontend unitarias/componentes | Vitest | Motor financiero, cédula, formato RD$, AuthService, interceptor, guards, formularios de cuenta y calculadora |
-| Frontend E2E | Playwright + axe-core | Flujo público completo, navegación por teclado, WCAG A/AA, flujo de cuenta con **API simulada** |
+| Frontend E2E | Playwright + axe-core | Flujo público completo, navegación por teclado, WCAG A/AA, regresiones del rediseño (abonos único/mensual/anual, comparador, historial, foco), flujo de cuenta con **API simulada** |
 | Backend | xUnit + PostgreSQL 17 real | Registro, login, bloqueo, confirmación, recuperación, cambio de contraseña, JWT alterados/expirados, rotación y reutilización, renovaciones concurrentes, logout, logout global, CSRF, cookies, rate limiting, IDOR, migraciones y persistencia |
 | CI backend | GitHub Actions | Actualización desde una base de Fase 5 con datos y rollback, auditoría de vulnerabilidades NuGet |
 

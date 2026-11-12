@@ -138,7 +138,10 @@
 html,
 body { min-height: 100%; }
 
-/* Sin scroll-behavior: smooth global: interrumpía el "volver arriba" del router (H1). */
+/* Sin desplazamiento suave global: interrumpía el "volver arriba" del router (H1).
+   Bootstrap lo activa en :root; se anula aquí. La navegación interna de resultados
+   lo pide de forma explícita y respeta prefers-reduced-motion. */
+:root { scroll-behavior: auto; }
 
 body {
   margin: 0;

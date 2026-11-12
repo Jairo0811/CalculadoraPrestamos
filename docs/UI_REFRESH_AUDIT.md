@@ -51,3 +51,90 @@ Severidad: **Alta** = afecta la comprensión o el uso; **Media** = inconsistenci
 - **Movimiento:** transiciones de 150–200 ms solo en estados interactivos; nada animado con `prefers-reduced-motion`.
 - **Separación móvil:** 24 px entre tarjetas independientes; objetivos táctiles ≥ 44 × 44 px.
 - **Controles nativos:** `<input type="radio">` para frecuencia y estrategia, `<table>` para comparaciones y enlaces de anclaje para la navegación interna.
+
+## 5. Informe final (antes / después)
+
+Mediciones reales sobre el build de producción servido localmente (mismo servidor estático con fallback SPA para ambas versiones). Antes = `461301a`; después = rama `feat/loancalcrd-fintech-premium-ui-refresh`.
+
+### 5.1 Pruebas
+
+| Verificación | Antes | Después |
+|---|---|---|
+| `npm ci` | — | Correcto, 0 vulnerabilidades |
+| `npm run test:ci` (Vitest) | 101/101 | **134/134** (20 archivos) |
+| `npm run test:adsense` | 6/6 | 6/6 |
+| `npm run build` | Correcto | Correcto |
+| `npm run e2e` (3 dispositivos) | 35 aprobadas, 1 omitida | **89 aprobadas**, 1 omitida (la misma, a propósito) |
+| `npm run e2e:smoke` (build de producción) | 30 aprobadas, 9 omitidas | 30 aprobadas, 9 omitidas (solo aplican al sitio publicado); ahora también analiza `/results` con axe |
+
+Regresiones cubiertas explícitamente: tasa 0 % rechazada y tasa positiva, validaciones y foco, cuota y amortización completa (36 filas), abonos único, mensual y anual, reducir plazo y reducir cuota, exportaciones PDF/Excel y QR (smoke), historial, comparador, LoanCalc Score, compartir, cuentas desactivadas (smoke), rutas legales, desbordamiento y WCAG A/AA con axe en las rutas públicas y en resultados con abonos.
+
+### 5.2 Rendimiento
+
+| Métrica | Antes | Después | Diferencia |
+|---|---|---|---|
+| Transferencia inicial estimada (Angular) | 152.03 kB | **150.72 kB** | −1.31 kB |
+| Hoja global `styles` (transferencia) | 36.17 kB | 35.45 kB | −0.72 kB |
+| Chunk de resultados (bruto / transferencia) | 80.99 / 16.11 kB | 97.37 / 19.81 kB | +16.38 / +3.70 kB |
+| jsPDF / AutoTable | Diferidos (113.02 / 9.06 kB) | Diferidos (113.02 / 9.06 kB) | Sin cambio |
+| CSS propio minificado (csso) / gzip | 83.3 / 23.9 kB | **74.3 / 19.4 kB** | −10.8 % / −18.9 % |
+
+El chunk de resultados crece porque la plantilla incorpora navegación interna, escala del Score, calendario previsto, tabla comparativa y totales; su CSS, en cambio, baja de 32.9 kB (`results.css` + `results-refresh.css` global) a 23.7 kB minificados. Sin dependencias ni fuentes nuevas.
+
+**Laboratorio local** (Chromium, 390 × 844, CPU ×4, sin red real, mediana de 5): no son datos de campo (CrUX) y no sustituyen a PageSpeed Insights sobre el sitio publicado.
+
+| | Antes | Después |
+|---|---|---|
+| LCP `/` | 832 ms | 804 ms |
+| LCP `/calculator` | 968 ms | 808 ms |
+| LCP `/guide` | 728 ms | 688 ms |
+| CLS (`/`, `/calculator`, `/guide`, hasta resultados) | 0 – 0.0002 | 0 – 0.0002 |
+| Latencia de interacción «Calcular préstamo» (Event Timing) | 80 ms | 88 ms |
+| Latencia de interacción «Calcular ahorro» | 224 ms | 136 ms |
+
+### 5.3 CSS
+
+| | Antes | Después |
+|---|---|---|
+| Líneas (formateado) / línea más larga | 2,407 / 8,665 caracteres | 4,074 / 153 caracteres |
+| `!important` | 50 | 5 (movimiento reducido e impresión de `.no-print`) |
+| Colores hex / `rgba()` | 561 / 111 | 145 / 33 |
+| Usos de tokens `--lc-*` | 102 | 1,014 |
+| Reglas de modo oscuro | 39 | 0 |
+| Hojas globales | 2 (`styles.css`, `results-refresh.css`) | 1 (`styles.css`) |
+
+### 5.4 Hallazgos resueltos
+
+| # | Estado |
+|---|---|
+| H1 | Resuelto: tras «Calcular préstamo», `scrollY` = 0 en escritorio y móvil y el foco está en «Resumen del préstamo» (E2E). Bootstrap también activa el desplazamiento suave en `:root`; se anula. |
+| H2 | Resuelto: cuota protagonista, secciones ordenadas y navegación interna con `aria-current`. |
+| H3 | Resuelto: un comparativo único y calendario previsto. |
+| H4 | Resuelto: PDF principal; Excel, Nueva simulación y Volver secundarias; dos filas de botones en móvil. |
+| H5 | Resuelto: texto «No es un puntaje de crédito» y escala visible; umbrales sin cambios (pruebas de frontera). |
+| H6 | Resuelto: `h1` visible y sin héroe de 480 px. |
+| H7 | Resuelto: icono y etiqueta visibles en móvil. |
+| H8 | Resuelto (ver 5.3). |
+| H9 | Resuelto: `results-refresh.css` eliminado de `angular.json`. |
+| H10 | Resuelto: cabecera y primera columna fijas, cifras tabulares a la derecha, indicación de desplazamiento y región accesible por teclado. |
+| H11 | Resuelto. |
+| H12 | Resuelto. |
+
+Desbordamiento horizontal: ninguno en 320, 360, 390, 414, 768, 1024 y 1440 px para `/`, `/calculator`, `/guide`, `/about`, `/contact`, `/privacy`, `/terms` y resultados con abonos anuales. Sin errores de consola.
+
+### 5.5 Capturas
+
+Comparaciones en [`docs/ui-refresh/`](ui-refresh/) (WebP, antes a la izquierda):
+
+- [Portada, escritorio](ui-refresh/home-escritorio.webp) · [Portada, móvil](ui-refresh/home-movil.webp)
+- [Calculadora, escritorio](ui-refresh/calculadora-escritorio.webp) · [Calculadora, móvil](ui-refresh/calculadora-movil.webp)
+- [Resultados, escritorio](ui-refresh/resultados-escritorio.webp) · [Resultados, móvil](ui-refresh/resultados-movil.webp) — la captura «antes» muestra el hallazgo H1: la página se abría a la altura del historial.
+- [Abonos anuales](ui-refresh/abonos-anuales-escritorio.webp) · [Amortización, móvil](ui-refresh/amortizacion-movil.webp)
+- [Navegación móvil](ui-refresh/navegacion-movil.webp) · [Historial, móvil](ui-refresh/historial-movil.webp) · [Guía](ui-refresh/guia-escritorio.webp)
+
+### 5.6 Riesgos y pendientes
+
+- **Selectores E2E adaptados:** la frecuencia de abonos pasa de `<select>` a botones de opción; las pruebas la eligen por rol y nombre (`radio` «Abono anual»). La prueba de espaciado móvil ahora comprueba todos los pares de tarjetas apiladas.
+- **Pantalla de resultados más larga en móvil** (≈10,200 px frente a 9,421 px) por el calendario previsto y la tabla comparativa; la navegación interna permite saltar a cada sección.
+- **Rendimiento real:** solo se midió en laboratorio local; conviene revisar PageSpeed Insights y Search Console tras publicar.
+- **Cuentas:** solo cambió su apariencia (tokens); siguen desactivadas en producción y sin cambios de lógica.
