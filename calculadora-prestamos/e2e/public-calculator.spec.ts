@@ -20,7 +20,7 @@ test.describe('Calculadora pública (sin cuenta)', () => {
 
     await expect(page).toHaveURL(/\/results$/);
     await expect(page.getByText('RD$ 18,076.20').first()).toBeVisible();
-    await expect(page.getByText('no asesoría financiera personalizada')).toBeVisible();
+    await expect(page.getByText(/no constituyen asesoría financiera personalizada/)).toBeVisible();
   });
 
   test('muestra errores contextuales y enfoca el primer campo inválido', async ({ page }) => {
