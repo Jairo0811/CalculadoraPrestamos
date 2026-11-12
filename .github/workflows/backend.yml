@@ -3,6 +3,7 @@ name: LoanCalc RD Backend CI
 on:
   push:
     branches:
+      - master
       - feature/v3-phase-5-backend
       - feature/v3-phase-6-auth-security
     paths:
@@ -10,6 +11,7 @@ on:
       - '.github/workflows/backend.yml'
   # Siempre en Pull Requests: "backend" es un check obligatorio de la protección de `master`.
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read

@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { AuthService } from '../../core/services/auth';
 import { LoanApiService, PersistedLoanSimulation } from '../../core/services/loan-api';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
+import { ConfirmationService } from '../../core/services/confirmation';
 import { Simulations } from './simulations';
 
 const base: PersistedLoanSimulation = {
@@ -29,9 +30,11 @@ describe('Fase 7 - private simulation dashboard', () => {
     delete: ReturnType<typeof vi.fn>;
   };
   let navigate: ReturnType<typeof vi.fn>;
+  let confirmation: { ask: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     localStorage.clear();
+    confirmation = { ask: vi.fn().mockResolvedValue(false) };
     api = {
       list: vi.fn(() => of([base, other])),
       saveSimulation: vi.fn(() => of({ ...base, id: 'imported' })),
@@ -44,6 +47,7 @@ describe('Fase 7 - private simulation dashboard', () => {
       providers: [
         provideRouter([]),
         { provide: LoanApiService, useValue: api },
+        { provide: ConfirmationService, useValue: confirmation },
         { provide: AuthService, useValue: {
           enabled: true,
           isAuthenticated: signal(true),
@@ -121,6 +125,15 @@ describe('Fase 7 - private simulation dashboard', () => {
     expect(navigate).toHaveBeenCalledWith(['/results']);
   });
 
+  it('never deletes a cloud simulation without explicit confirmation', async () => {
+    await page.delete(base);
+    expect(api.delete).not.toHaveBeenCalled();
+    confirmation.ask.mockResolvedValueOnce(true);
+    await page.delete(base);
+    expect(api.delete).toHaveBeenCalledWith(base.id);
+    expect(page.items()).toHaveLength(1);
+  });
+
   it('never sends the full local history without explicit consent', async () => {
     const calculator = TestBed.inject(LoanCalculatorService);
     const request = {
@@ -129,19 +142,14 @@ describe('Fase 7 - private simulation dashboard', () => {
       annualRate: 15, termMonths: 48
     };
     calculator.saveResult(calculator.calculate(request));
-    const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    try {
-      await page.importLocal();
-      expect(api.saveSimulation).not.toHaveBeenCalled();
-      confirmation.mockReturnValue(true);
-      await page.importLocal();
-      expect(api.saveSimulation).toHaveBeenCalledOnce();
-      const sent = api.saveSimulation.mock.calls[0][0];
-      expect(sent.documentId).toBe(request.documentId); // El mapper API retira estos campos del payload.
-      expect(page.items()).toHaveLength(3);
-      expect(calculator.getHistory()).toHaveLength(1);
-    } finally {
-      confirmation.mockRestore();
-    }
+    await page.importLocal();
+    expect(api.saveSimulation).not.toHaveBeenCalled();
+    confirmation.ask.mockResolvedValue(true);
+    await page.importLocal();
+    expect(api.saveSimulation).toHaveBeenCalledOnce();
+    const sent = api.saveSimulation.mock.calls[0][0];
+    expect(sent.documentId).toBe(request.documentId); // El mapper API retira estos campos del payload.
+    expect(page.items()).toHaveLength(3);
+    expect(calculator.getHistory()).toHaveLength(1);
   });
 });

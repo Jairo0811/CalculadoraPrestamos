@@ -55,7 +55,7 @@
               <div class="field">
                 <label for="annualRate" class="form-label">Tasa anual <span class="lc-required" aria-hidden="true">*</span></label>
                 <div class="input-group">
-                  <input id="annualRate" name="annualRate" type="number" min="0.01" max="100" step="0.01" class="form-control" placeholder="18.00" inputmode="decimal"
+                  <input id="annualRate" name="annualRate" type="number" min="0" max="100" step="0.01" class="form-control" placeholder="18.00" inputmode="decimal"
                     required aria-required="true" [class.is-invalid]="rateError" [attr.aria-invalid]="!!rateError"
                     [attr.aria-describedby]="rateError ? 'rateError annualRateHelp' : 'annualRateHelp'" [(ngModel)]="annualRate" />
                   <span class="input-group-text" aria-hidden="true">%</span>
@@ -94,7 +94,7 @@
             </legend>
             <p class="optional-note">
               <i class="bi bi-lock" aria-hidden="true"></i>
-              Nombre, cédula y fecha de nacimiento solo aparecen en tus reportes PDF/Excel. No se envían a ningún servidor.
+              Nombre, cédula y fecha de nacimiento son opcionales. Si los introduces, aparecerán en tus reportes y pueden conservarse en el historial local de este dispositivo. No se envían al servidor.
             </p>
 
             <button type="button" class="optional-toggle" (click)="showPersonalData = !showPersonalData"
@@ -142,9 +142,9 @@
           <h2>Qué obtendrás</h2>
           <ul class="aside-list">
             <li><i class="bi bi-credit-card" aria-hidden="true"></i><span><strong>Cuota mensual estimada</strong> con intereses y total a pagar.</span></li>
-            <li><i class="bi bi-speedometer2" aria-hidden="true"></i><span><strong>Análisis financiero</strong>LoanCalc Score, composición y evolución del balance.</span></li>
-            <li><i class="bi bi-piggy-bank" aria-hidden="true"></i><span><strong>Abonos extraordinarios</strong>únicos, mensuales o anuales (doble sueldo).</span></li>
-            <li><i class="bi bi-table" aria-hidden="true"></i><span><strong>Amortización completa</strong>exportable a PDF y Excel.</span></li>
+            <li><i class="bi bi-speedometer2" aria-hidden="true"></i><span><strong>Análisis financiero</strong> LoanCalc Score, composición y evolución del balance.</span></li>
+            <li><i class="bi bi-piggy-bank" aria-hidden="true"></i><span><strong>Abonos extraordinarios</strong> únicos, mensuales o anuales (doble sueldo).</span></li>
+            <li><i class="bi bi-table" aria-hidden="true"></i><span><strong>Amortización completa</strong> exportable a PDF y Excel.</span></li>
           </ul>
         </div>
         <div class="aside-trust">

@@ -78,7 +78,8 @@ export class Calculator {
   get rateError(): string | null {
     if (!this.submitted) return null;
     const rate = this.annualRate;
-    if (rate === null || !Number.isFinite(rate) || rate <= 0) return 'Indica una tasa anual mayor que 0 %.';
+    if (rate === null || !Number.isFinite(rate)) return 'Indica una tasa anual válida.';
+    if (rate < 0) return 'La tasa anual no puede ser negativa.';
     if (rate > this.maxAnnualRate) return 'La tasa anual no puede superar el 100 %.';
     return null;
   }

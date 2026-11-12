@@ -370,12 +370,12 @@ export class LoanCalculatorService {
   private getPaymentDate(month: number): string {
     const today = new Date();
 
+    // Ajusta fechas 29–31 al último día del mes destino, sin desbordar al siguiente.
+    const target = new Date(today.getFullYear(), today.getMonth() + month, 1);
+    const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
     const paymentDate = new Date(
-      today.getFullYear(),
-      today.getMonth() + month,
-      today.getDate()
+      target.getFullYear(), target.getMonth(), Math.min(today.getDate(), lastDay)
     );
-
     return paymentDate.toLocaleDateString('es-DO');
   }
 

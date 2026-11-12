@@ -8,6 +8,7 @@ import { RdCurrencyPipe } from '../../core/formatting/rd-currency';
 import { AuthService } from '../../core/services/auth';
 import { LoanApiService, PersistedLoanSimulation, toCreatePayload } from '../../core/services/loan-api';
 import { LoanCalculatorService } from '../../core/services/loan-calculator';
+import { ConfirmationService } from '../../core/services/confirmation';
 import { loanTypeLabel, simulationFingerprint, toAnonymousLoanRequest } from '../../core/services/cloud-simulation';
 
 type Filter = 'all' | 'favorites';
@@ -24,6 +25,7 @@ type Order = 'recent' | 'oldest' | 'amount' | 'rate';
 export class Simulations implements OnInit {
   private readonly api = inject(LoanApiService);
   private readonly loanCalculator = inject(LoanCalculatorService);
+  private readonly confirmation = inject(ConfirmationService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
@@ -168,9 +170,14 @@ export class Simulations implements OnInit {
     });
   }
 
-  delete(item: PersistedLoanSimulation): void {
-    if (this.busy() || typeof window === 'undefined' ||
-        !window.confirm(`¿Eliminar definitivamente “${item.name}” de tu cuenta?`)) return;
+  async delete(item: PersistedLoanSimulation): Promise<void> {
+    if (this.busy()) return;
+    const accepted = await this.confirmation.ask(
+      '¿Eliminar simulación?',
+      `“${item.name}” se eliminará definitivamente de tu cuenta.`,
+      'Eliminar'
+    );
+    if (!accepted || this.busy()) return;
     this.busy.set(item.id);
     this.error.set('');
     this.api.delete(item.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -216,7 +223,7 @@ export class Simulations implements OnInit {
 
   /** Importación voluntaria: no se sincroniza información local sin consentimiento explícito. */
   async importLocal(): Promise<void> {
-    if (this.busy() || typeof window === 'undefined') return;
+    if (this.busy()) return;
     const history = this.loanCalculator.getHistory();
     const known = new Set(this.items().map(simulationFingerprint));
     const pending = history.map(item => ({ request: item.request, payload: toCreatePayload(item.request) }))
@@ -228,7 +235,12 @@ export class Simulations implements OnInit {
       this.notice.set('No hay simulaciones locales nuevas para importar.');
       return;
     }
-    if (!window.confirm(`¿Importar ${unique.length} simulación(es) locales a tu cuenta? Solo se enviarán tipo, monto, tasa y plazo; nunca nombre, cédula ni fecha de nacimiento.`)) return;
+    const accepted = await this.confirmation.ask(
+      '¿Importar historial local?',
+      `Importar ${unique.length} simulación(es). Solo se enviarán tipo, monto, tasa y plazo; nunca datos personales opcionales.`,
+      'Importar'
+    );
+    if (!accepted || this.busy()) return;
 
     this.busy.set('import');
     this.notice.set('');

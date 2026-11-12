@@ -28,15 +28,20 @@ test.describe('UI refresh — resultados', () => {
     await page.route(`${API}/**`, route => route.abort('connectionrefused'));
   });
 
-  test('rechaza una tasa de 0 % con un error contextual y enfoca el campo', async ({ page }) => {
+  test('permite tasa de 0 % con cuota sin intereses', async ({ page }) => {
+    await simulate(page, '500000', '0');
+    await expect(page.locator('.payment-value')).toHaveText('RD$ 13,888.89');
+    await expect(page.locator('.summary-facts')).toContainText('RD$ 0.00');
+  });
+
+  test('rechaza tasa negativa con error y foco', async ({ page }) => {
     await page.goto('/calculator');
     await page.getByLabel('Monto solicitado').fill('500000');
     await page.getByLabel('Tipo de préstamo').selectOption('Personal');
-    await page.getByLabel('Tasa anual').fill('0');
+    await page.getByLabel('Tasa anual').fill('-1');
     await page.getByRole('button', { name: /^36 meses$/ }).click();
     await page.getByRole('button', { name: 'Calcular préstamo' }).click();
-
-    await expect(page.getByText('Indica una tasa anual mayor que 0 %.')).toBeVisible();
+    await expect(page.getByText('La tasa anual no puede ser negativa.')).toBeVisible();
     await expect(page.getByLabel('Tasa anual')).toBeFocused();
     await expect(page).toHaveURL(/\/calculator$/);
   });
@@ -129,6 +134,19 @@ test.describe('UI refresh — resultados', () => {
     await older.click();
     await expect(page.locator('.summary-facts')).toContainText('RD$ 300,000.00');
     await expect(page.getByRole('heading', { level: 1, name: 'Resumen del préstamo' })).toBeFocused();
+  });
+
+  test('SweetAlert2: cancelar o confirmar el borrado del historial', async ({ page }) => {
+    await simulate(page, '300000');
+    await simulate(page, '500000');
+    await expect(page.locator('.history-item')).toHaveCount(2);
+    await page.getByRole('button', { name: 'Limpiar todo' }).click();
+    await expect(page.getByRole('dialog', { name: '¿Eliminar todo el historial?' })).toBeVisible();
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.locator('.history-item')).toHaveCount(2);
+    await page.getByRole('button', { name: 'Limpiar todo' }).click();
+    await page.getByRole('button', { name: 'Eliminar todo' }).click();
+    await expect(page.locator('.history-item')).toHaveCount(0);
   });
 
   test('compartir: copia el resumen al portapapeles', async ({ page, context, browserName }) => {
