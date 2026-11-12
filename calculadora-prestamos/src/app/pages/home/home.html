@@ -1,174 +1,152 @@
 <main class="home-page" id="main-content">
-  <section class="home-hero" aria-labelledby="home-title">
+  <!-- Héroe -->
+  <section class="home-hero lc-on-dark" aria-labelledby="home-title">
     <div class="container hero-grid">
       <div class="hero-copy">
-        <span class="hero-eyebrow"><i class="bi bi-bank2" aria-hidden="true"></i> Finanzas claras para decisiones reales</span>
-        <img class="hero-logo" src="/assets/img/logo-loancalc-rd-900.webp" srcset="/assets/img/logo-loancalc-rd-480.webp 480w, /assets/img/logo-loancalc-rd-900.webp 900w" sizes="(max-width: 576px) 88vw, 450px" width="900" height="300" alt="LoanCalc RD" fetchpriority="high" />
+        <img class="hero-logo" src="/assets/img/logo-loancalc-rd-900.webp" srcset="/assets/img/logo-loancalc-rd-480.webp 480w, /assets/img/logo-loancalc-rd-900.webp 900w" sizes="(max-width: 576px) 72vw, 360px" width="900" height="300" alt="LoanCalc RD" fetchpriority="high" />
         <h1 id="home-title">Conoce el costo real de un préstamo antes de comprometerte.</h1>
-        <p>
-          Simula cuotas, intereses y amortización, compara escenarios y descubre cómo los abonos extraordinarios pueden reducir el costo total de tu financiamiento.
+        <p class="hero-lede">
+          Simula la cuota, los intereses y la amortización en pesos dominicanos. Compara escenarios y descubre cuánto puedes ahorrar con abonos extraordinarios.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-lg" routerLink="/calculator">
+          <a class="btn btn-light btn-lg hero-cta" routerLink="/calculator">
             <span>Comenzar simulación</span><i class="bi bi-arrow-right" aria-hidden="true"></i>
           </a>
-          <a class="btn btn-outline-light btn-lg" href="#features">
-            <i class="bi bi-grid" aria-hidden="true"></i><span>Ver herramientas</span>
-          </a>
+          <a class="btn btn-outline-light btn-lg" href="#como-funciona">Cómo funciona</a>
         </div>
-        <div class="hero-trust" aria-label="Beneficios principales">
-          <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Gratis</span>
-          <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Sin registro</span>
-          <span><i class="bi bi-check-circle-fill" aria-hidden="true"></i> En pesos dominicanos</span>
-        </div>
+        <ul class="hero-trust" aria-label="Beneficios principales">
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Gratis</li>
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Sin registro</li>
+          <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i> En pesos dominicanos</li>
+        </ul>
       </div>
 
-      <aside class="hero-preview" aria-label="Vista previa del análisis financiero">
-        <div class="preview-top">
-          <div><span>Ejemplo ilustrativo</span><strong>Préstamo personal</strong></div>
-          <i class="bi bi-shield-check" aria-hidden="true"></i>
+      <figure class="hero-preview" aria-labelledby="preview-caption">
+        <figcaption id="preview-caption" class="preview-tag"><i class="bi bi-eye" aria-hidden="true"></i> Ejemplo ilustrativo · no es una oferta</figcaption>
+        <div class="preview-payment">
+          <span>Cuota mensual estimada</span>
+          <strong>RD$ 18,076</strong>
+          <small>Préstamo personal de RD$ 500,000 · 18.00% anual · 36 meses</small>
         </div>
-        <div class="preview-amount"><small>Monto solicitado</small><strong>RD$ 500,000</strong></div>
-        <div class="preview-grid">
-          <div><span>Cuota estimada</span><strong>RD$ 18,076</strong></div>
-          <div><span>Tasa anual</span><strong>18.00%</strong></div>
-          <div><span>Plazo</span><strong>36 meses</strong></div>
-          <div><span>Total de intereses</span><strong>RD$ 150,743</strong></div>
-        </div>
-        <div class="preview-saving"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span><small>Con abonos extraordinarios</small><strong>puedes reducir intereses y plazo.</strong></span></div>
-      </aside>
+        <div class="preview-split" aria-hidden="true"><span class="split-principal"></span><span class="split-interest"></span></div>
+        <dl class="preview-legend">
+          <div><dt><span class="dot dot-principal" aria-hidden="true"></span>Capital</dt><dd>RD$ 500,000</dd></div>
+          <div><dt><span class="dot dot-interest" aria-hidden="true"></span>Intereses</dt><dd>RD$ 150,743</dd></div>
+        </dl>
+        <p class="preview-note"><i class="bi bi-piggy-bank" aria-hidden="true"></i> Con abonos extraordinarios puedes reducir intereses y plazo.</p>
+      </figure>
     </div>
   </section>
 
-  <section class="value-strip" aria-label="Capacidades principales">
-    <div class="container value-grid">
-      <article><i class="bi bi-calculator" aria-hidden="true"></i><div><strong>Simulación precisa</strong><span>Cuotas y amortización</span></div></article>
-      <article><i class="bi bi-bar-chart-line" aria-hidden="true"></i><div><strong>Análisis visual</strong><span>Capital, interés y balance</span></div></article>
-      <article><i class="bi bi-bank" aria-hidden="true"></i><div><strong>Comparación</strong><span>Escenarios por entidad</span></div></article>
-      <article><i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i><div><strong>Exportación</strong><span>PDF y Excel</span></div></article>
-    </div>
-  </section>
-
-  <section id="features" class="features-section" aria-labelledby="features-title">
+  <!-- Herramientas -->
+  <section id="features" class="home-section" aria-labelledby="features-title">
     <div class="container">
-      <div class="section-heading">
-        <span>Todo en un solo lugar</span>
-        <h2 id="features-title">Más que una calculadora de cuotas</h2>
-        <p>LoanCalc RD convierte una simulación básica en una lectura financiera completa y fácil de entender.</p>
-      </div>
+      <header class="section-heading">
+        <p class="lc-eyebrow">Más que una calculadora de cuotas</p>
+        <h2 id="features-title">Todo lo que necesitas para entender tu préstamo</h2>
+        <p>Cada simulación se convierte en una lectura financiera completa, organizada para que encuentres lo importante sin esfuerzo.</p>
+      </header>
 
-      <div class="feature-grid">
-        <article class="feature-card featured">
-          <div class="feature-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></div>
-          <span class="feature-label">Análisis</span>
-          <h3>Dashboard financiero</h3>
-          <p>Consulta costo financiero, relación interés/capital, métricas promedio y LoanCalc Score en una sola vista.</p>
+      <div class="bento">
+        <article class="lc-card tile tile-wide">
+          <div class="tile-copy">
+            <span class="tile-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+            <h3>Análisis financiero</h3>
+            <p>Interés sobre capital, promedios mensuales y anuales, composición del pago y evolución del balance. Incluye el LoanCalc Score, un indicador matemático interno (no un puntaje de crédito).</p>
+          </div>
+          <div class="tile-visual visual-score" aria-hidden="true">
+            <div class="mini-grade">B</div>
+            <div class="mini-scale"><span class="g"></span><span class="g"></span><span class="m is-on"></span><span class="h"></span><span class="h"></span></div>
+            <div class="mini-lines"><span></span><span></span><span></span></div>
+          </div>
         </article>
-        <article class="feature-card">
-          <div class="feature-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></div>
-          <span class="feature-label">Ahorro</span>
+
+        <article class="lc-card tile">
+          <span class="tile-icon tile-icon-teal"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span>
           <h3>Abonos extraordinarios</h3>
-          <p>Simula pagos adicionales para reducir plazo o cuota y visualiza cuánto interés puedes ahorrar.</p>
+          <p>Únicos, mensuales o anuales (cada 12 meses, ideal para el doble sueldo). Elige reducir el plazo o la cuota y compara el resultado con el préstamo original.</p>
+          <div class="tile-visual visual-track" aria-hidden="true"><span></span><span></span><span></span></div>
         </article>
-        <article class="feature-card">
-          <div class="feature-icon"><i class="bi bi-buildings" aria-hidden="true"></i></div>
-          <span class="feature-label">Comparación</span>
-          <h3>Escenarios por entidad</h3>
-          <p>Edita tasas y compara rápidamente cuotas, intereses y costo total entre varias alternativas.</p>
+
+        <article class="lc-card tile">
+          <span class="tile-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
+          <h3>Comparador de escenarios</h3>
+          <p>Cambia la tasa de varias entidades y compara cuota, intereses y costo total con el mismo monto y plazo.</p>
+          <div class="tile-visual visual-bars" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         </article>
-        <article class="feature-card">
-          <div class="feature-icon"><i class="bi bi-table" aria-hidden="true"></i></div>
-          <span class="feature-label">Detalle</span>
+
+        <article class="lc-card tile">
+          <span class="tile-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
           <h3>Tabla de amortización</h3>
-          <p>Revisa mes a mes cuánto pagas de capital, cuánto pagas de interés y cómo disminuye el balance.</p>
+          <p>Mes a mes: cuánto pagas de interés, cuánto de capital y cómo baja el balance. Sin resumir ninguna cuota.</p>
         </article>
-        <article class="feature-card">
-          <div class="feature-icon"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i></div>
-          <span class="feature-label">Reportes</span>
+
+        <article class="lc-card tile">
+          <span class="tile-icon"><i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i></span>
           <h3>PDF y Excel</h3>
-          <p>Exporta simulaciones y escenarios de abonos para analizarlos, compartirlos o conservarlos.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-icon"><i class="bi bi-universal-access" aria-hidden="true"></i></div>
-          <span class="feature-label">Experiencia</span>
-          <h3>Accesible y responsive</h3>
-          <p>Interfaz clara preparada para móvil, tableta y escritorio, con navegación por teclado y buenas prácticas de accesibilidad.</p>
+          <p>Exporta la simulación y los escenarios con abonos para analizarlos, compartirlos o conservarlos.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="how-section" aria-labelledby="how-title">
+  <!-- Cómo funciona -->
+  <section id="como-funciona" class="home-section how-section" aria-labelledby="how-title">
     <div class="container how-grid">
-      <div class="how-copy">
-        <span>Simple de usar</span>
+      <header class="section-heading">
+        <p class="lc-eyebrow">Simple de usar</p>
         <h2 id="how-title">Tres pasos para entender tu préstamo</h2>
-        <p>No necesitas conocimientos avanzados de finanzas. LoanCalc RD organiza los números y te muestra lo importante.</p>
-        <a class="text-link" routerLink="/calculator">Ir a la calculadora <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-      </div>
+        <p>No necesitas conocimientos avanzados de finanzas: LoanCalc RD organiza los números y te muestra lo importante.</p>
+        <a class="btn btn-primary btn-lg" routerLink="/calculator">Ir a la calculadora <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </header>
       <ol class="steps-list">
-        <li><span>01</span><div><strong>Introduce las condiciones</strong><p>Monto, tipo de préstamo, tasa anual y plazo.</p></div></li>
-        <li><span>02</span><div><strong>Genera la simulación</strong><p>Obtén cuota mensual, intereses, total y amortización.</p></div></li>
-        <li><span>03</span><div><strong>Compara y optimiza</strong><p>Prueba otras tasas o abonos adicionales antes de decidir.</p></div></li>
+        <li><span class="step-number" aria-hidden="true">1</span><div><h3>Introduce las condiciones</h3><p>Monto, tipo de préstamo, tasa anual y plazo.</p></div></li>
+        <li><span class="step-number" aria-hidden="true">2</span><div><h3>Revisa tu cuota</h3><p>Cuota mensual estimada, intereses totales, total a pagar y amortización.</p></div></li>
+        <li><span class="step-number" aria-hidden="true">3</span><div><h3>Compara y optimiza</h3><p>Prueba otras tasas o abonos extraordinarios antes de decidir.</p></div></li>
       </ol>
     </div>
   </section>
 
-  <section class="learn-section" aria-labelledby="learn-title">
+  <!-- Educación financiera -->
+  <section class="home-section learn-section" aria-labelledby="learn-title">
     <div class="container">
-      <div class="section-heading">
-        <span>Entiende los números</span>
-        <h2 id="learn-title">Cómo funciona LoanCalc RD</h2>
-        <p>Conceptos clave explicados de forma breve para que interpretes cada resultado con confianza.</p>
-      </div>
+      <header class="section-heading">
+        <p class="lc-eyebrow">Educación financiera</p>
+        <h2 id="learn-title">Entiende los números</h2>
+        <p>Dos conceptos clave para interpretar cada resultado con confianza.</p>
+      </header>
 
       <div class="learn-grid">
-        <article class="learn-card">
-          <div class="learn-icon"><i class="bi bi-calculator" aria-hidden="true"></i></div>
-          <h3>Cómo se calcula la cuota</h3>
+        <article class="lc-card learn-card">
+          <h3><i class="bi bi-calculator" aria-hidden="true"></i> Cómo se calcula la cuota</h3>
           <p>Usamos el <strong>método francés</strong>, un sistema de cuota fija muy utilizado en préstamos personales, de vehículo e hipotecarios: la cuota mensual es constante y, con el tiempo, una parte mayor se destina al capital.</p>
           <p class="formula" aria-label="Fórmula: cuota igual a monto por i, dividido entre uno menos uno más i elevado a menos n">Cuota = P · i ÷ (1 − (1 + i)<sup>−n</sup>)</p>
           <p class="learn-note"><strong>P</strong>: monto · <strong>i</strong>: tasa anual ÷ 12 · <strong>n</strong>: meses.</p>
         </article>
 
-        <article class="learn-card">
-          <div class="learn-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></div>
-          <h3>Abonos extraordinarios</h3>
-          <p>Son pagos adicionales al capital, únicos o mensuales. Puedes usarlos para <strong>reducir el plazo</strong> (mantienes la cuota y terminas antes) o para <strong>reducir la cuota</strong> (mantienes el plazo y pagas menos cada mes).</p>
-          <p class="learn-note">Consulta con tu entidad si aplica penalidades por pago anticipado.</p>
-        </article>
-
-        <article class="learn-card">
-          <div class="learn-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></div>
-          <h3>LoanCalc Score</h3>
+        <article class="lc-card learn-card">
+          <h3><i class="bi bi-speedometer2" aria-hidden="true"></i> LoanCalc Score</h3>
           <p>Una calificación de <strong>A+</strong> a <strong>D</strong> según la proporción de intereses sobre el capital: hasta 15 % es A+, hasta 25 % A, hasta 40 % B, hasta 60 % C y más de 60 % D.</p>
           <p class="learn-note">Es una referencia matemática para comparar escenarios, no una evaluación crediticia ni una recomendación personalizada.</p>
         </article>
-
-        <article class="learn-card">
-          <div class="learn-icon"><i class="bi bi-buildings" aria-hidden="true"></i></div>
-          <h3>Comparar escenarios</h3>
-          <p>En los resultados puedes cambiar la tasa de varias entidades y ver lado a lado la cuota, el interés total y el costo final con el mismo monto y plazo.</p>
-          <p class="learn-note">Así identificas cuánto representa cada punto porcentual en tu caso.</p>
-        </article>
       </div>
+
+      <p class="learn-more"><a routerLink="/guide">Leer la guía financiera completa <i class="bi bi-arrow-right" aria-hidden="true"></i></a></p>
     </div>
   </section>
 
-  <section class="container text-center py-4" aria-label="Educación financiera">
-    <a class="text-link" routerLink="/guide">Leer la guía financiera completa <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-  </section>
-
-  <section class="access-section" aria-labelledby="access-title">
+  <!-- Privacidad y acceso -->
+  <section class="home-section privacy-section" aria-labelledby="privacy-title">
     <div class="container">
-      <div class="section-heading">
-        <span>Acceso</span>
-        <h2 id="access-title">Gratis y sin registro</h2>
-        <p>Todas las herramientas de simulación funcionan sin cuenta. La cuenta solo protege funciones privadas.</p>
-      </div>
-      <div class="access-grid">
-        <article class="access-card">
-          <h3><i class="bi bi-unlock" aria-hidden="true"></i> Sin cuenta</h3>
+      <div class="privacy-panel">
+        <div class="privacy-copy">
+          <span class="privacy-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+          <p class="lc-eyebrow">Privacidad por diseño</p>
+          <h2 id="privacy-title">Tus simulaciones permanecen en tu dispositivo.</h2>
+          <p>La calculadora procesa la información en tu navegador. Nombre y cédula son opcionales y solo se usan para personalizar tus reportes. LoanCalc RD ofrece simulaciones matemáticas, no asesoría financiera.</p>
+        </div>
+        <div class="access-list">
+          <h3 id="access-title"><i class="bi bi-unlock" aria-hidden="true"></i> Gratis y sin registro</h3>
           <ul>
             <li>Simulación de cuotas y tabla de amortización</li>
             <li>Abonos extraordinarios y estrategias</li>
@@ -176,31 +154,22 @@
             <li>Exportación a PDF y Excel</li>
             <li>Historial guardado solo en tu dispositivo</li>
           </ul>
-        </article>
-        <article class="access-card account">
-          <h3><i class="bi bi-person-lock" aria-hidden="true"></i> Con cuenta <small>en preparación</small></h3>
-          <ul>
-            <li>Acceso protegido con correo verificado</li>
-            <li>Sesiones seguras que puedes cerrar en todos tus dispositivos</li>
-            <li>Simulaciones privadas guardadas en la nube (próxima fase)</li>
-          </ul>
-          <p class="learn-note">No pedimos cédula ni datos personales para crear una cuenta.</p>
-        </article>
+          <p class="access-note"><i class="bi bi-person-lock" aria-hidden="true"></i><span>Cuentas <em>en preparación</em>: protegerán simulaciones privadas con correo verificado y nunca pedirán cédula.</span></p>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="privacy-section" aria-labelledby="privacy-title">
-    <div class="container privacy-card">
-      <div class="privacy-icon"><i class="bi bi-lock" aria-hidden="true"></i></div>
-      <div><span>Privacidad por diseño</span><h2 id="privacy-title">Tus simulaciones permanecen en tu dispositivo.</h2><p>La calculadora procesa la información en tu navegador. Nombre y cédula son opcionales y solo se usan para personalizar tus reportes. LoanCalc RD ofrece simulaciones matemáticas, no asesoría financiera.</p></div>
-    </div>
-  </section>
-
+  <!-- Llamada final -->
   <section class="cta-section" aria-labelledby="cta-title">
-    <div class="container cta-card">
-      <div><span>Empieza ahora</span><h2 id="cta-title">Una mejor decisión financiera comienza con mejores números.</h2><p>Simula tu próximo préstamo y analiza el impacto antes de firmar.</p></div>
-      <a class="btn btn-light btn-lg" routerLink="/calculator">Calcular préstamo <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    <div class="container">
+      <div class="cta-card lc-on-dark">
+        <div>
+          <h2 id="cta-title">Una mejor decisión financiera comienza con mejores números.</h2>
+          <p>Simula tu próximo préstamo y analiza el impacto antes de firmar.</p>
+        </div>
+        <a class="btn btn-light btn-lg" routerLink="/calculator">Calcular préstamo <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </div>
     </div>
   </section>
 </main>
