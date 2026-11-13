@@ -1,0 +1,25 @@
+name: LoanCalcRD Angular Native M0
+on:
+  pull_request:
+    paths: ['mobile/**', '.github/workflows/mobile-m0.yml']
+  push:
+    branches: [master]
+    paths: ['mobile/**', '.github/workflows/mobile-m0.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run export

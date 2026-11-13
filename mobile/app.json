@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "LoanCalcRD Mobile",
+    "slug": "loancalcrd-mobile",
+    "version": "0.1.0",
+    "platforms": [
+      "android",
+      "ios"
+    ],
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "loancalcrd",
+    "android": {
+      "package": "com.jairomatias.loancalcrdmobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b2144"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "plugins": [
+      "@ng-native/metro"
+    ]
+  }
+}
