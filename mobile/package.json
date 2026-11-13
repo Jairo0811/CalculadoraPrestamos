@@ -1,0 +1,48 @@
+{
+  "name": "loancalcrd-mobile",
+  "version": "0.1.0",
+  "description": "LoanCalcRD Mobile experimental Angular Native M0",
+  "license": "MIT",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "node -e \"console.error('This app targets iOS and Android: use npm start, npm run ios or npm run android. To render it in a browser, see https://ng-native.com/packages/web#beside-a-native-app'); process.exit(1)\"",
+    "typecheck": "node metro.config.js && ngc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "export": "expo export --platform android --output-dir dist"
+  },
+  "dependencies": {
+    "@ng-native/components": "0.22.2",
+    "@ng-native/device": "0.22.2",
+    "@ng-native/fabric": "0.22.2",
+    "@ng-native/metro": "0.22.2",
+    "@ng-native/platform": "0.22.2",
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "expo": "~58.0.16",
+    "expo-status-bar": "~58.0.3",
+    "expo-system-ui": "~58.0.6",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1"
+  },
+  "devDependencies": {
+    "@angular/compiler-cli": "^22.0.0",
+    "@babel/core": "^7.29.7",
+    "@ng-native/testing": "0.22.2",
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ng-native/ng-native.git",
+    "directory": "template"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.22.3"
+  }
+}
